@@ -1,0 +1,13 @@
+server:
+  port: ${AUTH-PORT:33001}
+
+spring:
+  application:
+    name: AUTH-SERVICE
+  main:
+    banner-mode: off
+    allow-bean-definition-overriding: true
+  jackson:
+    default-property-inclusion: non_null
+  config:
+    import: classpath:db-config.yaml, security-config.yaml

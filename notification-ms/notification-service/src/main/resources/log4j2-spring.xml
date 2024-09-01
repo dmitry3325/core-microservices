@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="appender">${env:LOG_LAYOUT:-CONSOLE_APPENDER}</Property>
+        <Property name="appLogLvl">${env:APP_LOG_LEVEL:-INFO}</Property>
+        <Property name="springLogLvl">${env:SPRING_LOG_LEVEL:-ERROR}</Property>
+
+        <Property name="appName">${spring:spring.application.name}</Property>
+        <Property name="userId">$${ctx:userId}</Property>
+        <Property name="requestId">$${ctx:requestId}</Property>
+        <Property name="correlationId">$${ctx:correlationId}</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="CONSOLE_APPENDER" target="SYSTEM_OUT">
+            <PatternLayout pattern="%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{red} %clr{[%t]}{yellow} %highlight{%-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=white, DEBUG=blue} %clr{%logger{12}:%L}{blue} - %msg%n" />
+        </Console>
+
+        <Console name="JSON_APPENDER" target="SYSTEM_OUT">
+            <JsonLayout compact="true" eventEol="true" properties="true">
+                <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd HH:mm:ss.SSS}" />
+                <KeyValuePair key="thread" value="$${threadName}" />
+                <KeyValuePair key="level" value="$${level}" />
+                <KeyValuePair key="logger" value="$${logger:short}" />
+                <KeyValuePair key="message" value="$${message}" />
+            </JsonLayout>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="WARN">
+            <AppenderRef ref="${appender}"/>
+        </Root>
+        <Logger name="com.corems" level="${appLogLvl}" additivity="false">
+            <AppenderRef ref="${appender}" />
+        </Logger>
+        <Logger name="org.springframework" level="${springLogLvl}" additivity="false">
+            <AppenderRef ref="${appender}" />
+        </Logger>
+    </Loggers>
+</Configuration>
