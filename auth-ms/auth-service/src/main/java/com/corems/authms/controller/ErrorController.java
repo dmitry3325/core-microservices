@@ -1,7 +1,7 @@
 package com.corems.authms.controller;
 
-import com.corems.authms.controller.model.exception.AuthExceptionReasonCodes;
-import com.corems.authms.controller.model.exception.AuthServiceException;
+import com.corems.authms.model.exception.AuthExceptionReasonCodes;
+import com.corems.authms.model.exception.AuthServiceException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

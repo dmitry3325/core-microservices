@@ -1,4 +1,4 @@
-package com.corems.authms.controller.model.exception;
+package com.corems.authms.model.exception;
 
 import com.corems.common.error.handler.handler.ExceptionReasonCodes;
 import lombok.Getter;

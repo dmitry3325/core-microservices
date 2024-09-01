@@ -1,6 +1,6 @@
 package com.corems.authms.entity;
 
-import com.corems.authms.controller.model.enums.AuthProvider;
+import com.corems.authms.model.enums.AuthProvider;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,4 +1,4 @@
-package com.corems.authms.controller.model.enums;
+package com.corems.authms.model.enums;
 
 public enum AuthProvider {
     email,

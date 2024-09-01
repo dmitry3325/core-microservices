@@ -1,6 +1,6 @@
 package com.corems.authms.security.oauth2;
 
-import com.corems.authms.controller.model.enums.Role;
+import com.corems.authms.model.enums.Role;
 import com.corems.authms.security.TokenProvider;
 import com.corems.authms.security.UserPrincipal;
 import com.corems.authms.util.CookieUtils;

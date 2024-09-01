@@ -1,8 +1,8 @@
 package com.corems.authms.security.oauth2.user;
 
-import com.corems.authms.controller.model.exception.AuthExceptionReasonCodes;
-import com.corems.authms.controller.model.exception.AuthServiceException;
-import com.corems.authms.controller.model.enums.AuthProvider;
+import com.corems.authms.model.exception.AuthExceptionReasonCodes;
+import com.corems.authms.model.exception.AuthServiceException;
+import com.corems.authms.model.enums.AuthProvider;
 
 import java.util.Map;
 

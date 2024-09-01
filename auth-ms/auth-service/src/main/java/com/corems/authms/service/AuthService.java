@@ -5,10 +5,10 @@ import com.corems.authms.model.AccessTokenResponse;
 import com.corems.authms.model.LoginRequest;
 import com.corems.authms.model.RegisterNewUserRequest;
 import com.corems.authms.model.SuccessfulResponse;
-import com.corems.authms.controller.model.enums.AuthProvider;
-import com.corems.authms.controller.model.enums.Role;
-import com.corems.authms.controller.model.exception.AuthExceptionReasonCodes;
-import com.corems.authms.controller.model.exception.AuthServiceException;
+import com.corems.authms.model.enums.AuthProvider;
+import com.corems.authms.model.enums.Role;
+import com.corems.authms.model.exception.AuthExceptionReasonCodes;
+import com.corems.authms.model.exception.AuthServiceException;
 
 import com.corems.authms.repository.UserRepository;
 import com.corems.authms.security.TokenProvider;

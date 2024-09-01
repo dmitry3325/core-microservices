@@ -1,9 +1,9 @@
 package com.corems.authms.security.oauth2;
 
 import com.corems.authms.entity.User;
-import com.corems.authms.controller.model.exception.AuthExceptionReasonCodes;
-import com.corems.authms.controller.model.exception.AuthServiceException;
-import com.corems.authms.controller.model.enums.AuthProvider;
+import com.corems.authms.model.exception.AuthExceptionReasonCodes;
+import com.corems.authms.model.exception.AuthServiceException;
+import com.corems.authms.model.enums.AuthProvider;
 import com.corems.authms.repository.UserRepository;
 import com.corems.authms.security.UserPrincipal;
 import com.corems.authms.security.oauth2.user.OAuth2UserInfo;

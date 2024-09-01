@@ -1,7 +1,7 @@
 package com.corems.authms.service;
 
-import com.corems.authms.controller.model.exception.AuthExceptionReasonCodes;
-import com.corems.authms.controller.model.exception.AuthServiceException;
+import com.corems.authms.model.exception.AuthExceptionReasonCodes;
+import com.corems.authms.model.exception.AuthServiceException;
 import com.corems.authms.entity.User;
 import com.corems.authms.model.UserInfo;
 import com.corems.authms.repository.UserRepository;
