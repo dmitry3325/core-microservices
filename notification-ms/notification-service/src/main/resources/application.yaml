@@ -1,5 +1,5 @@
 server:
-  port: ${NS-PORT:33000}
+  port: ${NS-PORT:3001}
 
 spring:
   application:

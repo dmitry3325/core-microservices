@@ -29,7 +29,7 @@
 
     <modules>
         <module>common</module>
-        <module>auth-ms</module>
+        <module>user-ms</module>
         <module>notification-ms</module>
     </modules>
 

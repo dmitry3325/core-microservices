@@ -1,0 +1,21 @@
+spring:
+  security:
+    cors:
+      allowedOrigins: http://localhost:3000, http://localhost:8080
+    jwt:
+      secretKey: ${AUTH_TOKEN_SECRET} # secret key for signing JWT, define it in your environment variables
+      refreshExpirationTimeInMS: 86400000 # a day
+      accessExpirationTimeInMS: 600000 # 10 minutes
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: ${GOOGLE_CLIENT_ID}
+            clientSecret: ${GOOGLE_CLIENT_SECRET}
+            redirectUri: '{baseUrl}/oauth2/callback/{registrationId}'
+            scope: email, profile
+          github:
+            clientId: ${GITHUB_CLIENT_ID}
+            clientSecret: ${GITHUB_CLIENT_SECRET}
+            redirectUri: '{baseUrl}/oauth2/callback/{registrationId}'
+            scope: user:email, read:user
