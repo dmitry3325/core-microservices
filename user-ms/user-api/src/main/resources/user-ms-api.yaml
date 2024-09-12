@@ -143,9 +143,6 @@ components:
         password:
           type: string
           description: The user's password
-          minLength: 8
-          maxLength: 128
-          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$'
           example: StrongPass1!
 
     RegisterNewUserRequest:

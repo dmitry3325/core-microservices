@@ -36,10 +36,10 @@ public class AuthService {
     public TokenResponse login(LoginRequest loginRequest) {
         User user = userRepository
                 .findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, "Email not registered yet."));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password."));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw  new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Password is incorrect.");
+            throw  new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password.");
         }
 
         if (user.getProvider() != AuthProvider.email) {
