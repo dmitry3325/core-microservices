@@ -2,8 +2,8 @@ package com.corems.userms.controller;
 
 import com.corems.userms.api.AuthenticationApi;
 import com.corems.userms.model.AccessTokenResponse;
-import com.corems.userms.model.LoginRequest;
-import com.corems.userms.model.RegisterNewUserRequest;
+import com.corems.userms.model.SignInRequest;
+import com.corems.userms.model.SignUpRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.TokenResponse;
 import com.corems.userms.service.AuthService;
@@ -20,18 +20,18 @@ public class AuthController implements AuthenticationApi {
     private final AuthService authService;
 
     @Override
-    public ResponseEntity<TokenResponse> login(LoginRequest loginRequest) {
-        return ResponseEntity.ok(authService.login(loginRequest));
+    public ResponseEntity<TokenResponse> signIn(SignInRequest loginRequest) {
+        return ResponseEntity.ok(authService.signIn(loginRequest));
+    }
+
+    @Override
+    public ResponseEntity<SuccessfulResponse> signUp(SignUpRequest signUpRequest) {
+        return ResponseEntity.ok(authService.signUp(signUpRequest));
     }
 
     @Override
     public ResponseEntity<AccessTokenResponse> refreshToken() {
         return ResponseEntity.ok(authService.refreshToken());
-    }
-
-    @Override
-    public ResponseEntity<SuccessfulResponse> registerUser(RegisterNewUserRequest registerNewUserRequest) {
-        return ResponseEntity.ok(authService.registerNewUser(registerNewUserRequest));
     }
 
 }

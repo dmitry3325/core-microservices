@@ -2,8 +2,8 @@ package com.corems.userms.service;
 
 import com.corems.userms.entity.User;
 import com.corems.userms.model.AccessTokenResponse;
-import com.corems.userms.model.LoginRequest;
-import com.corems.userms.model.RegisterNewUserRequest;
+import com.corems.userms.model.SignInRequest;
+import com.corems.userms.model.SignUpRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.TokenResponse;
 import com.corems.userms.model.enums.AuthProvider;
@@ -33,12 +33,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
 
-    public TokenResponse login(LoginRequest loginRequest) {
+    public TokenResponse signIn(SignInRequest signRequest) {
         User user = userRepository
-                .findByEmail(loginRequest.getEmail())
+                .findByEmail(signRequest.getEmail())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password."));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(signRequest.getPassword(), user.getPassword())) {
             throw  new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password.");
         }
 
@@ -71,25 +71,25 @@ public class AuthService {
         return new AccessTokenResponse().accessToken(token);
     }
 
-    public SuccessfulResponse registerNewUser(RegisterNewUserRequest newUserRequest) {
-        if (!Objects.equals(newUserRequest.getPassword(), newUserRequest.getConfirmPassword())) {
+    public SuccessfulResponse signUp(SignUpRequest signUpRequest) {
+        if (!Objects.equals(signUpRequest.getPassword(), signUpRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Sorry, confirm password value is not valid.");
         }
 
-        if (userRepository.findByEmail(newUserRequest.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(signUpRequest.getEmail()).isPresent()) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_EXISTS, "User found in the system");
         }
 
         User.UserBuilder userBuilder = User.builder()
-                .email(newUserRequest.getEmail())
-                .firstName(newUserRequest.getFirstName())
-                .lastName(newUserRequest.getLastName())
+                .email(signUpRequest.getEmail())
+                .firstName(signUpRequest.getFirstName())
+                .lastName(signUpRequest.getLastName())
                 .provider(AuthProvider.email)
-                .password(passwordEncoder.encode(newUserRequest.getPassword()));
+                .password(passwordEncoder.encode(signUpRequest.getPassword()));
 
 
-        if (newUserRequest.getImageUrl() != null) {
-            userBuilder.imageUrl(newUserRequest.getImageUrl().toString());
+        if (signUpRequest.getImageUrl() != null) {
+            userBuilder.imageUrl(signUpRequest.getImageUrl().toString());
         }
 
         System.out.println(userBuilder.build());

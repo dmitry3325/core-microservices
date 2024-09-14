@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,13 +21,15 @@ import java.util.List;
 public class ErrorResponse {
 
     @JsonProperty(required = true)
-    private Errors errors = new Errors();
+    private List<Error> errors = new ArrayList<>();
 
     public static ErrorResponse of(Error error) {
-        return new ErrorResponse(Errors.of(error));
+        List<Error> errors = new ArrayList<>();
+        errors.add(error);
+        return new ErrorResponse(errors);
     }
 
     public static ErrorResponse of(List<Error> errors) {
-        return new ErrorResponse(Errors.of(errors));
+        return new ErrorResponse(errors);
     }
 }
