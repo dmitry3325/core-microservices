@@ -1,18 +1,18 @@
-package com.corems.userms.security.oauth2.user;
+package com.corems.userms.security.oauth2.provider;
 
 import java.util.Map;
 
-public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
-
-    public GoogleOAuth2UserInfo(Map<String, Object> attributes) {
+public class GithubOAuth2UserInfo extends OAuth2UserInfo {
+    public GithubOAuth2UserInfo(Map<String, Object> attributes) {
         super(attributes);
     }
 
     @Override
     public String getId() {
-        return (String) attributes.get("sub");
+        return ((Integer) attributes.get("id")).toString();
     }
 
+    //TODO fix attributes.get
     @Override
     public String getFullName() {
         return (String) attributes.get("name");
@@ -20,11 +20,12 @@ public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
 
     @Override
     public String getFirstName() {
-        return (String) attributes.get("given_name");
+        return (String) attributes.get("name");
     }
 
+    @Override
     public String getLastName() {
-        return (String) attributes.get("family_name");
+        return (String) attributes.get("name");
     }
 
     @Override
@@ -34,6 +35,6 @@ public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
 
     @Override
     public String getImageUrl() {
-        return (String) attributes.get("picture");
+        return (String) attributes.get("avatar_url");
     }
 }

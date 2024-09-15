@@ -1,10 +1,10 @@
-package com.corems.userms.security.oauth2.user;
+package com.corems.userms.security.oauth2.provider;
 
 import java.util.Map;
 
-public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
+public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
 
-    public LinkedinOAuth2UserInfo(Map<String, Object> attributes) {
+    public GoogleOAuth2UserInfo(Map<String, Object> attributes) {
         super(attributes);
     }
 
@@ -13,7 +13,6 @@ public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
         return (String) attributes.get("sub");
     }
 
-    //TODO fix attributes.get
     @Override
     public String getFullName() {
         return (String) attributes.get("name");
@@ -21,12 +20,11 @@ public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
 
     @Override
     public String getFirstName() {
-        return (String) attributes.get("name");
+        return (String) attributes.get("given_name");
     }
 
-    @Override
     public String getLastName() {
-        return (String) attributes.get("name");
+        return (String) attributes.get("family_name");
     }
 
     @Override

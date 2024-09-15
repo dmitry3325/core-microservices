@@ -41,8 +41,8 @@ public class SecurityConfig {
     private final static String OAUTH2_REDIRECTION_ENDPOINT = "/oauth2/callback/*";
     private final static String[] WHITE_LIST_URLS = {
             "/actuator/health",
-            "/api/auth/login",
-            "/api/auth/register",
+            "/api/auth/signin",
+            "/api/auth/signup",
             "/oauth2/**",
             "/unauthorized"
     };

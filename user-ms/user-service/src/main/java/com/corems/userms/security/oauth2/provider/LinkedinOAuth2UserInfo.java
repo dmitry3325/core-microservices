@@ -1,15 +1,16 @@
-package com.corems.userms.security.oauth2.user;
+package com.corems.userms.security.oauth2.provider;
 
 import java.util.Map;
 
-public class GithubOAuth2UserInfo extends OAuth2UserInfo {
-    public GithubOAuth2UserInfo(Map<String, Object> attributes) {
+public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
+
+    public LinkedinOAuth2UserInfo(Map<String, Object> attributes) {
         super(attributes);
     }
 
     @Override
     public String getId() {
-        return ((Integer) attributes.get("id")).toString();
+        return (String) attributes.get("sub");
     }
 
     //TODO fix attributes.get
@@ -35,6 +36,6 @@ public class GithubOAuth2UserInfo extends OAuth2UserInfo {
 
     @Override
     public String getImageUrl() {
-        return (String) attributes.get("avatar_url");
+        return (String) attributes.get("picture");
     }
 }

@@ -15,7 +15,7 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Login to with email and password
+      summary: Sign in with email and password
       operationId: signIn
       requestBody:
         required: true
@@ -75,7 +75,7 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Sign Up with email and password
+      summary: Sign up with email and password
       operationId: signUp
       requestBody:
         required: true
@@ -166,7 +166,8 @@ components:
           description: The user's password
           minLength: 8
           maxLength: 128
-          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$'
+          # enable the following pattern to enforce password complexity
+          # pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$'
           format: password
           example: StrongPass1!
         confirmPassword:

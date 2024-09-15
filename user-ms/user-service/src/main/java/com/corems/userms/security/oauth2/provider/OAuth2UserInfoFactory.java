@@ -1,4 +1,4 @@
-package com.corems.userms.security.oauth2.user;
+package com.corems.userms.security.oauth2.provider;
 
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;

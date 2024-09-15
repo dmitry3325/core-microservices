@@ -1,4 +1,4 @@
-package com.corems.userms.security.oauth2.user;
+package com.corems.userms.security.oauth2.provider;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
