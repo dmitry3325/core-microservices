@@ -1,8 +1,7 @@
-package com.corems.common.error.handler.handler;
+package com.corems.common.service.exception.handler;
 
-import com.corems.common.error.handler.exceptions.ServiceException;
-import com.corems.common.error.handler.exceptions.StateConflictException;
-import com.corems.common.error.handler.models.Error;
+import com.corems.common.service.exception.ServiceException;
+import com.corems.common.service.exception.model.Error;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.validation.ConstraintViolationException;
@@ -52,11 +51,6 @@ public class DefaultErrorConverter implements ErrorConverter {
     @Override
     public Error getErrorsFromRuntimeException(RuntimeException ex, WebRequest request) {
         return Error.of(DefaultExceptionReasonCodes.SERVER_ERROR.getErrorCode(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-    }
-
-    @Override
-    public List<Error> getErrorsFromStateConflictException(StateConflictException ex, WebRequest request) {
-        return ex.getErrors();
     }
 
     @Override

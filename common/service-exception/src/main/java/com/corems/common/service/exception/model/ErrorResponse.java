@@ -1,4 +1,4 @@
-package com.corems.common.error.handler.models;
+package com.corems.common.service.exception.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

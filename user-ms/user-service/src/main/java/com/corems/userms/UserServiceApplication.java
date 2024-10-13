@@ -1,6 +1,6 @@
 package com.corems.userms;
 
-import com.corems.common.error.handler.config.EnableCommonErrorHandling;
+import com.corems.common.service.exception.config.EnableCommonErrorHandling;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;

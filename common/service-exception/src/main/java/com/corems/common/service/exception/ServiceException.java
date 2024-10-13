@@ -1,8 +1,8 @@
-package com.corems.common.error.handler.exceptions;
+package com.corems.common.service.exception;
 
-import com.corems.common.error.handler.handler.DefaultExceptionReasonCodes;
-import com.corems.common.error.handler.models.Error;
-import com.corems.common.error.handler.handler.ExceptionReasonCodes;
+import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.service.exception.model.Error;
+import com.corems.common.service.exception.handler.ExceptionReasonCodes;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
 

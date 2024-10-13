@@ -1,4 +1,4 @@
-package com.corems.common.error.handler.config;
+package com.corems.common.service.exception.config;
 
 import org.springframework.context.annotation.Import;
 

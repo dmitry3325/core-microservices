@@ -1,6 +1,6 @@
 package com.corems.userms.model.exception;
 
-import com.corems.common.error.handler.handler.ExceptionReasonCodes;
+import com.corems.common.service.exception.handler.ExceptionReasonCodes;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;

@@ -1,8 +1,7 @@
-package com.corems.common.error.handler.handler;
+package com.corems.common.service.exception.handler;
 
-import com.corems.common.error.handler.models.Error;
-import com.corems.common.error.handler.exceptions.ServiceException;
-import com.corems.common.error.handler.exceptions.StateConflictException;
+import com.corems.common.service.exception.model.Error;
+import com.corems.common.service.exception.ServiceException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
@@ -25,8 +24,6 @@ public interface ErrorConverter {
     List<Error> getErrorsFromServiceException(ServiceException ex, WebRequest request);
 
     Error getErrorsFromRuntimeException(RuntimeException ex, WebRequest request);
-
-    List<Error> getErrorsFromStateConflictException(StateConflictException ex, WebRequest request);
 
     Error getErrorsFromMissingRequestHeaderException(MissingRequestHeaderException ex, WebRequest request);
 

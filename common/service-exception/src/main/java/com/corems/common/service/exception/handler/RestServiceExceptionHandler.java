@@ -1,9 +1,8 @@
-package com.corems.common.error.handler.handler;
+package com.corems.common.service.exception.handler;
 
-import com.corems.common.error.handler.exceptions.ServiceException;
-import com.corems.common.error.handler.exceptions.StateConflictException;
-import com.corems.common.error.handler.models.Error;
-import com.corems.common.error.handler.models.ErrorResponse;
+import com.corems.common.service.exception.ServiceException;
+import com.corems.common.service.exception.model.Error;
+import com.corems.common.service.exception.model.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,13 +42,6 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
         return handleExceptionInternal(ex,
                 ErrorResponse.of(errorConverter.getErrorsFromRuntimeException(ex, request)),
                 errorConverter.buildHttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
-    }
-
-    @ExceptionHandler({StateConflictException.class})
-    protected ResponseEntity<Object> handleConflict(StateConflictException ex, WebRequest request) {
-        return handleExceptionInternal(ex,
-                ErrorResponse.of(errorConverter.getErrorsFromStateConflictException(ex, request)),
-                errorConverter.buildHttpHeaders(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

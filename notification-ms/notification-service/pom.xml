@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>com.corems.common</groupId>
-            <artifactId>error-handler</artifactId>
+            <artifactId>service-exception</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

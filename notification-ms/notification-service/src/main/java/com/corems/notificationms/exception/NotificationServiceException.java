@@ -1,6 +1,6 @@
 package com.corems.notificationms.exception;
 
-import com.corems.common.error.handler.exceptions.ServiceException;
+import com.corems.common.service.exception.ServiceException;
 
 public class NotificationServiceException extends ServiceException {
     public NotificationServiceException(String message) {

@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>error-handler</module>
+        <module>service-exception</module>
         <module>security</module>
     </modules>
 

@@ -1,10 +1,10 @@
-package com.corems.common.error.handler.config;
+package com.corems.common.service.exception.config;
 
-import com.corems.common.error.handler.handler.DefaultErrorComparator;
-import com.corems.common.error.handler.handler.DefaultErrorConverter;
-import com.corems.common.error.handler.handler.ErrorConverter;
-import com.corems.common.error.handler.handler.RestServiceExceptionHandler;
-import com.corems.common.error.handler.models.Error;
+import com.corems.common.service.exception.handler.DefaultErrorComparator;
+import com.corems.common.service.exception.handler.DefaultErrorConverter;
+import com.corems.common.service.exception.handler.ErrorConverter;
+import com.corems.common.service.exception.handler.RestServiceExceptionHandler;
+import com.corems.common.service.exception.model.Error;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;

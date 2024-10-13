@@ -1,4 +1,4 @@
-package com.corems.common.error.handler.handler;
+package com.corems.common.service.exception.handler;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

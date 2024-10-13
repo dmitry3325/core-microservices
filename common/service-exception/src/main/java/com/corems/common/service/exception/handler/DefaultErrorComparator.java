@@ -1,6 +1,6 @@
-package com.corems.common.error.handler.handler;
+package com.corems.common.service.exception.handler;
 
-import com.corems.common.error.handler.models.Error;
+import com.corems.common.service.exception.model.Error;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import java.util.Comparator;
