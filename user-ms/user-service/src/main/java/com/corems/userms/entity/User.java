@@ -5,9 +5,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,9 @@ import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -31,6 +36,7 @@ import java.time.OffsetDateTime;
 public class User {
 
     public User() {
+        this.uuid = UUID.randomUUID().toString();
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
         this.lastLogin = OffsetDateTime.now();
@@ -43,6 +49,7 @@ public class User {
     private static class CustomUserBuilder extends UserBuilder {
         @Override
         public User build() {
+            this.uuid(UUID.randomUUID().toString());
             this.createdAt(OffsetDateTime.now());
             this.updatedAt(OffsetDateTime.now());
             this.lastLogin(OffsetDateTime.now());
@@ -50,11 +57,15 @@ public class User {
         }
     }
 
-
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(unique = true)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private Collection<LoginToken> tokens = new ArrayList<>();
 
     @NotNull
     @Enumerated(EnumType.STRING)

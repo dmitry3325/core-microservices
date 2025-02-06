@@ -42,22 +42,19 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        try {
-            String jwt = getJWTFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
-                String userId = tokenProvider.getClaim(jwt, Claims::getSubject);
-                UserDetails userDetails = userDetailsService.loadUserById(userId);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception ex) {
-            log.error("Could not set user authentication in security context.", ex);
+        String jwt = getJWTFromRequest(request);
+
+        if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
+            Claims claims = tokenProvider.getAllClaims(jwt);
+            UserDetails userDetails = userDetailsService.loadUserById(claims.getSubject(), claims.get(TokenProvider.CLAIM_TOKEN_ID, String.class));
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

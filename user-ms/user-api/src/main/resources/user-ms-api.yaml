@@ -7,9 +7,11 @@ info:
     
     Authentication service provides oauth2 authentication/registration via popular providers +  JWT Authentication with user login password.
   version: 1.0.0
+
 tags:
   - name: Authentication
   - name: User
+
 paths:
   /api/auth/signin:
     post:
@@ -31,6 +33,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+
+  /api/user/signout:
+    post:
+      tags:
+        - Authentication
+      summary: Sign out
+      operationId: signOut
+
+      responses:
+        '200':
+          description: Sign Up successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulResponse'
+
         '400':
           description: Bad Request
           content:
@@ -191,7 +221,7 @@ components:
     UserInfo:
       type: object
       properties:
-        id:
+        userId:
           type: string
           description: The user's ID
           example: 2a3e0b5c-2192-4612-9e02-693989dbb7e5

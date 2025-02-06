@@ -12,6 +12,8 @@ public enum DefaultExceptionReasonCodes implements ExceptionReasonCodes {
 
     SERVER_ERROR("server.error", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error. We will fix it as soon as possible. Try later."),
 
+    UNAUTHORIZED("user.unauthorized", HttpStatus.UNAUTHORIZED, "User is unauthorized"),
+
     INVALID_REQUEST("invalid.request", HttpStatus.BAD_REQUEST, "Invalid request"),
     INVALID_INPUT_DATA("invalid.data", HttpStatus.BAD_REQUEST, "Invalid input data"),
 

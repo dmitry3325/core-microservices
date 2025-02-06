@@ -25,6 +25,11 @@ public class AuthController implements AuthenticationApi {
     }
 
     @Override
+    public ResponseEntity<SuccessfulResponse> signOut() {
+        return ResponseEntity.ok(authService.signOut());
+    }
+
+    @Override
     public ResponseEntity<SuccessfulResponse> signUp(SignUpRequest signUpRequest) {
         return ResponseEntity.ok(authService.signUp(signUpRequest));
     }

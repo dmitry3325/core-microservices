@@ -7,6 +7,7 @@ import com.corems.userms.security.oauth2.OAuth2UserService;
 import com.corems.userms.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.corems.userms.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.corems.userms.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.corems.userms.security.oauth2.UserAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCo
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
@@ -61,6 +63,7 @@ public class SecurityConfig {
         httpSecurity.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.formLogin(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
+        httpSecurity.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(getCustomerEntryPoint()));
 
         httpSecurity.authorizeHttpRequests(
                 auth -> auth
@@ -101,6 +104,11 @@ public class SecurityConfig {
         tokenResponseClient.setRestOperations(restTemplate);
 
         return tokenResponseClient;
+    }
+
+    @Bean
+    protected AuthenticationEntryPoint getCustomerEntryPoint() {
+        return new UserAuthenticationEntryPoint();
     }
 
     @Bean

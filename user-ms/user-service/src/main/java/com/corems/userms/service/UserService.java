@@ -23,7 +23,7 @@ public class UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
 
-        return getUserInfo(userPrincipal.getId());
+        return getUserInfo(userPrincipal.getUserId());
 
     }
 
@@ -32,7 +32,7 @@ public class UserService {
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", id)));
 
         return new UserInfo()
-                .id(user.getId())
+                .userId(user.getUuid())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())

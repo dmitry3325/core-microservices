@@ -18,6 +18,7 @@ import javax.crypto.SecretKey;
 public class TokenProvider {
     public static String TOKEN_TYPE_ACCESS = "access_token";
     public static String TOKEN_TYPE_REFRESH = "refresh_token";
+    public static String CLAIM_TOKEN_ID = "token_id";
     public static String CLAIM_EMAIL = "email";
     public static String CLAIM_USER_NAME = "user_name";
     public static String CLAIM_ROLES = "roles";

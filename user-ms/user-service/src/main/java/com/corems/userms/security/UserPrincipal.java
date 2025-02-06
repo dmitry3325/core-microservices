@@ -12,21 +12,22 @@ import java.util.Map;
 
 @Data
 public class UserPrincipal implements OAuth2User, UserDetails {
-    private String id;
+    private String userId;
     private String email;
     private String firstName;
     private String lastName;
     private String password;
+    private String tokenId;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
-    public UserPrincipal(String id,
+    public UserPrincipal(String userId,
                          String email,
                          String firstName,
                          String lastName,
                          String password,
                          Collection<? extends GrantedAuthority> authorities) {
-        this.id = id;
+        this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -76,18 +77,26 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public String getName() {
-        return String.valueOf(id);
+        return String.valueOf(userId);
     }
 
     public String getEmail() {
         return this.email;
     }
 
+    public String getTokenId() {
+        return this.tokenId;
+    }
+
+    public void setTokenId(String tokenId) {
+        this.tokenId = tokenId;
+    }
+
     public static UserPrincipal create(User user) {
         List<GrantedAuthority> authorities = List.of(); // can be implemented later if needed
 
         return new UserPrincipal(
-                user.getId(),
+                user.getUuid(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
