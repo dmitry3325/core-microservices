@@ -29,8 +29,8 @@
 
     <modules>
         <module>common</module>
-        <module>notification-ms</module>
         <module>user-ms</module>
+        <module>communication-ms</module>
     </modules>
 
     <build>

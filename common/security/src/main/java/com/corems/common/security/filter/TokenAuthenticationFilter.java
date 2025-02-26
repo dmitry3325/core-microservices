@@ -1,5 +1,6 @@
-package com.corems.userms.security;
+package com.corems.common.security.filter;
 
+import com.corems.common.security.token.TokenProvider;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +26,6 @@ import java.io.IOException;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
-    private final CustomUserDetailsService userDetailsService;
 
 
     private String getJWTFromRequest(HttpServletRequest request) {

@@ -51,7 +51,7 @@ public class AuthService {
         }
 
         String refreshToken = createRefreshToken(user);
-        String accessToken = tokenProvider.createAccessToken(user.getUuid(), getClaims(user, UUID.randomUUID().toString()));
+        String accessToken = tokenProvider.createAccessToken(UUID.randomUUID().toString(), getClaims(user));
 
         return new TokenResponse()
                 .refreshToken(refreshToken)
@@ -71,7 +71,8 @@ public class AuthService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
 
-        String token = tokenProvider.createAccessToken(userPrincipal.getUserId(), Map.of(
+        String token = tokenProvider.createAccessToken(UUID.randomUUID().toString(), Map.of(
+                TokenProvider.CLAIM_USER_ID, userPrincipal.getUserId(),
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
                 TokenProvider.CLAIM_USER_NAME, userPrincipal.getUsername(),
                 TokenProvider.CLAIM_ROLES, List.of(Role.USER)
@@ -82,7 +83,7 @@ public class AuthService {
 
     public String createRefreshToken(User user) {
         String tokenId = UUID.randomUUID().toString();
-        String refreshToken = tokenProvider.createRefreshToken(user.getUuid(), getClaims(user, tokenId));
+        String refreshToken = tokenProvider.createRefreshToken(tokenId, getClaims(user));
 
         LoginToken loginToken = new LoginToken();
         loginToken.setUuid(tokenId);
@@ -93,9 +94,9 @@ public class AuthService {
         return refreshToken;
     }
 
-    private Map<String, Object> getClaims(User user, String tokenId) {
+    private Map<String, Object> getClaims(User user) {
         return Map.of(
-                TokenProvider.CLAIM_TOKEN_ID, tokenId,
+                TokenProvider.CLAIM_USER_ID, user.getUuid(),
                 TokenProvider.CLAIM_EMAIL, user.getEmail(),
                 TokenProvider.CLAIM_USER_NAME, user.getUserName(),
                 TokenProvider.CLAIM_ROLES, List.of(Role.USER)

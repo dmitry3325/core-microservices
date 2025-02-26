@@ -1,0 +1,16 @@
+server:
+  port: ${COMMUNICATION-SERVICE-PORT:3001}
+
+spring:
+  application:
+    name: COMMUNICATION-SERVICE
+  main:
+    banner-mode: off
+    allow-bean-definition-overriding: true
+  config:
+    import: classpath:db-config.yaml
+
+slack:
+  enabled: true
+  senderApp: CoreMs
+  token: xoxb-5956947005089-5937689544470-sZtt7eMjE4jWo953E2Mlo8k3
