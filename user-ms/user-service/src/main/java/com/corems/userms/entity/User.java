@@ -67,6 +67,9 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private Collection<LoginToken> tokens = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
+    private Collection<Role> roles = new ArrayList<>();
+
     @NotNull
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
@@ -96,8 +99,4 @@ public class User {
     @NotNull
     @CreationTimestamp
     private OffsetDateTime lastLogin;
-
-    public String getUserName() {
-        return firstName + " " + lastName;
-    }
 }

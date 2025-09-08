@@ -15,8 +15,8 @@ paths:
       tags:
         - Messages
       summary: Send a message
-      description: Send a notification of the specified type (sms, email, slack)
-      operationId: sendNotification
+      description: Send a message of the specified type (sms, email, slack)
+      operationId: sendMessage
       requestBody:
         required: true
         content:
@@ -47,9 +47,9 @@ paths:
     get:
       tags:
         - Messages
-      summary: Get a list of notifications
-      description: Retrieve a list of notifications of the specified type (sms, email, slack)
-      operationId: getNotificationStatusList
+      summary: Get a list of messages
+      description: Retrieve a list of messages of the specified type (sms, email, slack)
+      operationId: getMessages
       parameters:
         - $ref: '#/components/parameters/TypeParameter'
         - $ref: '#/components/parameters/UserIDParameter'

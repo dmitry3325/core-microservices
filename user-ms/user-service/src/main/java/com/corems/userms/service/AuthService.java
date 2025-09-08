@@ -3,6 +3,7 @@ package com.corems.userms.service;
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.token.TokenProvider;
 import com.corems.userms.entity.LoginToken;
+import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
 import com.corems.userms.model.AccessTokenResponse;
 import com.corems.userms.model.SignInRequest;
@@ -10,7 +11,7 @@ import com.corems.userms.model.SignUpRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.TokenResponse;
 import com.corems.userms.model.enums.AuthProvider;
-import com.corems.userms.model.enums.Role;
+import com.corems.userms.model.enums.AppRoles;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 
@@ -19,6 +20,8 @@ import com.corems.userms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -76,7 +79,7 @@ public class AuthService {
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
                 TokenProvider.CLAIM_FIRST_NAME, userPrincipal.getFirstName(),
                 TokenProvider.CLAIM_LAST_NAME, userPrincipal.getLastName(),
-                TokenProvider.CLAIM_ROLES, List.of(Role.USER)
+                TokenProvider.CLAIM_ROLES, userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
         ));
 
         return new AccessTokenResponse().accessToken(token);
@@ -101,11 +104,12 @@ public class AuthService {
                 TokenProvider.CLAIM_EMAIL, user.getEmail(),
                 TokenProvider.CLAIM_FIRST_NAME, user.getFirstName(),
                 TokenProvider.CLAIM_LAST_NAME, user.getLastName(),
-                TokenProvider.CLAIM_ROLES, List.of(Role.USER)
+                TokenProvider.CLAIM_ROLES, user.getRoles().stream().map(Role::getName).toList()
         );
     }
 
     public SuccessfulResponse signUp(SignUpRequest signUpRequest) {
+        log.error("Sign up request: {}", signUpRequest);
         if (!Objects.equals(signUpRequest.getPassword(), signUpRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Sorry, confirm password value is not valid.");
         }
@@ -126,7 +130,11 @@ public class AuthService {
             userBuilder.imageUrl(signUpRequest.getImageUrl().toString());
         }
 
-        var savedUser = userRepository.save(userBuilder.build());
+        User user = userBuilder.build();
+        user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
+
+        // roles is not saved?
+        var savedUser = userRepository.save(user);
 
         // TODO send email etc
 

@@ -8,6 +8,7 @@ import com.corems.userms.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.repository.LoginTokenRepository;
 import com.corems.userms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getPassword(),
-                List.of()
+                user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }
 
@@ -57,7 +58,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getPassword(),
-                List.of()
+                user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }
 

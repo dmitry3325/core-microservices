@@ -1,7 +1,5 @@
 package com.corems.userms.config;
 
-import com.corems.common.security.filter.ServiceAuthenticationFilter;
-import com.corems.common.security.token.TokenProvider;
 import com.corems.userms.security.TokenAuthenticationFilter;
 import com.corems.userms.security.oauth2.CustomAccessTokenResponseConverter;
 import com.corems.userms.security.oauth2.CustomAuthorizationRequestResolver;

@@ -5,7 +5,7 @@ import com.corems.common.security.token.TokenProvider;
 import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.exception.UserServiceException;
-import com.corems.userms.model.enums.Role;
+import com.corems.userms.model.enums.AppRoles;
 import com.corems.userms.repository.LoginTokenRepository;
 import com.corems.userms.repository.UserRepository;
 import com.corems.userms.util.CookieUtils;
@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -63,7 +63,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
                 TokenProvider.CLAIM_FIRST_NAME, userPrincipal.getFirstName(),
                 TokenProvider.CLAIM_LAST_NAME, userPrincipal.getLastName(),
-                TokenProvider.CLAIM_ROLES, List.of(Role.USER)
+                TokenProvider.CLAIM_ROLES, userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
         ));
 
         LoginToken loginToken = new LoginToken();

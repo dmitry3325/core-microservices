@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -58,13 +61,19 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             }
 
             Claims claims = parsed.getPayload();
+
+            List<String> roles = claims.get(TokenProvider.CLAIM_ROLES, java.util.List.class);
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+
             UserPrincipal principal = new UserPrincipal(
                     claims.get(TokenProvider.CLAIM_USER_ID, String.class),
                     claims.get(TokenProvider.CLAIM_EMAIL, String.class),
                     claims.get(TokenProvider.CLAIM_FIRST_NAME, String.class),
                     claims.get(TokenProvider.CLAIM_LAST_NAME, String.class),
                     null,
-                    claims.get(TokenProvider.CLAIM_ROLES, java.util.List.class)
+                    authorities
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal,
