@@ -1,6 +1,7 @@
 package com.corems.communicationms.controller;
 
 
+import com.corems.common.service.exception.ServiceException;
 import com.corems.communicationms.api.MessagesApi;
 import com.corems.communicationms.model.MessageRequest;
 import com.corems.communicationms.model.MessageResponse;

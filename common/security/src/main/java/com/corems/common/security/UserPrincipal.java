@@ -1,17 +1,14 @@
-package com.corems.userms.security;
+package com.corems.common.security;
 
-import com.corems.userms.entity.User;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 @Data
-public class UserPrincipal implements OAuth2User, UserDetails {
+public class UserPrincipal implements UserDetails {
     private String userId;
     private String email;
     private String firstName;
@@ -45,6 +42,14 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return firstName + " " + lastName;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -65,7 +70,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return true;
     }
 
-    @Override
     public Map<String, Object> getAttributes() {
         return null;
     }
@@ -75,7 +79,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return authorities;
     }
 
-    @Override
     public String getName() {
         return String.valueOf(userId);
     }
@@ -90,24 +93,5 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     public void setTokenId(String tokenId) {
         this.tokenId = tokenId;
-    }
-
-    public static UserPrincipal create(User user) {
-        List<GrantedAuthority> authorities = List.of(); // can be implemented later if needed
-
-        return new UserPrincipal(
-                user.getUuid(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getPassword(),
-                authorities
-        );
-    }
-
-    public static UserPrincipal create(User user, Map<String, Object> attributes) {
-        UserPrincipal userPrincipal = UserPrincipal.create(user);
-        userPrincipal.setAttributes(attributes);
-        return userPrincipal;
     }
 }

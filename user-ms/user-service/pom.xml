@@ -21,11 +21,6 @@
             <artifactId>user-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.corems.notificationms</groupId>
-            <artifactId>notification-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
 
         <!-- TODO move out  to dependency manager -->
         <dependency>
@@ -47,6 +42,12 @@
         <dependency>
             <groupId>com.corems.common</groupId>
             <artifactId>service-exception</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>security</artifactId>
             <version>${project.version}</version>
         </dependency>
 

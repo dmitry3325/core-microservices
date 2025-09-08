@@ -1,12 +1,12 @@
 package com.corems.userms.service;
 
+import com.corems.common.security.UserPrincipal;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.entity.User;
 import com.corems.userms.model.UserInfo;
 import com.corems.userms.repository.UserRepository;
-import com.corems.userms.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

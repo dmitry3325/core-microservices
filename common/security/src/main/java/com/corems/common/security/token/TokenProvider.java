@@ -1,9 +1,15 @@
 package com.corems.common.security.token;
 
+import com.corems.common.security.exception.AuthServiceException;
+import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,12 +18,14 @@ import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class TokenProvider {
     public static String TOKEN_TYPE_ACCESS = "access_token";
     public static String TOKEN_TYPE_REFRESH = "refresh_token";
     public static String CLAIM_EMAIL = "email";
-    public static String CLAIM_USER_NAME = "user_name";
+    public static String CLAIM_FIRST_NAME = "first_name";
+    public static String CLAIM_LAST_NAME = "last_name";
     public static String CLAIM_USER_ID = "user_uuid";
     public static String CLAIM_ROLES = "roles";
 
@@ -30,6 +38,14 @@ public class TokenProvider {
     @Value("${spring.security.jwt.accessExpirationTimeInMS}")
     private long jwtAccessExpiration;
 
+    private JwtParser jwtParser;
+
+    private JwtParser getJwtParser() {
+        if (jwtParser == null) {
+            jwtParser = Jwts.parser().verifyWith(getSignInKey()).build();
+        }
+        return jwtParser;
+    }
 
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaims(token);
@@ -43,6 +59,19 @@ public class TokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public Jws<Claims> parseToken(String token) {
+        try {
+            return getJwtParser().parseSignedClaims(token);
+        } catch (ExpiredJwtException ex) {
+            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Token expired");
+        } catch (Exception ex) {
+            log.error("Unable to parse token", ex);
+            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Unable to parse token");
+        }
+
+
     }
 
     public String createAccessToken(

@@ -29,7 +29,7 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
     private final ErrorConverter errorConverter;
 
     @ExceptionHandler({ServiceException.class})
-    protected ResponseEntity<Object> handleResourceNotFound(ServiceException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleServiceException(ServiceException ex, WebRequest request) {
         log.error("ServiceException: ", ex);
         return handleExceptionInternal(ex,
                 ErrorResponse.of(errorConverter.getErrorsFromServiceException(ex, request)),
@@ -37,7 +37,7 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
     @ExceptionHandler({RuntimeException.class})
-    protected ResponseEntity<Object> handleInternalServerError(RuntimeException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleServiceException(RuntimeException ex, WebRequest request) {
         log.error("RuntimeException: ", ex);
         return handleExceptionInternal(ex,
                 ErrorResponse.of(errorConverter.getErrorsFromRuntimeException(ex, request)),
@@ -105,7 +105,11 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleUnhandledException(Exception ex, WebRequest request) {
-        log.error("Exception: ", ex);
+        if (ex instanceof ServiceException) {
+            return handleServiceException((ServiceException) ex, request);
+        }
+
+        log.error("Unhandled exception: ", ex);
         return handleExceptionInternal(ex, ErrorResponse.of(errorConverter.getErrorFromException(ex, request)),
                 errorConverter.buildHttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }

@@ -1,11 +1,11 @@
 package com.corems.userms.security.oauth2;
 
+import com.corems.common.security.UserPrincipal;
 import com.corems.userms.entity.User;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.model.enums.AuthProvider;
 import com.corems.userms.repository.UserRepository;
-import com.corems.userms.security.UserPrincipal;
 import com.corems.userms.security.oauth2.provider.OAuth2UserInfo;
 import com.corems.userms.security.oauth2.provider.OAuth2UserInfoFactory;
 import io.micrometer.common.util.StringUtils;
@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -80,6 +81,13 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         }
 
-        return UserPrincipal.create(user, oAuth2UserInfo.getAttributes());
+        return (OAuth2User) new UserPrincipal(
+                user.getUuid(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                null,
+                List.of()
+        );
     }
 }

@@ -11,11 +11,25 @@ import java.util.Collections;
 import java.util.List;
 
 @ToString
-public abstract class ServiceException extends RuntimeException {
+public class ServiceException extends RuntimeException {
 
     private final transient List<Error> errors = new ArrayList<>();
 
     private final HttpStatus httpStatusCode;
+
+    public static ServiceException of(ExceptionReasonCodes reasonCode) {
+        return new ServiceException(reasonCode);
+    }
+
+    public static ServiceException of(ExceptionReasonCodes reasonCode, String details) {
+        return new ServiceException(reasonCode, details);
+    }
+
+    public ServiceException() {
+        super(DefaultExceptionReasonCodes.SERVER_ERROR.getDescription());
+        this.httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        this.errors.add(Error.of(DefaultExceptionReasonCodes.SERVER_ERROR.getErrorCode(), DefaultExceptionReasonCodes.SERVER_ERROR.getDescription(), null));
+    }
 
     public ServiceException(ExceptionReasonCodes reasonCode) {
         super(reasonCode.getDescription());

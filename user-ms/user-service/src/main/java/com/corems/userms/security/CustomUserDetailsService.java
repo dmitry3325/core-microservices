@@ -1,5 +1,6 @@
 package com.corems.userms.security;
 
+import com.corems.common.security.UserPrincipal;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.entity.User;
 import com.corems.userms.exception.UserServiceException;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -24,25 +26,39 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserPrincipal loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository
                 .findByEmail(email)
-                .orElseThrow(() -> new UserServiceException(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
+                .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
 
-        return UserPrincipal.create(user);
+        return new UserPrincipal(
+                user.getUuid(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPassword(),
+                List.of()
+        );
     }
 
     public UserPrincipal loadUserById(String userId, String tokenId) {
         User user = userRepository
                 .findByUuid(userId)
-                .orElseThrow(() -> new UserServiceException(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with ID: %s.", userId)));
+                .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with ID: %s.", userId)));
 
         LoginToken token = loginTokenRepository
                 .findByUuid(tokenId)
-                .orElseThrow(() -> new UserServiceException(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", tokenId)));
+                .orElseThrow(() ->  UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", tokenId)));
 
         if (!Objects.equals(userId, token.getUser().getUuid())) {
-            throw new UserServiceException(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", tokenId));
+            throw UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", tokenId));
         }
 
-        return UserPrincipal.create(user);
+        return new UserPrincipal(
+                user.getUuid(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPassword(),
+                List.of()
+        );
     }
 
 }

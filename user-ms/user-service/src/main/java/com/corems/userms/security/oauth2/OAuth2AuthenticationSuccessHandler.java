@@ -1,11 +1,13 @@
 package com.corems.userms.security.oauth2;
 
+import com.corems.common.security.UserPrincipal;
+import com.corems.common.security.token.TokenProvider;
+import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.userms.entity.LoginToken;
+import com.corems.userms.exception.UserServiceException;
 import com.corems.userms.model.enums.Role;
 import com.corems.userms.repository.LoginTokenRepository;
 import com.corems.userms.repository.UserRepository;
-import com.corems.userms.security.TokenProvider;
-import com.corems.userms.security.UserPrincipal;
 import com.corems.userms.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,14 +61,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String token = tokenProvider.createRefreshToken(tokenId, Map.of(
                 TokenProvider.CLAIM_USER_ID, userPrincipal.getUserId(),
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
-                TokenProvider.CLAIM_USER_NAME, userPrincipal.getUsername(),
+                TokenProvider.CLAIM_FIRST_NAME, userPrincipal.getFirstName(),
+                TokenProvider.CLAIM_LAST_NAME, userPrincipal.getLastName(),
                 TokenProvider.CLAIM_ROLES, List.of(Role.USER)
         ));
 
         LoginToken loginToken = new LoginToken();
         loginToken.setUuid(tokenId);
         loginToken.setUser(userRepository.findByUuid(userPrincipal.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found with ID: %s.", userPrincipal.getUserId()))));
+                .orElseThrow(() -> UserServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, String.format("User not found with ID: %s.", userPrincipal.getUserId()))));
         loginToken.setToken(token);
 
         loginTokenRepository.save(loginToken);

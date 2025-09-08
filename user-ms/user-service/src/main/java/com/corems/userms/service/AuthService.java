@@ -1,5 +1,7 @@
 package com.corems.userms.service;
 
+import com.corems.common.security.UserPrincipal;
+import com.corems.common.security.token.TokenProvider;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.entity.User;
 import com.corems.userms.model.AccessTokenResponse;
@@ -14,8 +16,6 @@ import com.corems.userms.model.exception.AuthServiceException;
 
 import com.corems.userms.repository.LoginTokenRepository;
 import com.corems.userms.repository.UserRepository;
-import com.corems.userms.security.TokenProvider;
-import com.corems.userms.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -74,7 +74,8 @@ public class AuthService {
         String token = tokenProvider.createAccessToken(UUID.randomUUID().toString(), Map.of(
                 TokenProvider.CLAIM_USER_ID, userPrincipal.getUserId(),
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
-                TokenProvider.CLAIM_USER_NAME, userPrincipal.getUsername(),
+                TokenProvider.CLAIM_FIRST_NAME, userPrincipal.getFirstName(),
+                TokenProvider.CLAIM_LAST_NAME, userPrincipal.getLastName(),
                 TokenProvider.CLAIM_ROLES, List.of(Role.USER)
         ));
 
@@ -98,7 +99,8 @@ public class AuthService {
         return Map.of(
                 TokenProvider.CLAIM_USER_ID, user.getUuid(),
                 TokenProvider.CLAIM_EMAIL, user.getEmail(),
-                TokenProvider.CLAIM_USER_NAME, user.getUserName(),
+                TokenProvider.CLAIM_FIRST_NAME, user.getFirstName(),
+                TokenProvider.CLAIM_LAST_NAME, user.getLastName(),
                 TokenProvider.CLAIM_ROLES, List.of(Role.USER)
         );
     }
@@ -124,7 +126,6 @@ public class AuthService {
             userBuilder.imageUrl(signUpRequest.getImageUrl().toString());
         }
 
-        System.out.println(userBuilder.build());
         var savedUser = userRepository.save(userBuilder.build());
 
         // TODO send email etc
