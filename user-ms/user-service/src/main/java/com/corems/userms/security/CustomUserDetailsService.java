@@ -34,7 +34,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getPassword(),
                 user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }
@@ -57,7 +56,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getPassword(),
                 user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }

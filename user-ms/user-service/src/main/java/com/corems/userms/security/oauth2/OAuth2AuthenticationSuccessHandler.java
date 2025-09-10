@@ -1,11 +1,10 @@
 package com.corems.userms.security.oauth2;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.common.security.token.TokenProvider;
+import com.corems.common.security.service.TokenProvider;
 import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.exception.UserServiceException;
-import com.corems.userms.model.enums.AppRoles;
 import com.corems.userms.repository.LoginTokenRepository;
 import com.corems.userms.repository.UserRepository;
 import com.corems.userms.util.CookieUtils;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;

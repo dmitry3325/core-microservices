@@ -2,7 +2,7 @@ package com.corems.common.security.filter;
 
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.exception.AuthServiceException;
-import com.corems.common.security.token.TokenProvider;
+import com.corems.common.security.service.TokenProvider;
 import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -72,7 +71,6 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                     claims.get(TokenProvider.CLAIM_EMAIL, String.class),
                     claims.get(TokenProvider.CLAIM_FIRST_NAME, String.class),
                     claims.get(TokenProvider.CLAIM_LAST_NAME, String.class),
-                    null,
                     authorities
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

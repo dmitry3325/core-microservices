@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -81,13 +82,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         }
 
-        return (OAuth2User) new UserPrincipal(
+        return new UserPrincipal(
                 user.getUuid(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                null,
-                List.of()
+                user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }
 }

@@ -3,12 +3,13 @@ package com.corems.common.security;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
 
 @Data
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails, OAuth2User {
     private String userId;
     private String email;
     private String firstName;
@@ -22,13 +23,11 @@ public class UserPrincipal implements UserDetails {
                          String email,
                          String firstName,
                          String lastName,
-                         String password,
                          Collection<? extends GrantedAuthority> authorities) {
         this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.password = password;
         this.authorities = authorities;
     }
 

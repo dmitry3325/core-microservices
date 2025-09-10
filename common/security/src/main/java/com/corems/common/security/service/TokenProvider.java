@@ -1,4 +1,4 @@
-package com.corems.common.security.token;
+package com.corems.common.security.service;
 
 import com.corems.common.security.exception.AuthServiceException;
 import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;

@@ -1,7 +1,7 @@
 package com.corems.userms.service;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.common.security.token.TokenProvider;
+import com.corems.common.security.service.TokenProvider;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -133,7 +132,6 @@ public class AuthService {
         User user = userBuilder.build();
         user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
 
-        // roles is not saved?
         var savedUser = userRepository.save(user);
 
         // TODO send email etc
