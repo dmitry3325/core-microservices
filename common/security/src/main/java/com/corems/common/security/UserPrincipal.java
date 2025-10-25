@@ -23,11 +23,13 @@ public class UserPrincipal implements UserDetails, OAuth2User {
                          String email,
                          String firstName,
                          String lastName,
+                         String tokenId,
                          Collection<? extends GrantedAuthority> authorities) {
         this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.tokenId = tokenId;
         this.authorities = authorities;
     }
 

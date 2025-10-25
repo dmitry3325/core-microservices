@@ -87,6 +87,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
+                null,
                 user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList()
         );
     }

@@ -30,6 +30,7 @@ public class UserController implements UserApi {
     public ResponseEntity<List<UserInfo>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
     @Override
     public ResponseEntity<UserInfo> currentUserInfo() {
         return ResponseEntity.ok(userService.getCurrentUserInfo());

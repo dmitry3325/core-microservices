@@ -5,6 +5,8 @@ import com.corems.common.security.service.TokenProvider;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
+import com.corems.userms.exception.UserServiceException;
+import com.corems.userms.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.model.AccessTokenResponse;
 import com.corems.userms.model.SignInRequest;
 import com.corems.userms.model.SignUpRequest;
@@ -24,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -60,10 +63,13 @@ public class AuthService {
                 .accessToken(accessToken);
     }
 
+    @Transactional
     public SuccessfulResponse signOut() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
 
+        validateRefreshToken(userPrincipal);
+        System.out.println("Deleting token with ID: " + userPrincipal.getTokenId());
         loginTokenRepository.deleteByUuid(userPrincipal.getTokenId());
 
         return new SuccessfulResponse().result(true);
@@ -72,6 +78,8 @@ public class AuthService {
     public AccessTokenResponse refreshToken() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+
+        validateRefreshToken(userPrincipal);
 
         String token = tokenProvider.createAccessToken(UUID.randomUUID().toString(), Map.of(
                 TokenProvider.CLAIM_USER_ID, userPrincipal.getUserId(),
@@ -95,6 +103,16 @@ public class AuthService {
         loginTokenRepository.save(loginToken);
 
         return refreshToken;
+    }
+
+    private void validateRefreshToken(UserPrincipal userPrincipal) {
+        LoginToken refreshToken = loginTokenRepository
+                .findByUuid(userPrincipal.getTokenId())
+                .orElseThrow(() ->  UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId())));
+
+        if (!Objects.equals(userPrincipal.getUserId(), refreshToken.getUser().getUuid())) {
+            throw UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId()));
+        }
     }
 
     private Map<String, Object> getClaims(User user) {

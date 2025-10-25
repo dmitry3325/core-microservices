@@ -46,7 +46,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorWrapper'
 
-  /api/user/signout:
+  /api/auth/signout:
     post:
       tags:
         - Authentication
