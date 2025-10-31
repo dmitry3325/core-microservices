@@ -1,5 +1,6 @@
 package com.corems.common.security.config;
 
+import com.corems.common.security.filter.MdcUserFilter;
 import com.corems.common.security.filter.ServiceAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import org.springframework.security.web.csrf.CsrfFilter;
 public class CoreMsSecurityConfig {
 
     private final ServiceAuthenticationFilter serviceAuthenticationFilter;
+    private final MdcUserFilter mdcUserFilter;
 
     @Value("${spring.security.white-list-urls:/actuator/health}")
     private String[] whiteListUrls;
@@ -45,6 +47,8 @@ public class CoreMsSecurityConfig {
 
 
         httpSecurity.addFilterAfter(serviceAuthenticationFilter, CsrfFilter.class);
+        // Place MDC user filter after authentication so user id is available in MDC
+        httpSecurity.addFilterAfter(mdcUserFilter, ServiceAuthenticationFilter.class);
 
         log.info("Security configuration completed");
 

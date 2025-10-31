@@ -13,7 +13,7 @@
 
     <Appenders>
         <Console name="CONSOLE_APPENDER" target="SYSTEM_OUT">
-            <PatternLayout pattern="%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{red} %clr{[%t]}{yellow} %highlight{%-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=white, DEBUG=blue} %clr{%logger{12}:%L}{blue} - %msg%n" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg - %notEmpty{[correlationId=%X{correlationId}]} %notEmpty{[userId=%X{userId}]} %n" />
         </Console>
 
         <Console name="JSON_APPENDER" target="SYSTEM_OUT">
@@ -23,6 +23,9 @@
                 <KeyValuePair key="level" value="$${level}" />
                 <KeyValuePair key="logger" value="$${logger:short}" />
                 <KeyValuePair key="message" value="$${message}" />
+                <KeyValuePair key="correlationId" value="$${ctx:correlationId}" />
+                <KeyValuePair key="requestId" value="$${ctx:requestId}" />
+                <KeyValuePair key="userId" value="$${ctx:userId}" />
             </JsonLayout>
         </Console>
     </Appenders>

@@ -44,10 +44,14 @@
             <artifactId>service-exception</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.corems.common</groupId>
             <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>logging</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -78,10 +82,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

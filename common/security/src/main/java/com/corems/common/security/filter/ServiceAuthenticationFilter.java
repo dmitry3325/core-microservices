@@ -50,7 +50,6 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-
         String jwt = getJWTFromRequest(request);
         if (StringUtils.hasText(jwt)) {
             Jws<Claims> parsed = tokenProvider.parseToken(jwt);

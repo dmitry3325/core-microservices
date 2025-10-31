@@ -1,5 +1,8 @@
 package com.corems.userms.config;
 
+import com.corems.common.security.filter.MdcUserFilter;
+import com.corems.common.security.filter.ServiceAuthenticationFilter;
+import com.corems.logging.CorrelationIdFilter;
 import com.corems.userms.security.TokenAuthenticationFilter;
 import com.corems.userms.security.oauth2.CustomAccessTokenResponseConverter;
 import com.corems.userms.security.oauth2.CustomAuthorizationRequestResolver;
@@ -89,6 +92,7 @@ public class SecurityConfig {
 
 
         httpSecurity.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAfter(getMdcUserFilter(), TokenAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -119,5 +123,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public MdcUserFilter getMdcUserFilter() {
+        return new MdcUserFilter();
     }
 }

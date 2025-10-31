@@ -24,7 +24,6 @@ public class UserService {
     private final UserRepository userRepository;
 
 
-
     public UserInfo getCurrentUserInfo() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
@@ -57,9 +56,9 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    private UserInfo getUserInfo(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", id)));
+    private UserInfo getUserInfo(String uuid) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", uuid)));
 
         return new UserInfo()
                 .userId(user.getUuid())
