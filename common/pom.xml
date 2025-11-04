@@ -18,6 +18,7 @@
         <module>logging</module>
         <module>service-exception</module>
         <module>security</module>
+        <module>utils</module>
     </modules>
 
     <dependencyManagement>

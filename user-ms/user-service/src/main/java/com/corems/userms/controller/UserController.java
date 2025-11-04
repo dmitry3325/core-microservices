@@ -6,13 +6,14 @@ import com.corems.userms.model.ChangeEmailRequest;
 import com.corems.userms.model.CreateUserRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
+import com.corems.userms.model.UsersPagedResponse;
 import com.corems.userms.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @RestController
@@ -32,8 +33,13 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<List<UserInfo>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<UsersPagedResponse> getAllUsers(
+            Optional<Integer> page,
+            Optional<Integer> pageSize,
+            Optional<String> search,
+            Optional<String> sort
+    ) {
+        return ResponseEntity.ok(userService.getAllUsers(page, pageSize, search, sort));
     }
 
     @Override

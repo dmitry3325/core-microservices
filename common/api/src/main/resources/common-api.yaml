@@ -34,7 +34,7 @@ components:
         type: integer
         default: 10
         minimum: 1
-        maximum: 100
+        maximum: 1000
     search:
       name: search
       in: query
@@ -89,6 +89,7 @@ components:
           type: integer
         totalElements:
           type: integer
+          format: int64
         totalPages:
           type: integer
       required:
@@ -96,14 +97,14 @@ components:
         - pageSize
 
     PagedResponse:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            type: object
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
 
     SuccessfulResponse:
       type: object

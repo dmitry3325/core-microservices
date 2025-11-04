@@ -9,15 +9,23 @@ import com.corems.userms.model.ChangeEmailRequest;
 import com.corems.userms.model.CreateUserRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
+import com.corems.userms.model.UsersPagedResponse;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.repository.UserRepository;
+import com.corems.common.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -123,5 +131,36 @@ public class UserService {
         userRepository.save(user);
 
         return new SuccessfulResponse().result(true);
+    }
+
+    public UsersPagedResponse getAllUsers(Optional<Integer> page,
+                                          Optional<Integer> pageSize,
+                                          Optional<String> search,
+                                          Optional<String> sort) {
+        Pageable pageable = PaginationUtil.buildPageable(page, pageSize, sort, List.of("email", "firstName", "lastName", "createdAt"));
+        String searchValue = PaginationUtil.sanitizeSearch(search);
+
+        Page<User> userPage;
+        if (!searchValue.isEmpty()) {
+            userPage = userRepository.findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
+                    searchValue, searchValue, searchValue, pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+
+        List<UserInfo> items = userPage.getContent().stream()
+                .map(user -> new UserInfo()
+                        .userId(user.getUuid())
+                        .email(user.getEmail())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .imageUrl(user.getImageUrl()))
+                .collect(Collectors.toList());
+
+        UsersPagedResponse response = new UsersPagedResponse(userPage.getNumber(), userPage.getSize());
+        response.setItems(items);
+        response.setTotalPages(userPage.getTotalPages());
+        response.setTotalElements(userPage.getTotalElements());
+        return response;
     }
 }

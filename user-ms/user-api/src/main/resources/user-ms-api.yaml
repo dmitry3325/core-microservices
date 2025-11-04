@@ -16,13 +16,13 @@ tags:
 # YAML anchor with common responses (points to the unpacked common-schemas under .gen)
 x-common-error-responses: &common-error-responses
   '400':
-    $ref: '.gen/common-schemas.yaml#/components/responses/ValidationError'
+    $ref: '.gen/common-api.yaml#/components/responses/ValidationError'
   '401':
-    $ref: '.gen/common-schemas.yaml#/components/responses/UnauthorizedError'
+    $ref: '.gen/common-api.yaml#/components/responses/UnauthorizedError'
   '404':
-    $ref: '.gen/common-schemas.yaml#/components/responses/NotFoundError'
+    $ref: '.gen/common-api.yaml#/components/responses/NotFoundError'
   '500':
-    $ref: '.gen/common-schemas.yaml#/components/responses/InternalServerError'
+    $ref: '.gen/common-api.yaml#/components/responses/InternalServerError'
 
 paths:
   /api/auth/signin:
@@ -56,7 +56,7 @@ paths:
 
       responses:
         '200':
-          description: Sign Up successfully
+          description: Sign Out successfully
           content:
             application/json:
               schema:
@@ -188,16 +188,18 @@ paths:
         - User
       summary: Returns all users
       operationId: getAllUsers
-
+      parameters:
+        - $ref: '.gen/common-api.yaml#/components/parameters/page'
+        - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
+        - $ref: '.gen/common-api.yaml#/components/parameters/sort'
+        - $ref: '.gen/common-api.yaml#/components/parameters/search'
       responses:
         '200':
           description: User list response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserInfo'
+                $ref: '#/components/schemas/UsersPagedResponse'
         <<: *common-error-responses
 
     post:
@@ -281,7 +283,7 @@ paths:
         - name: userId
           in: path
           required: true
-          description: ID of the user to update
+          description: ID of the user to delete
           schema:
             type: string
 
@@ -371,6 +373,16 @@ paths:
 
 components:
   schemas:
+    UsersPagedResponse:
+      allOf:
+        - $ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserInfo'
+
     SignInRequest:
       type: object
       required:
@@ -565,4 +577,4 @@ components:
           example: default-reset-template
 
     SuccessfulResponse:
-      $ref: '.gen/common-schemas.yaml#/components/schemas/SuccessfulResponse'
+      $ref: '.gen/common-api.yaml#/components/schemas/SuccessfulResponse'
