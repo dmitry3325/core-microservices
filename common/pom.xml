@@ -14,9 +14,10 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>api</module>
+        <module>logging</module>
         <module>service-exception</module>
         <module>security</module>
-        <module>logging</module>
     </modules>
 
     <dependencyManagement>

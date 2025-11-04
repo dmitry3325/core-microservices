@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 @ToString
 public enum UserServiceExceptionReasonCodes implements ExceptionReasonCodes {
 
+    USER_EXISTS("user.exists", HttpStatus.BAD_REQUEST, "User already exists"),
     USER_NOT_FOUND("user.notfound", HttpStatus.BAD_REQUEST, "User not found"),
     TOKEN_NOT_FOUND("token.notfound", HttpStatus.BAD_REQUEST, "Token not found. Please login again.");
 

@@ -1,7 +1,9 @@
 package com.corems.userms.controller;
 
-
 import com.corems.userms.api.UserApi;
+import com.corems.userms.model.AdminSetPasswordRequest;
+import com.corems.userms.model.ChangeEmailRequest;
+import com.corems.userms.model.CreateUserRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
 import com.corems.userms.service.UserService;
@@ -16,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class UserController implements UserApi {
+
     private final UserService userService;
 
     @Override
@@ -25,7 +28,7 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<SuccessfulResponse> updateUserById(String userId, UserInfo userInfo) {
-        return ResponseEntity.ok(userService.updateUserById(userId));
+        return ResponseEntity.ok(userService.updateUserById(userId, userInfo));
     }
 
     @Override
@@ -34,8 +37,27 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<UserInfo> currentUserInfo() {
-        log.info("Fetching current user info");
-        return ResponseEntity.ok(userService.getCurrentUserInfo());
+    public ResponseEntity<SuccessfulResponse> createUser(CreateUserRequest createUserRequest) {
+        return ResponseEntity.ok(userService.createUser(createUserRequest));
+    }
+
+    @Override
+    public ResponseEntity<SuccessfulResponse> deleteUserById(String userId) {
+        return ResponseEntity.ok(userService.deleteUserById(userId));
+    }
+
+    @Override
+    public ResponseEntity<SuccessfulResponse> triggerUserResetPassword(String userId) {
+        return ResponseEntity.ok(userService.triggerUserResetPassword(userId));
+    }
+
+    @Override
+    public ResponseEntity<SuccessfulResponse> adminChangeUserPassword(String userId, AdminSetPasswordRequest adminSetPasswordRequest) {
+        return ResponseEntity.ok(userService.adminChangeUserPassword(userId, adminSetPasswordRequest));
+    }
+
+    @Override
+    public ResponseEntity<SuccessfulResponse> adminChangeUserEmail(String userId, ChangeEmailRequest changeEmailRequest) {
+        return ResponseEntity.ok(userService.adminChangeUserEmail(userId, changeEmailRequest));
     }
 }

@@ -34,3 +34,4 @@ build/
 
 # core-ms project
 .env
+.gen/

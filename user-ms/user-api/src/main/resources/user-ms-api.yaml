@@ -11,6 +11,18 @@ info:
 tags:
   - name: Authentication
   - name: User
+  - name: Profile
+
+# YAML anchor with common responses (points to the unpacked common-schemas under .gen)
+x-common-error-responses: &common-error-responses
+  '400':
+    $ref: '.gen/common-schemas.yaml#/components/responses/ValidationError'
+  '401':
+    $ref: '.gen/common-schemas.yaml#/components/responses/UnauthorizedError'
+  '404':
+    $ref: '.gen/common-schemas.yaml#/components/responses/NotFoundError'
+  '500':
+    $ref: '.gen/common-schemas.yaml#/components/responses/InternalServerError'
 
 paths:
   /api/auth/signin:
@@ -33,18 +45,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
   /api/auth/signout:
     post:
@@ -60,19 +61,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessfulResponse'
-
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
   /api/auth/refresh-token:
     post:
@@ -88,18 +77,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccessTokenResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
   /api/auth/signup:
     post:
@@ -121,41 +99,88 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
 
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-
-  /api/user/me:
+  /api/profile:
     get:
       tags:
-        - User
-      summary: Returns current logged user info model
+        - Profile
+      summary: Returns current logged user profile
       operationId: currentUserInfo
 
       responses:
         '200':
-          description: User info response
+          description: User profile response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfo'
+        <<: *common-error-responses
 
-        '400':
-          description: Bad Request
+    patch:
+      tags:
+        - Profile
+      summary: Update current user's profile (partial)
+      operationId: updateCurrentUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+
+      responses:
+        '200':
+          description: Updated user profile
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
+                $ref: '#/components/schemas/UserInfo'
+        <<: *common-error-responses
+
+  /api/profile/change-password:
+    post:
+      tags:
+        - Profile
+      summary: Change password for current user
+      operationId: changeOwnPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+
+      responses:
+        '200':
+          description: Password changed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
+
+  /api/profile/change-email:
+    post:
+      tags:
+        - Profile
+      summary: Initiate email change for current user (verification flow)
+      operationId: changeOwnEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmailRequest'
+
+      responses:
+        '200':
+          description: Email change initiated (verification sent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
 
   /api/users:
     get:
@@ -173,19 +198,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UserInfo'
-
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
     post:
       tags:
@@ -206,20 +219,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessfulResponse'
-
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
   /api/users/{userId}:
     get:
@@ -242,26 +242,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfo'
-
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
     put:
       tags:
         - User
@@ -289,26 +270,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessfulResponse'
-
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
     delete:
       tags:
@@ -330,26 +292,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
 
-        '400':
-          description: Bad Request
+  /api/users/{userId}/reset-password:
+    post:
+      tags:
+        - User
+      summary: Trigger password reset flow for a user (admin)
+      operationId: triggerUserResetPassword
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password reset triggered
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
 
-        '404':
-          description: User not found
+  /api/users/{userId}/change-password:
+    post:
+      tags:
+        - User
+      summary: Admin set/change password for a user
+      operationId: adminChangeUserPassword
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSetPasswordRequest'
+      responses:
+        '200':
+          description: Password changed by admin
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
+
+  /api/users/{userId}/change-email:
+    post:
+      tags:
+        - User
+      summary: Admin change user's email (immediate)
+      operationId: adminChangeUserEmail
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmailRequest'
+      responses:
+        '200':
+          description: Email changed by admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
 
 components:
   schemas:
@@ -384,7 +402,7 @@ components:
           type: string
           format: email
           description: The user's email address
-          example:
+          example: user@example.com
 
     SignUpRequest:
       type: object
@@ -473,41 +491,78 @@ components:
           description: The JWT token
           example: eyJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyYTNlMGI1Yy0yMTkyLTQ2MTItOWUwMi02OTM5ODlkYmI3ZTUiLCJlbWFpbCI6ImRpbWFAdGVzdC5jb20iLCJyb2xlcyI6WyJVU0VSIl0sInVzZXJfbmFtZSI6IkRpbWEgTWlzaGNoZW5rbyIsImlhdCI6MTcyNjA4Njg2OSwiZXhwIjoxNzI2MDg3NDY5fQ.JlBrDUBzosO1k-vpODQF6xfhSyn-E7jj1VjxFPyYU50PwP0u0a9u2E3-7WNLq_kb5XgQ3Y0rRzmqFO-TmT1Wng
 
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        imageUrl:
+          type: string
+          format: uri
+          example: https://example.com/images/johndoe.jpg
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - oldPassword
+        - newPassword
+        - confirmPassword
+      properties:
+        oldPassword:
+          type: string
+          description: Current password
+          minLength: 8
+          maxLength: 128
+        newPassword:
+          type: string
+          description: New password
+          minLength: 8
+          maxLength: 128
+        confirmPassword:
+          type: string
+          description: Confirmation of the new password, should match newPassword
+          minLength: 8
+          maxLength: 128
+
+    AdminSetPasswordRequest:
+      type: object
+      required:
+        - newPassword
+        - confirmPassword
+      properties:
+        newPassword:
+          type: string
+          description: New password to set for the user (admin)
+          minLength: 8
+          maxLength: 128
+        confirmPassword:
+          type: string
+          description: Confirmation of the new password, should match newPassword
+          minLength: 8
+          maxLength: 128
+
+    ChangeEmailRequest:
+      type: object
+      required:
+        - newEmail
+      properties:
+        newEmail:
+          type: string
+          format: email
+          description: New email address
+          example: user+new@example.com
+
+    ResetPasswordRequest:
+      type: object
+      properties:
+        emailTemplate:
+          type: string
+          description: Optional template id used when sending reset link
+          example: default-reset-template
+
     SuccessfulResponse:
-      type: object
-      properties:
-        result:
-          type: boolean
-          description: Operation result
-          example: true
-
-    Error:
-      type: object
-      properties:
-        ReasonCode:
-          type: string
-          description: Reason code for the error
-        Description:
-          type: string
-          description: Description of the error
-        Details:
-          type: string
-          description: Details of the error
-      required:
-        - ReasonCode
-        - Description
-        - Details
-
-    ErrorList:
-      type: array
-      items:
-        $ref: '#/components/schemas/Error'
-
-    ErrorWrapper:
-      type: object
-      properties:
-        errors:
-          $ref: '#/components/schemas/ErrorList'
-      required:
-        - errors
-
+      $ref: '.gen/common-schemas.yaml#/components/schemas/SuccessfulResponse'

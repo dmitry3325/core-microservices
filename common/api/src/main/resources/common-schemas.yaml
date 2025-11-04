@@ -1,0 +1,148 @@
+components:
+  parameters:
+    Authentication:
+      name: Authorization
+      in: header
+      description: Bearer token for authentication
+      required: true
+      schema:
+        type: string
+        example: Bearer <token>
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      description: Correlation ID for tracking requests
+      required: false
+      schema:
+        type: string
+        format: uuid
+    page:
+      name: page
+      in: query
+      description: Page number for pagination
+      required: false
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    pageSize:
+      name: pageSize
+      in: query
+      description: Number of items per page for pagination
+      required: false
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    search:
+      name: search
+      in: query
+      description: Search term for filtering results
+      required: false
+      schema:
+        type: string
+    sort:
+      name: sort
+      in: query
+      description: Comma-separated sort fields, e.g. `createdAt:desc,name:asc`
+      required: false
+      schema:
+        type: string
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized access due to missing or invalid authentication.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorWrapper'
+
+    NotFoundError:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorWrapper'
+
+    ValidationError:
+      description: Input validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorWrapper'
+
+    InternalServerError:
+      description: An unexpected error occurred on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorWrapper'
+
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - page
+        - pageSize
+
+    PagedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    SuccessfulResponse:
+      type: object
+      properties:
+        result:
+          type: boolean
+          description: Operation result
+          example: true
+
+    Error:
+      type: object
+      properties:
+        ReasonCode:
+          type: string
+          description: Reason code for the error
+        Description:
+          type: string
+          description: Description of the error
+        Details:
+          type: string
+          description: Details of the error
+      required:
+        - ReasonCode
+        - Description
+        - Details
+
+    ErrorList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Error'
+
+    ErrorWrapper:
+      type: object
+      properties:
+        errors:
+          $ref: '#/components/schemas/ErrorList'
+      required:
+        - errors
+
+
+
+
