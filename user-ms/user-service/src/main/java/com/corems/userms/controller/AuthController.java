@@ -36,7 +36,7 @@ public class AuthController implements AuthenticationApi {
 
     @Override
     public ResponseEntity<AccessTokenResponse> refreshToken() {
-        return ResponseEntity.ok(authService.refreshToken());
+        return ResponseEntity.ok(authService.getAccessToken());
     }
 
 }

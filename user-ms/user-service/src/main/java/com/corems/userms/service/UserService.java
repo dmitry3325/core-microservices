@@ -10,6 +10,8 @@ import com.corems.userms.model.CreateUserRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
 import com.corems.userms.model.UsersPagedResponse;
+import com.corems.userms.model.enums.AppRoles;
+import com.corems.userms.model.enums.AuthProvider;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.repository.UserRepository;
@@ -17,12 +19,9 @@ import com.corems.common.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +44,8 @@ public class UserService {
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .imageUrl(user.getImageUrl());
+                .imageUrl(user.getImageUrl())
+                .roles(user.getRoles().stream().map(Role::getName).toList());
     }
 
     public SuccessfulResponse updateUserById(String userId, UserInfo userInfo) {
@@ -82,11 +82,11 @@ public class UserService {
                 .email(createUserRequest.getEmail())
                 .firstName(createUserRequest.getFirstName())
                 .lastName(createUserRequest.getLastName())
-                .provider(com.corems.userms.model.enums.AuthProvider.email)
+                .provider(AuthProvider.email.name())
                 .password(passwordEncoder.encode("temporary"));
 
         User user = userBuilder.build();
-        user.setRoles(List.of(new Role(com.corems.userms.model.enums.AppRoles.USER_MS_USER, user)));
+        user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
 
         userRepository.save(user);
 

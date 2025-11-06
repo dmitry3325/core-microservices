@@ -160,28 +160,6 @@ paths:
                 $ref: '#/components/schemas/SuccessfulResponse'
         <<: *common-error-responses
 
-  /api/profile/change-email:
-    post:
-      tags:
-        - Profile
-      summary: Initiate email change for current user (verification flow)
-      operationId: changeOwnEmail
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChangeEmailRequest'
-
-      responses:
-        '200':
-          description: Email change initiated (verification sent)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessfulResponse'
-        <<: *common-error-responses
-
   /api/users:
     get:
       tags:
@@ -482,6 +460,12 @@ components:
           type: string
           description: Optional URL to the user's profile image
           example: https://example.com/images/johndoe.jpg
+        roles:
+          type: array
+          description: List of roles assigned to the user
+          items:
+            type: string
+          example: ["USER", "ADMIN"]
 
     TokenResponse:
       type: object

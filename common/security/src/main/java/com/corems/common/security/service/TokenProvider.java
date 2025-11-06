@@ -70,8 +70,6 @@ public class TokenProvider {
             log.error("Unable to parse token", ex);
             throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Unable to parse token");
         }
-
-
     }
 
     public String createAccessToken(

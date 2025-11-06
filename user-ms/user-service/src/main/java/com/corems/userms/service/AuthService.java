@@ -51,7 +51,7 @@ public class AuthService {
             throw  new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password.");
         }
 
-        if (user.getProvider() != AuthProvider.email) {
+        if (!user.getProvider().contains(AuthProvider.email.name())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PROVIDER_MISMATCH, "Please use same authentication method or register a new account with email and password.");
         }
 
@@ -75,7 +75,7 @@ public class AuthService {
         return new SuccessfulResponse().result(true);
     }
 
-    public AccessTokenResponse refreshToken() {
+    public AccessTokenResponse getAccessToken() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
 
@@ -139,7 +139,7 @@ public class AuthService {
                 .email(signUpRequest.getEmail())
                 .firstName(signUpRequest.getFirstName())
                 .lastName(signUpRequest.getLastName())
-                .provider(AuthProvider.email)
+                .provider(AuthProvider.email.name())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()));
 
 

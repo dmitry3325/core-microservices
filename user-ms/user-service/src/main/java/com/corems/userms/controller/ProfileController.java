@@ -21,7 +21,6 @@ public class ProfileController implements ProfileApi {
 
     @Override
     public ResponseEntity<UserInfo> currentUserInfo() {
-        log.info("Fetching current user info");
         return ResponseEntity.ok(profileService.getCurrentUserInfo());
     }
 
@@ -33,10 +32,5 @@ public class ProfileController implements ProfileApi {
     @Override
     public ResponseEntity<SuccessfulResponse> changeOwnPassword(ChangePasswordRequest changePasswordRequest) {
         return ResponseEntity.ok(profileService.changeOwnPassword(changePasswordRequest));
-    }
-
-    @Override
-    public ResponseEntity<SuccessfulResponse> changeOwnEmail(ChangeEmailRequest changeEmailRequest) {
-        return ResponseEntity.ok(profileService.changeOwnEmail(changeEmailRequest));
     }
 }
