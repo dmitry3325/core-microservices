@@ -129,6 +129,9 @@ public class UserService {
                                           Optional<String> search,
                                           Optional<String> sort,
                                           Optional<List<String>> filters) {
+        if (sort.isEmpty()) {
+            sort = Optional.of("createdAt:desc");
+        }
         QueryParams params = new QueryParams(page, pageSize, search, sort, filters);
         Page<User> userPage = userRepository.findAllByQueryParams(params);
         List<UserInfo> items = userPage.getContent().stream()
@@ -138,6 +141,7 @@ public class UserService {
                         .email(user.getEmail())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
+                        .imageUrl(user.getImageUrl())
                         .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
                         .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
                         .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC)))

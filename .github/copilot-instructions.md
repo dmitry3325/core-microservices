@@ -197,7 +197,7 @@ public interface UserRepository extends SearchableRepository<User, Long> {
 
     @Override
     default List<String> getAllowedFilterFields() {
-        return List.of("email", "provider", "createdAt");
+        return List.of("provider");
     }
 
     @Override

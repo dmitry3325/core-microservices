@@ -19,11 +19,11 @@ public interface UserRepository extends SearchableRepository<User, String> {
 
     @Override
     default List<String> getAllowedFilterFields() {
-        return List.of("email", "firstName", "lastName", "provider");
+        return List.of("provider");
     }
 
     @Override
     default List<String> getAllowedSortFields() {
-        return List.of("email", "provider", "firstName", "lastName", "createdAt");
+        return List.of("email", "provider", "firstName", "lastName", "lastLoginAt", "createdAt");
     }
 }
