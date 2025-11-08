@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.List;
+import com.corems.common.utils.db.spec.FilterRequest;
+import com.corems.common.utils.db.spec.FilterOperation;
 
 @Log4j2
 @RestController
@@ -36,10 +39,10 @@ public class UserController implements UserApi {
     public ResponseEntity<UsersPagedResponse> getAllUsers(
             Optional<Integer> page,
             Optional<Integer> pageSize,
+            Optional<String> sort,
             Optional<String> search,
-            Optional<String> sort
-    ) {
-        return ResponseEntity.ok(userService.getAllUsers(page, pageSize, search, sort));
+            Optional<List<String>> filter) {
+        return ResponseEntity.ok(userService.getAllUsers(page, pageSize, search, sort, filter));
     }
 
     @Override

@@ -1,10 +1,12 @@
-package com.corems.common.utils;
+package com.corems.common.utils.db.utils;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class PaginationUtil {
     private static final int DEFAULT_PAGE = 1;
@@ -12,10 +14,11 @@ public class PaginationUtil {
     private static final int MAX_SIZE = 1000;
 
     public static Pageable buildPageable(Optional<Integer> page, Optional<Integer> size, Optional<String> sort, List<String> allowedFields) {
-        int pageNumber = Math.max(page.orElse(DEFAULT_PAGE), 1);
+        int pageOneBased = page.orElse(DEFAULT_PAGE);
+        if (pageOneBased < 1) pageOneBased = DEFAULT_PAGE;
         int pageSize = Math.min(Math.max(size.orElse(DEFAULT_SIZE), 1), MAX_SIZE);
-        Sort sortObj = parseSort(sort.orElse(null), List.of());
-        return PageRequest.of(pageNumber - 1, pageSize, sortObj);
+        Sort sortObj = parseSort(sort.orElse(null), allowedFields);
+        return PageRequest.of(pageOneBased - 1, pageSize, sortObj);
     }
 
     public static Sort parseSort(String sortParam, List<String> allowedFields) {
@@ -42,4 +45,3 @@ public class PaginationUtil {
         return search.map(String::trim).filter(s -> !s.isEmpty()).orElse("");
     }
 }
-

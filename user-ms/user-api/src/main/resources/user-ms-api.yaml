@@ -171,6 +171,8 @@ paths:
         - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
         - $ref: '.gen/common-api.yaml#/components/parameters/sort'
         - $ref: '.gen/common-api.yaml#/components/parameters/search'
+        - $ref: '.gen/common-api.yaml#/components/parameters/filter'
+
       responses:
         '200':
           description: User list response
@@ -432,7 +434,6 @@ components:
           example: https://example.com/images/johndoe.jpg
       required:
         - email
-        - password
         - confirmPassword
         - firstName
         - lastName
@@ -444,6 +445,10 @@ components:
           type: string
           description: The user's ID
           example: 2a3e0b5c-2192-4612-9e02-693989dbb7e5
+        provider:
+          type: string
+          description: The authentication provider (e.g., local, google, github)
+          example: local
         firstName:
           type: string
           description: The user's first name
@@ -466,6 +471,21 @@ components:
           items:
             type: string
           example: ["USER", "ADMIN"]
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+          example: '2024-01-01T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was last updated
+          example: '2024-01-01T12:00:00Z'
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user last logged in
+          example: '2024-01-15T08:30:00Z'
 
     TokenResponse:
       type: object

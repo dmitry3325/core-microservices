@@ -18,7 +18,7 @@ import lombok.ToString;
 import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -34,9 +34,9 @@ public class User {
 
     public User() {
         this.uuid = UUID.randomUUID().toString();
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
-        this.lastLogin = OffsetDateTime.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+        this.lastLogin = Instant.now();
     }
 
     public static UserBuilder builder() {
@@ -47,9 +47,9 @@ public class User {
         @Override
         public User build() {
             this.uuid(UUID.randomUUID().toString());
-            this.createdAt(OffsetDateTime.now());
-            this.updatedAt(OffsetDateTime.now());
-            this.lastLogin(OffsetDateTime.now());
+            this.createdAt(Instant.now());
+            this.updatedAt(Instant.now());
+            this.lastLogin(Instant.now());
             return super.build();
         }
     }
@@ -61,7 +61,7 @@ public class User {
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private String uuid;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
     private Collection<LoginToken> tokens = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
@@ -86,13 +86,13 @@ public class User {
     @NotNull
     @CreationTimestamp
     @Column(updatable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @NotNull
     @CreationTimestamp
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
     @NotNull
     @CreationTimestamp
-    private OffsetDateTime lastLogin;
+    private Instant lastLogin;
 }

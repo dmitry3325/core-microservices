@@ -11,12 +11,10 @@
     </parent>
 
     <artifactId>utils</artifactId>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>db-utils</module>
+    </modules>
+
 </project>
-

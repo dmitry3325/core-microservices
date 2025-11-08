@@ -51,7 +51,7 @@ public class AuthService {
             throw  new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password.");
         }
 
-        if (!user.getProvider().contains(AuthProvider.email.name())) {
+        if (!user.getProvider().contains(AuthProvider.local.name())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PROVIDER_MISMATCH, "Please use same authentication method or register a new account with email and password.");
         }
 
@@ -139,7 +139,7 @@ public class AuthService {
                 .email(signUpRequest.getEmail())
                 .firstName(signUpRequest.getFirstName())
                 .lastName(signUpRequest.getLastName())
-                .provider(AuthProvider.email.name())
+                .provider(AuthProvider.local.name())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()));
 
 
@@ -152,7 +152,7 @@ public class AuthService {
 
         var savedUser = userRepository.save(user);
 
-        // TODO send email etc
+        // TODO send email
 
         return new SuccessfulResponse().result(true);
     }

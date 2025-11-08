@@ -40,5 +40,4 @@ public interface ErrorConverter {
     List<Error> getErrorsFromMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request);
 
     List<Error> getErrorsFromConstraintViolationException(ConstraintViolationException ex, WebRequest request);
-
 }

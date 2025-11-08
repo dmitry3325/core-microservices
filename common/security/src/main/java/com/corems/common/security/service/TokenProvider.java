@@ -53,12 +53,19 @@ public class TokenProvider {
     }
 
     public Claims getAllClaims(String token) {
-        return Jwts
-                .parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts
+                    .parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException ex) {
+            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Token expired");
+        } catch (Exception ex) {
+            log.error("Unable to get claims from token", ex);
+            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Unable to get claims from token");
+        }
     }
 
     public Jws<Claims> parseToken(String token) {

@@ -57,7 +57,8 @@
                 <executions>
                     <execution>
                         <id>unpack-common-openapi</id>
-                        <phase>generate-sources</phase>
+                        <!-- Unpack reactor artifact after it has been packaged to avoid MDEP-98 -->
+                        <phase>package</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>

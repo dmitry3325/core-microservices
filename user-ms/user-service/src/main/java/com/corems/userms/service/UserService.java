@@ -15,14 +15,13 @@ import com.corems.userms.model.enums.AuthProvider;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.repository.UserRepository;
-import com.corems.common.utils.PaginationUtil;
+import com.corems.common.utils.db.utils.QueryParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public UserInfo getUserById(String userId) {
         User user = userRepository.findByUuid(userId)
@@ -41,11 +39,15 @@ public class UserService {
 
         return new UserInfo()
                 .userId(user.getUuid())
+                .provider(user.getProvider())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .imageUrl(user.getImageUrl())
-                .roles(user.getRoles().stream().map(Role::getName).toList());
+                .roles(user.getRoles().stream().map(Role::getName).toList())
+                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
     public SuccessfulResponse updateUserById(String userId, UserInfo userInfo) {
@@ -62,17 +64,6 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public List<UserInfo> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(user -> new UserInfo()
-                        .userId(user.getUuid())
-                        .email(user.getEmail())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .imageUrl(user.getImageUrl()))
-                .collect(Collectors.toList());
-    }
-
     public SuccessfulResponse createUser(CreateUserRequest createUserRequest) {
         if (userRepository.findByEmail(createUserRequest.getEmail()).isPresent()) {
             throw UserServiceException.of(UserServiceExceptionReasonCodes.USER_EXISTS, "User with this email already exists");
@@ -82,8 +73,8 @@ public class UserService {
                 .email(createUserRequest.getEmail())
                 .firstName(createUserRequest.getFirstName())
                 .lastName(createUserRequest.getLastName())
-                .provider(AuthProvider.email.name())
-                .password(passwordEncoder.encode("temporary"));
+                .provider(AuthProvider.local.name())
+                .password("{noop}temporary");
 
         User user = userBuilder.build();
         user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
@@ -117,7 +108,7 @@ public class UserService {
             !adminSetPasswordRequest.getNewPassword().equals(adminSetPasswordRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "New password and confirm password do not match");
         }
-        user.setPassword(passwordEncoder.encode(adminSetPasswordRequest.getNewPassword()));
+        user.setPassword("{noop}" + adminSetPasswordRequest.getNewPassword());
         userRepository.save(user);
 
         return new SuccessfulResponse().result(true);
@@ -136,28 +127,23 @@ public class UserService {
     public UsersPagedResponse getAllUsers(Optional<Integer> page,
                                           Optional<Integer> pageSize,
                                           Optional<String> search,
-                                          Optional<String> sort) {
-        Pageable pageable = PaginationUtil.buildPageable(page, pageSize, sort, List.of("email", "firstName", "lastName", "createdAt"));
-        String searchValue = PaginationUtil.sanitizeSearch(search);
-
-        Page<User> userPage;
-        if (!searchValue.isEmpty()) {
-            userPage = userRepository.findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
-                    searchValue, searchValue, searchValue, pageable);
-        } else {
-            userPage = userRepository.findAll(pageable);
-        }
-
+                                          Optional<String> sort,
+                                          Optional<List<String>> filters) {
+        QueryParams params = new QueryParams(page, pageSize, search, sort, filters);
+        Page<User> userPage = userRepository.findAllByQueryParams(params);
         List<UserInfo> items = userPage.getContent().stream()
                 .map(user -> new UserInfo()
                         .userId(user.getUuid())
+                        .provider(user.getProvider())
                         .email(user.getEmail())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
-                        .imageUrl(user.getImageUrl()))
+                        .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                        .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
+                        .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC)))
                 .collect(Collectors.toList());
 
-        UsersPagedResponse response = new UsersPagedResponse(userPage.getNumber(), userPage.getSize());
+        UsersPagedResponse response = new UsersPagedResponse(userPage.getNumber() + 1, userPage.getSize());
         response.setItems(items);
         response.setTotalPages(userPage.getTotalPages());
         response.setTotalElements(userPage.getTotalElements());

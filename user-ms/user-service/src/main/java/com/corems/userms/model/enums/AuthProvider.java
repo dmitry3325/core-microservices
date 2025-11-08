@@ -1,7 +1,7 @@
 package com.corems.userms.model.enums;
 
 public enum AuthProvider {
-    email,
+    local,
     google,
     github,
     linkedin,

@@ -16,7 +16,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -29,7 +29,7 @@ public class Role {
     public Role(AppRoles role, User user) {
         this.name = role.name();
         this.user = user;
-        this.updatedAt = OffsetDateTime.now();
+        this.updatedAt = Instant.now();
     }
 
     @Id
@@ -48,7 +48,7 @@ public class Role {
     @NotNull
     @CreationTimestamp
     @Column(updatable = false)
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
 
 }

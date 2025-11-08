@@ -9,11 +9,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -27,7 +26,7 @@ public class LoginToken {
     private Integer id;
 
     public LoginToken() {
-        this.createdAt = OffsetDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
@@ -41,5 +40,5 @@ public class LoginToken {
     private String token;
 
     @Column
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }

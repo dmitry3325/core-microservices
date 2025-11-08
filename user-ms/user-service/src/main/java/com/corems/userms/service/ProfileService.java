@@ -3,7 +3,6 @@ package com.corems.userms.service;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
-import com.corems.userms.model.ChangeEmailRequest;
 import com.corems.userms.model.ChangePasswordRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
@@ -19,6 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneOffset;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,13 +34,21 @@ public class ProfileService {
         User user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
 
+        log.info(String.valueOf(user.getId()));
+        log.info(String.valueOf(user.getLastLogin()));
+        log.info(String.valueOf(user.getCreatedAt()));
+        log.info(String.valueOf(user.getUpdatedAt()));
         return new UserInfo()
                 .userId(user.getUuid())
+                .provider(user.getProvider())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .imageUrl(user.getImageUrl())
-                .roles(user.getRoles().stream().map(Role::getName).toList());
+                .roles(user.getRoles().stream().map(Role::getName).toList())
+                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
     public UserInfo updateCurrentUserProfile(UserProfileUpdateRequest userProfileUpdateRequest) {
@@ -73,8 +82,8 @@ public class ProfileService {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "New password and confirm password do not match");
         }
 
-        if (!user.getProvider().contains(AuthProvider.email.name())) {
-            user.setProvider(user.getProvider() + "," + AuthProvider.email.name());
+        if (!user.getProvider().contains(AuthProvider.local.name())) {
+            user.setProvider(user.getProvider() + "," + AuthProvider.local.name());
         }
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);

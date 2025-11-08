@@ -79,8 +79,7 @@ public class DefaultErrorConverter implements ErrorConverter {
 
     @Override
     public Error getErrorFromTypeMismatchException(TypeMismatchException ex, WebRequest request) {
-        if (ex instanceof MethodArgumentTypeMismatchException) {
-            MethodArgumentTypeMismatchException methodEx = (MethodArgumentTypeMismatchException) ex;
+        if (ex instanceof MethodArgumentTypeMismatchException methodEx) {
             return Error.of(DefaultExceptionReasonCodes.PARAMETER_INVALID.getErrorCode(),
                     DefaultExceptionReasonCodes.PARAMETER_INVALID.getDescription(),
                     new MessageFormat("Parameter {0} invalid").format(new String[]{methodEx.getParameter().getParameterName()})
@@ -99,7 +98,7 @@ public class DefaultErrorConverter implements ErrorConverter {
                     .collect(Collectors.joining("."));
 
             String msg = "Invalid input data.";
-            if (path.length() > 0) {
+            if (!path.isBlank()) {
                 msg += new MessageFormat("In {0} property.").format(path);
             }
 
@@ -125,8 +124,30 @@ public class DefaultErrorConverter implements ErrorConverter {
 
     @Override
     public List<Error> getErrorsFromConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
-        log.error("getErrorsFromConstraintViolationException");
-        return null;
-    }
+        if (ex.getConstraintViolations() == null || ex.getConstraintViolations().isEmpty()) {
+            return List.of(Error.of(DefaultExceptionReasonCodes.INVALID_INPUT_DATA.getErrorCode(), DefaultExceptionReasonCodes.INVALID_INPUT_DATA.getDescription(), ex.getMessage()));
+        }
 
+        return ex.getConstraintViolations().stream().map(cv -> {
+            String path = cv.getPropertyPath() != null ? cv.getPropertyPath().toString() : null;
+            String message = cv.getMessage();
+
+            String details = "request parameter";
+            if (path != null && !path.isBlank()) {
+                String last = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
+
+                // argument nodes often come as arg0, arg1 when validating method parameters
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("arg(\\d+)").matcher(last);
+                if (m.matches()) {
+                    int idx = Integer.parseInt(m.group(1));
+                    // make it 1-based for human readability
+                    details = "parameter #" + (idx + 1);
+                } else {
+                    details = last;
+                }
+            }
+
+            return Error.of(DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getErrorCode(), DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getDescription(), details + " " + message);
+        }).sorted(this.errorComparator).collect(Collectors.toList());
+    }
 }
