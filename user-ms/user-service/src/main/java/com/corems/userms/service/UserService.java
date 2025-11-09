@@ -59,6 +59,27 @@ public class UserService {
         if (userInfo.getEmail() != null) user.setEmail(userInfo.getEmail());
         if (userInfo.getImageUrl() != null) user.setImageUrl(userInfo.getImageUrl());
 
+        if (userInfo.getRoles() != null) {
+            List<String> desired = userInfo.getRoles().stream().map(String::trim).map(String::toUpperCase).toList();
+            for (String rn : desired) {
+                try {
+                    AppRoles.valueOf(rn);
+                } catch (IllegalArgumentException ex) {
+                    throw UserServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
+                }
+            }
+
+            List<String> current = user.getRoles().stream().map(Role::getName).toList();
+            for (String rn : desired) {
+                if (!current.contains(rn)) {
+                    AppRoles roleEnum = AppRoles.valueOf(rn);
+                    user.getRoles().add(new Role(roleEnum, user));
+                }
+            }
+
+            user.getRoles().removeIf(r -> !desired.contains(r.getName()));
+        }
+
         userRepository.save(user);
 
         return new SuccessfulResponse().result(true);

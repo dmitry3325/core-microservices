@@ -64,7 +64,7 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
     private Collection<LoginToken> tokens = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private Collection<Role> roles = new ArrayList<>();
 
     @NotNull
