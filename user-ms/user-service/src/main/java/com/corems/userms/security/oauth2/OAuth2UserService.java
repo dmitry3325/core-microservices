@@ -3,7 +3,7 @@ package com.corems.userms.security.oauth2;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
-import com.corems.userms.model.enums.AppRoles;
+import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 import com.corems.userms.model.enums.AuthProvider;
@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,7 +80,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             newUser.setLastName(oAuth2UserInfo.getLastName());
             newUser.setProvider(authProvider.name());
             newUser.setImageUrl(oAuth2UserInfo.getImageUrl());
-            newUser.setRoles(List.of(new Role(AppRoles.USER_MS_USER, newUser)));
+            newUser.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, newUser)));
 
             user = userRepository.save(newUser);
 

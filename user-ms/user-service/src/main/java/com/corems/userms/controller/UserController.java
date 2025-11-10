@@ -15,12 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.List;
-import com.corems.common.utils.db.spec.FilterRequest;
-import com.corems.common.utils.db.spec.FilterOperation;
+import com.corems.common.security.RequireRoles;
+import com.corems.common.security.CoreMsRoles;
 
 @Log4j2
 @RestController
 @RequiredArgsConstructor
+@RequireRoles(CoreMsRoles.USER_MS_ADMIN)
 public class UserController implements UserApi {
 
     private final UserService userService;

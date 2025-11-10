@@ -1,5 +1,6 @@
 package com.corems.userms.config;
 
+import com.corems.common.security.RequireRolesAspect;
 import com.corems.common.security.filter.MdcUserFilter;
 import com.corems.userms.security.TokenAuthenticationFilter;
 import com.corems.userms.security.oauth2.CustomAccessTokenResponseConverter;
@@ -126,5 +127,10 @@ public class SecurityConfig {
     @Bean
     public MdcUserFilter getMdcUserFilter() {
         return new MdcUserFilter();
+    }
+
+    @Bean
+    public RequireRolesAspect requireRolesAspect() {
+        return new RequireRolesAspect();
     }
 }

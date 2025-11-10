@@ -2,6 +2,7 @@ package com.corems.userms.service;
 
 import com.corems.userms.entity.User;
 import com.corems.userms.entity.Role;
+import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.exception.UserServiceException;
 import com.corems.userms.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.model.AdminSetPasswordRequest;
@@ -10,7 +11,6 @@ import com.corems.userms.model.CreateUserRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.UserInfo;
 import com.corems.userms.model.UsersPagedResponse;
-import com.corems.userms.model.enums.AppRoles;
 import com.corems.userms.model.enums.AuthProvider;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
@@ -63,7 +63,7 @@ public class UserService {
             List<String> desired = userInfo.getRoles().stream().map(String::trim).map(String::toUpperCase).toList();
             for (String rn : desired) {
                 try {
-                    AppRoles.valueOf(rn);
+                    CoreMsRoles.valueOf(rn);
                 } catch (IllegalArgumentException ex) {
                     throw UserServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
                 }
@@ -72,7 +72,7 @@ public class UserService {
             List<String> current = user.getRoles().stream().map(Role::getName).toList();
             for (String rn : desired) {
                 if (!current.contains(rn)) {
-                    AppRoles roleEnum = AppRoles.valueOf(rn);
+                    CoreMsRoles roleEnum = CoreMsRoles.valueOf(rn);
                     user.getRoles().add(new Role(roleEnum, user));
                 }
             }
@@ -98,7 +98,7 @@ public class UserService {
                 .password("{noop}temporary");
 
         User user = userBuilder.build();
-        user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
+        user.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, user)));
 
         userRepository.save(user);
 

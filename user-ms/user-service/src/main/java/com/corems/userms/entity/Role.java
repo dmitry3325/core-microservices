@@ -1,6 +1,6 @@
 package com.corems.userms.entity;
 
-import com.corems.userms.model.enums.AppRoles;
+import com.corems.common.security.CoreMsRoles;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,7 +26,7 @@ import java.time.Instant;
 @Table(name = "app_user_role")
 public class Role {
 
-    public Role(AppRoles role, User user) {
+    public Role(CoreMsRoles role, User user) {
         this.name = role.name();
         this.user = user;
         this.updatedAt = Instant.now();

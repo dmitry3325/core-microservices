@@ -5,6 +5,7 @@ import com.corems.common.security.service.TokenProvider;
 import com.corems.userms.entity.LoginToken;
 import com.corems.userms.entity.Role;
 import com.corems.userms.entity.User;
+import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.exception.UserServiceException;
 import com.corems.userms.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.model.AccessTokenResponse;
@@ -13,7 +14,6 @@ import com.corems.userms.model.SignUpRequest;
 import com.corems.userms.model.SuccessfulResponse;
 import com.corems.userms.model.TokenResponse;
 import com.corems.userms.model.enums.AuthProvider;
-import com.corems.userms.model.enums.AppRoles;
 import com.corems.userms.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.model.exception.AuthServiceException;
 
@@ -148,7 +148,7 @@ public class AuthService {
         }
 
         User user = userBuilder.build();
-        user.setRoles(List.of(new Role(AppRoles.USER_MS_USER, user)));
+        user.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, user)));
 
         var savedUser = userRepository.save(user);
 
