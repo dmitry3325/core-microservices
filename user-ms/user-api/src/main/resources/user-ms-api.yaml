@@ -8,6 +8,7 @@ info:
     Authentication service provides oauth2 authentication/registration via popular providers +  JWT Authentication with user login password.
   version: 1.0.0
 
+
 servers:
   - url: http://localhost
 

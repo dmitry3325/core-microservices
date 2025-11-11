@@ -23,7 +23,7 @@ Strict rules (enforced)
 Service application annotations (required):
 - All service main application classes MUST enable the shared cross-cutting auto-configuration by using the following annotations on the application class:
   - `@EnableCoreMsLogging` (enables shared logging helpers)
-  - `@EnableCommonErrorHandling` (enables shared exception handling)
+  - `@EnableCoreMsErrorHandling` (enables shared exception handling)
   - `@EnableCoreMsSecurity` (enables shared security filters and beans)
 - Do NOT manually declare a `TokenProvider` (or other security beans provided by `@EnableCoreMsSecurity`) in services that use `@EnableCoreMsSecurity`. The only exception is services that explicitly exclude the shared security auto-config (for example `user-ms` currently excludes `SecurityAutoConfiguration` and declares its own TokenProvider).
 - When using `@EnableCoreMsLogging` add a dependency on `com.corems.common:logging` in the service POM so the annotation and auto-config classes resolve at compile time (no version in child POM; parent manages versions).
@@ -86,7 +86,7 @@ Microservice generation checklist (exact steps)
 - GroupId for `*-api` must match aggregator groupId (e.g. `com.corems.translationms:translation-api`).
 Note: When *starting* a new service, the generator must produce the initial module skeleton **including**:
  - `*-api/pom.xml` and `*-service/pom.xml` (minimal child POMs that import parent and declare module dependencies).
- - A service application class under `*-service/src/main/java` pre-populated with the required CoreMS annotations: `@EnableCoreMsLogging`, `@EnableCommonErrorHandling`, and `@EnableCoreMsSecurity` (unless the service intentionally excludes the shared security auto-config, e.g., `user-ms`).
+ - A service application class under `*-service/src/main/java` pre-populated with the required CoreMS annotations: `@EnableCoreMsLogging`, `@EnableCoreMsErrorHandling`, and `@EnableCoreMsSecurity` (unless the service intentionally excludes the shared security auto-config, e.g., `user-ms`).
  - Required config files in `*-service/src/main/resources`: `application.yaml` (with server.port and import lines), `db-config.yaml` when the module uses a DB, and `security-config.yaml` when the module includes `com.corems.common:security`.
  - A `.env-example` and `README.md` in the service root.
  - Create the Java namespace folder structure under `*-service/src/main/java` matching the module GroupId (example: `com.corems.<servicerms>`). This ensures package layout is ready before any code is added.
@@ -99,7 +99,7 @@ Note: When *starting* a new service, the generator must produce the initial modu
 +Phase 1 — API + application definition (MANDATORY STOP)
 +- Create the `*-api` spec (`src/main/resources/<service>-api.yaml`) following the OpenAPI checklist (servers, operationId, `.gen` refs for common responses/params).
 +- Add `*-api/pom.xml` with the dependency on `com.corems.common:api` and the unpack + openapi-generator executions.
-+- Create `*-service/pom.xml` (minimal) and the service application class under the correct namespace with these annotations: `@EnableCoreMsLogging`, `@EnableCommonErrorHandling`, `@EnableCoreMsSecurity` (unless explicit exclusion documented).
++- Create `*-service/pom.xml` (minimal) and the service application class under the correct namespace with these annotations: `@EnableCoreMsLogging`, `@EnableCoreMsErrorHandling`, `@EnableCoreMsSecurity` (unless explicit exclusion documented).
 +- Add required service configs: `application.yaml`, `db-config.yaml` (if DB is needed), `security-config.yaml` (if security dependency is present), `.env-example`, and `README.md`.
 +- Create the Java package (namespace) directories under `*-service/src/main/java` (matching the groupId).
 +- Run: `mvn -pl <api-module-path> -am clean install -DskipTests=true` and fix any generation/compilation issues.
