@@ -20,6 +20,14 @@ Strict rules (enforced)
 - Lombok: do not add module-level Lombok versions; centralize in parent dependencyManagement. Do NOT use `@Data` on JPA entities; prefer `@Getter`/`@Setter` and `@EqualsAndHashCode(onlyExplicitlyIncluded=true)` with id included.
 - Keep service POMs minimal: avoid plugin declarations managed by parent and add `com.corems.common:logging` dependency when using `@EnableCoreMsLogging` to make annotations resolve at compile time.
 
+Service application annotations (required):
+- All service main application classes MUST enable the shared cross-cutting auto-configuration by using the following annotations on the application class:
+  - `@EnableCoreMsLogging` (enables shared logging helpers)
+  - `@EnableCommonErrorHandling` (enables shared exception handling)
+  - `@EnableCoreMsSecurity` (enables shared security filters and beans)
+- Do NOT manually declare a `TokenProvider` (or other security beans provided by `@EnableCoreMsSecurity`) in services that use `@EnableCoreMsSecurity`. The only exception is services that explicitly exclude the shared security auto-config (for example `user-ms` currently excludes `SecurityAutoConfiguration` and declares its own TokenProvider).
+- When using `@EnableCoreMsLogging` add a dependency on `com.corems.common:logging` in the service POM so the annotation and auto-config classes resolve at compile time (no version in child POM; parent manages versions).
+
 OpenAPI YAML checklist (must follow)
 - File path: `src/main/resources/<service>-api.yaml` inside `*-api` module.
 - Always include a `servers:` section (e.g. `servers:\n  - url: http://localhost`). This prevents generator "servers/host" messages.
@@ -27,6 +35,14 @@ OpenAPI YAML checklist (must follow)
 - Discriminator mappings: map values to named `#/components/schemas/*` components.
 - Required dependencies in `*-api` POM: `com.corems.common:api` (no hardcoded version in reactor), `io.swagger.core.v3:swagger-core-jakarta` (omit version if parent-managed).
 - Build plugin wiring in `*-api` (enforced): add `maven-dependency-plugin` unpack execution id `unpack-common-openapi` and `openapi-generator-maven-plugin` generate execution (do NOT specify a plugin `<version>` in child POM; pluginManagement handles versions).
+- Use common shared API components: every `*-api` spec MUST reference standard responses/parameters/pagination from the unpacked `com.corems.common:api` artifact available at `.gen/common-api.yaml`. Examples:
+   - `<<: *common-error-responses` pattern (see `user-ms` for example)
+   - `$ref: '.gen/common-api.yaml#/components/parameters/page'`
+   - `$ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'`
+   This keeps error responses, pagination metadata and common parameters consistent across services.
+   - API error responses required: each operation MUST include or inherit references for common error responses: 400 (ValidationError), 401 (UnauthorizedError), 403 (ForbiddenError), 404 (NotFoundError), 500 (InternalServerError) by referencing `.gen/common-api.yaml#/components/responses/*` or using the shared `x-common-error-responses` anchor pattern used in `user-ms`.
+ - Operation IDs: every operation object MUST include an explicit `operationId` (use stable, camelCase names) so generated code and clients have predictable method names.
+ - API generation pause for review: when generating a new microservice, after the `*-api` spec is created and API codegen + compile completes successfully, STOP and ask for a human review before implementing the service module. This prevents wasted work when the API contract needs changes.
 
 API generation action pattern (LLM -> code)
 1. Create/modify `src/main/resources/<service>-api.yaml` (follow OpenAPI YAML checklist).
@@ -68,6 +84,41 @@ Microservice generation checklist (exact steps)
 1) Module layout
 - Create `<service>-ms/` aggregator with two modules: `<service>-api` and `<service>-service`.
 - GroupId for `*-api` must match aggregator groupId (e.g. `com.corems.translationms:translation-api`).
+Note: When *starting* a new service, the generator must produce the initial module skeleton **including**:
+ - `*-api/pom.xml` and `*-service/pom.xml` (minimal child POMs that import parent and declare module dependencies).
+ - A service application class under `*-service/src/main/java` pre-populated with the required CoreMS annotations: `@EnableCoreMsLogging`, `@EnableCommonErrorHandling`, and `@EnableCoreMsSecurity` (unless the service intentionally excludes the shared security auto-config, e.g., `user-ms`).
+ - Required config files in `*-service/src/main/resources`: `application.yaml` (with server.port and import lines), `db-config.yaml` when the module uses a DB, and `security-config.yaml` when the module includes `com.corems.common:security`.
+ - A `.env-example` and `README.md` in the service root.
+ - Create the Java namespace folder structure under `*-service/src/main/java` matching the module GroupId (example: `com.corems.<servicerms>`). This ensures package layout is ready before any code is added.
+ After creating the `*-api` spec and wiring `*-api/pom.xml`, run API codegen and compile, then STOP and request a human review of the API and config skeleton before implementing business logic in `*-service`.
+
++Generation phases and mandatory pauses (required)
++-----------------------------------------------
++To avoid wasted work and catch API/config issues early, follow these ordered phases when creating a new microservice. After each phase the generator/author MUST stop and request a human review before proceeding to the next phase.
++
++Phase 1 — API + application definition (MANDATORY STOP)
++- Create the `*-api` spec (`src/main/resources/<service>-api.yaml`) following the OpenAPI checklist (servers, operationId, `.gen` refs for common responses/params).
++- Add `*-api/pom.xml` with the dependency on `com.corems.common:api` and the unpack + openapi-generator executions.
++- Create `*-service/pom.xml` (minimal) and the service application class under the correct namespace with these annotations: `@EnableCoreMsLogging`, `@EnableCommonErrorHandling`, `@EnableCoreMsSecurity` (unless explicit exclusion documented).
++- Add required service configs: `application.yaml`, `db-config.yaml` (if DB is needed), `security-config.yaml` (if security dependency is present), `.env-example`, and `README.md`.
++- Create the Java package (namespace) directories under `*-service/src/main/java` (matching the groupId).
++- Run: `mvn -pl <api-module-path> -am clean install -DskipTests=true` and fix any generation/compilation issues.
++
++STOP: pause here and request a human review of the API contract and the service skeleton (application class + configs + package layout). DO NOT implement entities, repositories, controllers, or services until the review approves the API and config.
++
++Phase 2 — Entities & Repositories (MANDATORY STOP)
++- After Phase 1 approval, implement JPA entities and repositories only. Repositories must implement `com.corems.common.utils.db.repo.SearchableRepository<T,ID>` and expose `getSearchFields()`, `getAllowedFilterFields()`, `getAllowedSortFields()`, `getFieldAliases()`.
++- Map generated DTO types to entity types carefully (Integer -> Long, OffsetDateTime -> Instant) and follow Lombok/entity guidelines.
++- Add DB migration scripts if required (optional) and run `mvn -pl <service-module-path> -am clean install -DskipTests=true` to validate.
++
++STOP: pause here and request a human review of the data model and repository search/filter/sort metadata. DO NOT implement controllers/services until this is approved.
++
++Phase 3 — Controllers, Services, wiring and tests
++- After Phase 2 approval, implement controllers (implement generated API interfaces), services (business logic), and repository wiring. Use `RequireRoles` on controller classes for role-gated endpoints.
++- Implement pageable listing using `PaginatedQueryExecutor.execute(...)` where applicable.
++- Add unit/integration tests and run validation: `mvn -pl <service-module-path> -am clean install -DskipTests=false` (or with tests as appropriate).
++
++Only after Phase 3 completes and passes QA should the feature be considered finished.
 
 2) `*-api` (OpenAPI + codegen)
 - Add `src/main/resources/<service>-api.yaml` (follow OpenAPI YAML checklist above).

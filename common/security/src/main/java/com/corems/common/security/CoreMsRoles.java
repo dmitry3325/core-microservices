@@ -13,5 +13,8 @@ public enum CoreMsRoles {
     USER_MS_ADMIN,
     USER_MS_USER,
     // Translation Microservice Roles
-    TRANSLATION_MS_ADMIN
+    TRANSLATION_MS_ADMIN,
+    // Document Microservice Roles
+    DOCUMENT_MS_ADMIN,
+    DOCUMENT_MS_USER
 }
