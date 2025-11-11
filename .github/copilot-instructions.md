@@ -1,226 +1,144 @@
-# 🧠 Copilot Instructions for Core Microservices (Backend)
+# Core Microservices — Short LLM Instructions
 
-These are project-specific guidelines for GitHub Copilot and other AI assistants working on the **Core Microservices backend**.  
-The goal is to keep contributions **consistent, secure, and aligned** with the project vision.
+This file is a compact, machine-friendly prompt for automated code generation. Keep it short, prescriptive, and literal.
 
----
+Quick summary (must follow exactly)
+- Platform: Java 17, Spring Boot 3.3+, Maven multi-module.
+- Always use `common` for shared code. Do NOT edit `common` sources in service tasks.
+- Generated API models are canonical DTOs (from `*-api`). Do NOT create duplicate local DTOs.
+- Parent POM manages versions and build plugins. Child modules MUST NOT re-declare or configure plugins that are managed by the parent (e.g., `org.springframework.boot:spring-boot-maven-plugin`).
+- Do NOT commit `.gen` or generated artifacts that duplicate `common/api`.
 
-## ⚙️ Project Overview
-**Core Microservices** is a modular backend platform providing a foundation for modern startups.  
-It includes common microservices like:
-- **User Management (User-MS)**: Authentication, authorization, and user profile management.
-- **Notification Service (communication-MS)**: Email, SMS, and in-app messaging.
-- **Document Management (Document-MS)**: Upload, store, and share documents securely.
-- More services to come (Template, Questionnaire, Shop).
+Strict rules (enforced)
+- GroupId consistency: `*-api` groupId must match the aggregator module groupId (e.g., `com.corems.translationms:translation-api`).
+- Use generated models (package `com.<module>.model`) in controllers/services. When mapping to JPA entities convert ids/timestamps explicitly: Integer -> Long, OffsetDateTime -> Instant.
+- Repos: implement `com.corems.common.utils.db.repo.SearchableRepository<T,ID>` and expose `getSearchFields()`, `getAllowedFilterFields()`, `getAllowedSortFields()`, `getFieldAliases()`.
+- Security:
+  - Use `common/security`. Do NOT use client-supplied headers as identity.
+  - For controller-level role checks use `com.corems.common.security.RequireRoles` (example: `@RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)`). Do NOT use `@PreAuthorize` or SpEL-based annotations.
+  - Resolve identity from Spring Security context only (e.g., `Authentication auth = SecurityContextHolder.getContext().getAuthentication()` and cast principal to `UserPrincipal`).
+- Lombok: do not add module-level Lombok versions; centralize in parent dependencyManagement. Do NOT use `@Data` on JPA entities; prefer `@Getter`/`@Setter` and `@EqualsAndHashCode(onlyExplicitlyIncluded=true)` with id included.
+- Keep service POMs minimal: avoid plugin declarations managed by parent and add `com.corems.common:logging` dependency when using `@EnableCoreMsLogging` to make annotations resolve at compile time.
 
-The project uses:
-- **Java 17**  
-- **Spring Boot 3.3+**  
-- **Spring Security (JWT + OAuth2)**  
-- **Spring Cloud**  
-- **Apache Kafka (event-driven)**  
-- **Flyway** (database migrations)  
-- **Spring Boot Actuator** (observability)  
-- **Maven (multi-module structure)**
+OpenAPI YAML checklist (must follow)
+- File path: `src/main/resources/<service>-api.yaml` inside `*-api` module.
+- Always include a `servers:` section (e.g. `servers:\n  - url: http://localhost`). This prevents generator "servers/host" messages.
+- Avoid multiple anonymous inline `allOf` objects. If extending a referenced schema, use a single inline `type: object` with `required`/`properties` or create a named component schema and reference it.
+- Discriminator mappings: map values to named `#/components/schemas/*` components.
+- Required dependencies in `*-api` POM: `com.corems.common:api` (no hardcoded version in reactor), `io.swagger.core.v3:swagger-core-jakarta` (omit version if parent-managed).
+- Build plugin wiring in `*-api` (enforced): add `maven-dependency-plugin` unpack execution id `unpack-common-openapi` and `openapi-generator-maven-plugin` generate execution (do NOT specify a plugin `<version>` in child POM; pluginManagement handles versions).
 
----
+API generation action pattern (LLM -> code)
+1. Create/modify `src/main/resources/<service>-api.yaml` (follow OpenAPI YAML checklist).
+2. Add dependency on `com.corems.common:api` in `*-api` (no version when building in the reactor).
+3. Ensure `maven-dependency-plugin` unpack (`unpack-common-openapi`) and `openapi-generator-maven-plugin` generate execution are present in the `*-api` module POM (no `<version>`).
+4. Run codegen + compile to validate: `mvn -pl <api-module-path> -am clean install -DskipTests=true` from the repo root.
+5. If generator prints warnings (common ones below), fix the YAML and re-run:
+   - "'host' (OAS 2.0) or 'servers' (OAS 3.0) not defined" -> add `servers`.
+   - "allOf with multiple schemas defined. Using only the first one" -> consolidate inline allOf or create named components.
 
-## 🧩 Project Structure
+Service config checklist (must be added for each service)
+- Add `application.yaml` under `<service>-service/src/main/resources` with minimal settings: `server.port`, `spring.application.name`, and `spring.config.import: classpath:db-config.yaml, security-config.yaml`.
+- Add `db-config.yaml` to read DB envs: `spring.datasource.url=${DATABASE_URL}`, `username=${DATABASE_USER}`, `password=${DATABASE_PASSWORD}`, set `hibernate.ddl-auto` as appropriate (dev: update).
+- Add `security-config.yaml` to configure JWT/secrets and cors (point to `${AUTH_TOKEN_SECRET}` and TTLs).
+- Add `.env-example` at service root listing mandatory env vars: `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, `AUTH_TOKEN_SECRET`, and any service-specific optional vars (e.g., `ALLOWED_DOMAINS`, `CACHE_TTL_SECONDS`).
+- Optionally add `.env` for local dev with safe defaults; DO NOT commit production secrets.
 
-```
-corems-backend/
-├── parent/ (root pom.xml)
-│
-├── common/            → Shared libraries, utils, DTOs, base config
-├── user-ms/           → User Management service
-│   ├── user-api/      → OpenAPI interfaces, DTOs, contracts
-│   ├── user-service/  → Business logic, controllers, repositories
-    .env - file for environment variables
-│
-├── communication-ms/   → Notification handling (email, Kafka events)
-└── document-ms/       → File and metadata management
-```
+Build & validation rules
+- After any API or POM change always run: `mvn -pl <module-path> -am clean install -DskipTests=true` and fix any errors/warnings before committing.
+- Avoid committing generated code or `.gen` files that duplicate `com.corems.common:api`.
 
----
+Minimal example snippets LLM may follow
+- Use RequireRoles at class level:
+  - `@RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)`
+- Resolve principal in service layer:
+  - `Authentication auth = SecurityContextHolder.getContext().getAuthentication();`
+  - `UserPrincipal u = (UserPrincipal) auth.getPrincipal(); String name = u.getName();`
 
-## 🧠 Coding Guidelines for Copilot
+Short checklist for PR review (LLM should self-check before creating files)
+- Did I avoid editing `common`? YES/NO
+- Did I rely on generated models instead of creating local DTOs? YES/NO
+- Did I run the codegen + build for the `*-api`? YES/NO
+- Did I avoid re-declaring parent-managed plugins in child POMs? YES/NO
+- Did I not commit `.gen`? YES/NO
 
-### ✅ General Rules
-1. **Prefer clean, minimal, and modular code.**
-2. Use **Java 17 features** (records, pattern matching, switch expressions) where appropriate.
-3. Always follow **SOLID** principles.
-4. Avoid adding unnecessary annotations or frameworks.
+Microservice generation checklist (exact steps)
+- Purpose: follow these steps exactly when generating a new microservice (for example `translation-ms`) so the project stays consistent and avoids past mistakes.
 
----
+1) Module layout
+- Create `<service>-ms/` aggregator with two modules: `<service>-api` and `<service>-service`.
+- GroupId for `*-api` must match aggregator groupId (e.g. `com.corems.translationms:translation-api`).
 
-### 🔐 Security
-- Use **Spring Security with JWT** for REST endpoints.
-- OAuth2 is already configured — **do not override it** unless adding a new provider.
-- Never log sensitive information (passwords, tokens, user data).
-- When generating tokens, always include `sub`, `email`, and `roles`.
+2) `*-api` (OpenAPI + codegen)
+- Add `src/main/resources/<service>-api.yaml` (follow OpenAPI YAML checklist above).
+- POM requirements (do NOT add versions managed by parent):
+  - dependency: `com.corems.common:api` (no version in reactor builds).
+  - dependency: `io.swagger.core.v3:swagger-core-jakarta` (omit version if parent-managed).
+  - add `maven-dependency-plugin` unpack execution with id `unpack-common-openapi` that unpacks `com.corems.common:api` into `src/main/resources/.gen`.
+  - add `openapi-generator-maven-plugin` generate execution (do NOT specify plugin `<version>`). Configure generator for Spring Boot (interfaceOnly=true, useSpringBoot3=true) and write outputs to `target/generated-sources/openapi`.
+- After changes run: `mvn -pl <api-module-path> -am clean install -DskipTests=true` to validate codegen and compilation.
 
----
+3) `*-service` (implementation)
+- POM: keep minimal, do NOT re-declare parent-managed plugins. Add dependencies only (no plugin versions):
+  - `com.corems.<servicerms>:<service>-api` (project parent version),
+  - `com.corems.common:service-exception`, `com.corems.common:security`, `com.corems.common:db-utils`, `com.corems.common:logging`.
+  - Spring starters (web, data-jpa, validation, log4j2) and runtime db driver.
+- Do NOT add `<plugin>` entries that are managed by the parent (spring-boot-maven-plugin etc.).
 
-### 💬 API Design
-- APIs must be defined in the `*-api` module using **OpenAPI 3.0**.
-- Use consistent REST patterns:
-  - `GET /api/resource` — list or retrieve
-  - `POST /api/resource` — create
-  - `PUT /api/resource/{id}` — update
-  - `DELETE /api/resource/{id}` — delete
-- Error responses must use the standard `ErrorWrapper` schema.
+4) Service resources (create these files)
+- `translation-ms/translation-service/src/main/resources/application.yaml` with minimal values: `server.port`, `spring.application.name`, and `spring.config.import: classpath:db-config.yaml, security-config.yaml`.
+- `db-config.yaml`: map env vars to `spring.datasource.*` and JPA settings.
+- `security-config.yaml`: configure `spring.security.jwt.secretKey=${AUTH_TOKEN_SECRET}` and TTLs.
+- Service root: `.env-example` listing required envs: `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, `AUTH_TOKEN_SECRET` and service-specific optional keys (e.g., `ALLOWED_DOMAINS`, `CACHE_TTL_SECONDS`). Add `.env` for local dev only (do NOT commit production secrets).
+- `README.md` with quick run steps and mention to run the codegen+build validation after API edits.
 
----
+5) Controllers/Services/Repos
+- Controllers must implement generated API interfaces (do not change generated interface signatures).
+- Do not expose JPA entities in controller method signatures — map to/from generated models.
+- Use `RequireRoles` for admin endpoints: `@RequireRoles(CoreMsRoles.<SERVICE>_ADMIN)`.
+- Resolve authenticated user in the service layer via SecurityContext and `UserPrincipal` (do not use X-User header):
+  - `Authentication auth = SecurityContextHolder.getContext().getAuthentication();`
+  - `UserPrincipal up = (UserPrincipal) auth.getPrincipal(); String user = up.getName();`
+- Repositories must implement `com.corems.common.utils.db.repo.SearchableRepository<T,ID>` and expose metadata methods (getSearchFields, getAllowedFilterFields, getAllowedSortFields, getFieldAliases). Use `PaginatedQueryExecutor.execute(...)` for pageable searches.
 
-### 🗄️ Database and Flyway
-- Database schema changes must be versioned via **Flyway migrations** under:
-  ```
-  src/main/resources/db/migration/
-  ```.
-- Follow snake_case naming for database columns.
+6) Entities & mapping
+- Use Lombok safely: `@Getter`/`@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`, and `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` with id included. Avoid `@Data` on entities.
+- Map generated DTO types to entity types carefully: Integer -> Long for ids, OffsetDateTime -> Instant for timestamps.
 
+7) Build & validation
+- After creating api and service modules:
+  - Run `mvn -pl <api-module-path> -am clean install -DskipTests=true` (validate codegen and compile of API).
+  - Then run `mvn -pl <service-module-path> -am clean install -DskipTests=true`.
+  - Finally run `mvn -DskipTests=true clean install` in repo root as a full sanity check.
+- If codegen prints generator warnings, fix YAML per OpenAPI checklist and re-run.
 
----
+8) Commit & PR rules
+- Do NOT commit `.gen` or generated outputs that duplicate `common/api`.
+- Do NOT modify `common` in a service-change PR. If `common` must change, open a separate PR against `common` only.
+- PR checklist (auto-assert before creating PR):
+  - Ran api codegen + build and no generator warnings remain.
+  - No plugin re-declarations in child POMs.
+  - No `.gen` files are committed.
+  - All security checks use `RequireRoles`/SecurityContext; no `X-User` usage remains.
 
-### 🧩 Common Module
-- Shared code (utilities, exception handling, constants, Kafka config) goes in the **`common`** module.
-- Avoid business logic inside `common`.
-- Use `common` for cross-cutting concerns only (e.g., logging, error handling, security).
+9) If anything in `common` is required (types/annotations), do not invent local copies — request a `common` change and wait for that artifact to be updated and re-built.
 
----
+Service skeleton (required files — copy/paste template)
+- <service>-ms/
+  - <service>-api/
+    - src/main/resources/<service>-api.yaml
+    - pom.xml (no plugin versions; depends on com.corems.common:api)
+  - <service>-service/
+    - src/main/java/... (implementation)
+    - src/main/resources/application.yaml
+    - src/main/resources/db-config.yaml
+    - src/main/resources/security-config.yaml
+    - .env-example
+    - README.md
 
-### 🧱 Service Modules
-Each service should include:
-- `Controller` layer — handles API requests
-- `Service` layer — business logic
-- `Repository` layer — database interaction
-- `Config` — for Spring beans, Kafka, and Security
+Role naming & env guidance (short)
+- Role name convention: use `<SERVICE_UPPER>_MS_ADMIN` for admin role (e.g., TRANSLATION_MS_ADMIN). The LLM MUST map "admin" in the prompt to that enum value in `com.corems.common.security.CoreMsRoles`.
+- `.env-example` must only list variable NAMES (no secrets). Only include service-specific optional vars that the service actually needs (e.g., `ALLOWED_DOMAINS`, `CACHE_TTL_SECONDS`) — do not copy auth-service OAuth keys into other services.
 
----
-
-### 🧪 Testing
-- Use **JUnit 5 + Mockito** for unit tests.
-- Use **Testcontainers** for integration tests (PostgreSQL, Kafka).
-- Follow the test naming pattern:
-  ```
-  {ClassName}Test.java
-  ```
-- Minimum coverage: **80% for core logic**.
-
----
-
-### 📦 Build & Run
-To build the full backend:
-```bash
-mvn clean install
-```
-
-To run a specific service:
-```bash
-cd user-ms/user-service
-mvn spring-boot:run
-```
-
----
-
-### 🌍 Environment Configuration
-Each service must use:
-- `application.yml` with main properties, and include other YAML files as needed for different needs such as: security, db, queue, log etc.
-- variables distributed by these files and in future can be moved into common package: like observability, tracing, logging etc.
-
----
-
-## ⚠️ Do NOT
-- Do not use Lombok’s `@Data` (use `@Getter`/`@Setter`/`@Builder` instead).
-- Do not expose entities directly via API.
-- Do not add new dependencies without approval (maintain lightweight footprint).
-- 
----
-
-## 🔎 SearchableRepository & Generic Search/Filter Pattern (db-utils)
-
-To keep search/filter/sort behavior consistent across services we use a small, reusable pattern implemented in the `common` packages (module: `common/utils/db-utils`). Additions and expectations for Copilot/PRs:
-
-- Purpose: make repositories the single source of truth for which fields are searchable, filterable or sortable, and provide optional API -> JPA field aliases.
-- Key contract: repository interfaces may implement `SearchableRepository<T, ID>` (a `@NoRepositoryBean` extension of Spring Data) which exposes defaults that services can override.
-
-Core methods on the contract (defaults return empty lists/maps):
-- `List<String> getSearchFields()` — API-friendly names to search with (free-text search across these fields).
-- `List<String> getAllowedFilterFields()` — whitelist of API-visible fields allowed in filter requests.
-- `List<String> getAllowedSortFields()` — whitelist of fields allowed for sorting.
-- `Map<String,String> getFieldAliases()` — optional mapping of API field -> JPA attribute path (dot-separated) for nested attributes.
-
-Design notes and rules for Copilot:
-- Do not put per-entity searchable/filterable field lists in YAML or environment files — put them on the repository interface itself (for example `UserRepository` overrides defaults). This keeps metadata typed and co-located with the repository.
-- `QueryParams` (the request carrier) must only contain client-supplied values: page, pageSize, search, sort, filters. It must NOT carry repository metadata.
-- Pagination is 1-based at the API boundary. `PaginationUtil` converts incoming 1-based page to Spring's 0-based index internally. The `PaginatedQueryExecutor` returns pages adapted to present 1-based page numbers to callers (via a small `PageOneBased` adapter). Service code should not add +1 to page numbers.
-
-How the executor uses the repository metadata (high-level):
-1. Discoverable metadata: when a repository implements `SearchableRepository` the executor reads `getSearchFields()`, `getAllowedFilterFields()`, `getAllowedSortFields()` and `getFieldAliases()`.
-2. Aliases are resolved first: incoming API field names are mapped via `getFieldAliases()` to JPA paths before validation and spec construction.
-3. Validation: requested filter fields are validated against the allowed list (the validator accepts either API names or resolved JPA paths).
-4. Specification building: the executor uses a small Specification builder to convert resolved filters and the free-text search into a `Specification<T>` and executes it via `JpaSpecificationExecutor`.
-5. Pagination & sorting: `PaginationUtil.buildPageable(...)` accepts the (1-based) page and the repository's allowed sort fields to produce a `Pageable`.
-
-Alias rules and examples
-- Alias map keys are API field names (the fields you expose in DTOs / query params). Values are JPA attribute paths, e.g. `address.city`, `provider.name`.
-- If an alias is missing for an API field, the executor treats the API field as the JPA path.
-- Example mapping: `Map.of("city", "address.city", "provider", "provider.name")`.
-
-Runtime validation recommendation
-- Always do existence and type checks before building Criteria/Specifications:
-  - Existence: ensure the resolved JPA path exists on the entity (use the JPA Metamodel or reflection on the entity class).
-  - Type checks: convert and validate filter values against the attribute Java type (numbers, booleans, dates) to avoid Criteria API runtime errors.
-- We ship a small helper `EntityFieldValidator` in `db-utils`. Use it before creating the Specification. If the validator cannot resolve or convert a value, return a client-friendly 4xx (IllegalArgumentException → map to BadRequest) rather than letting Criteria throw a 500.
-
-Testing guidance
-- Add a lightweight integration test per module verifying:
-  - free-text search using repository-provided `getSearchFields()`;
-  - filtering by allowed fields returns expected results;
-  - unknown field filter produces a validation error (4xx/IllegalArgumentException in unit tests);
-  - sort whitelist respected by `PaginationUtil`.
-- Tests should use in-memory H2 (or Testcontainers Postgres) and `@DataJpaTest` to exercise Spring Data repository behaviour.
-
-Migration notes
-- If you previously passed search/sort/filter allowed lists in `QueryParams` or YAML, move those lists into the corresponding repository interface as default methods or constants and remove them from the request objects.
-- Update service code to call `PaginatedQueryExecutor.execute(repo, repo, params)` (both repo and spec executor) and map results to API DTOs using a small factory/helper. Do not add manual +1 adjustments to pages — the executor returns 1-based numbering.
-
-Minimal repository example (pattern)
-- A `UserRepository` may look like:
-
-```java
-public interface UserRepository extends SearchableRepository<User, Long> {
-    @Override
-    default List<String> getSearchFields() {
-        return List.of("email", "firstName", "lastName");
-    }
-
-    @Override
-    default List<String> getAllowedFilterFields() {
-        return List.of("provider");
-    }
-
-    @Override
-    default Map<String,String> getFieldAliases() {
-        return Map.of("createdAt","createdAt");
-    }
-}
-```
-
-When to prefer Querydsl (optional)
-- Querydsl gives stronger compile-time checks and an expressive DSL. We chose a lightweight Specification-based solution for portability and to avoid additional compile and dependency overhead. If a team requires complex dynamic joins and predicates frequently, introducing Querydsl as a separate module is reasonable — but please open a proposal with cost/benefit and migration steps.
-
-Style & PR guidance
-- Keep the executor small and unit-testable. Prefer to extract small helpers (AliasResolver, FilterValidator, SearchSpecFactory) rather than growing a single large method.
-- Document repository metadata in the repository interface (small Javadoc) so other devs can see what fields are supported.
-- Add integration tests for any change that touches the executor or repository metadata.
-
----
-
-## 📚 References
-- [Spring Boot Docs](https://docs.spring.io/spring-boot/docs/current/reference/html/)
-- [Spring Security JWT Guide](https://spring.io/guides/tutorials/spring-boot-oauth2/)
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
-- [Flyway Docs](https://flywaydb.org/documentation/)
-- [Spring Data JPA Specifications](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#specifications)
-- [Spring Boot Testing Guide](https://docs.spring.io/spring-boot/docs/current/reference/html/testing.html)
+CI / pre-commit (recommended; short)
+- Add a git pre-commit or CI check that fails on accidentally committed `.gen` files and that runs `mvn -pl <changed-api> -am -DskipTests=true validate` for changed api modules.

@@ -6,6 +6,8 @@ info:
     
     Authentication is required to access the API endpoints. The API expects a Bearer JWT token in the Authorization header for authentication.
   version: 1.0.0
+servers:
+  - url: http://localhost
 tags:
   - name: Message
     description: Operations related to sending messages
@@ -132,13 +134,14 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/MessageRequest"
-        - required:
+        - type: object
+          required:
             - emailType
             - subject
             - sender
             - recipient
             - body
-        - properties:
+          properties:
             emailType:
               type: string
               default: TXT
@@ -172,10 +175,11 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/MessageRequest"
-        - required:
+        - type: object
+          required:
             - channel
             - message
-        - properties:
+          properties:
             channel:
               type: string
               description: Slack channel

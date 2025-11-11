@@ -17,6 +17,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("unchecked")
 public class GenericSpecificationCastValueTest {
 
     private Object invokeCastValue(Class<?> javaType, String value) throws Exception {

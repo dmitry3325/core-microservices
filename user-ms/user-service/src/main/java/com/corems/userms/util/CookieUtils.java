@@ -3,9 +3,13 @@ package com.corems.userms.util;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.util.SerializationUtils;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Base64;
+
 import java.util.Optional;
 
 public class CookieUtils {
@@ -47,17 +51,25 @@ public class CookieUtils {
     }
 
     public static String serialize(Object object) {
-        return Base64
-                .getUrlEncoder()
-                .encodeToString(SerializationUtils.serialize(object));
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(object);
+            oos.flush();
+            return Base64.getUrlEncoder().encodeToString(baos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to serialize cookie object", e);
+        }
     }
 
     public static <T> T deserialize(Cookie cookie, Class<T> cls) {
-        return cls.cast(SerializationUtils.deserialize(
-                Base64
-                        .getUrlDecoder()
-                        .decode(cookie.getValue())
-        ));
+        byte[] data = Base64.getUrlDecoder().decode(cookie.getValue());
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(data);
+             ObjectInputStream ois = new ObjectInputStream(bais)) {
+            Object obj = ois.readObject();
+            return cls.cast(obj);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to deserialize cookie object", e);
+        }
     }
 
 }

@@ -25,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -60,10 +61,21 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
             Claims claims = parsed.getPayload();
 
-            List<String> roles = claims.get(TokenProvider.CLAIM_ROLES, java.util.List.class);
+            // Safely extract roles from claims without unchecked casts
+            Object rolesObj = claims.get(TokenProvider.CLAIM_ROLES);
+            List<String> roles;
+            if (rolesObj instanceof List) {
+                roles = ((List<?>) rolesObj).stream()
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+            } else {
+                roles = List.of();
+            }
+
             List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
-                    .toList();
+                    .collect(Collectors.toList());
 
             UserPrincipal principal = new UserPrincipal(
                     claims.get(TokenProvider.CLAIM_USER_ID, String.class),
