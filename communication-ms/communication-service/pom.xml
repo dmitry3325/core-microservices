@@ -17,7 +17,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>com.corems.communicationms</groupId>
             <artifactId>communication-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -29,6 +29,11 @@
         <dependency>
             <groupId>com.corems.common</groupId>
             <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>db-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 

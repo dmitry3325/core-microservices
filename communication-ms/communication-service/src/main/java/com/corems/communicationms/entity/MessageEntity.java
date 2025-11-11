@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Entity(name = "message")
@@ -52,11 +53,14 @@ public abstract class MessageEntity implements Serializable {
     @Column(name = "type", insertable = false, updatable = false)
     private MessageType type;
 
+    @Column(name = "user_id", nullable = false)
+    private String userId;
+
     @Column(nullable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     public MessageEntity() {
-        this.createdAt = OffsetDateTime.now();
+        this.createdAt = Instant.now();
     }
 
 }

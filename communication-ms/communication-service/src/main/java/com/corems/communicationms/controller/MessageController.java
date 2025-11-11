@@ -1,7 +1,8 @@
 package com.corems.communicationms.controller;
 
 
-import com.corems.communicationms.api.MessagesApi;
+import com.corems.communicationms.api.MessageApi;
+import com.corems.communicationms.model.GetMessagesForUser;
 import com.corems.communicationms.model.MessageRequest;
 import com.corems.communicationms.model.MessageResponse;
 import com.corems.communicationms.service.MessagingService;
@@ -12,16 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Controller
-public class MessageController implements MessagesApi {
+public class MessageController implements MessageApi {
 
     public MessagingService messagingService;
 
@@ -31,20 +29,34 @@ public class MessageController implements MessagesApi {
     }
 
     @Override
-    public ResponseEntity<List<MessageResponse>> getMessages(
-            @RequestParam(value = "type", required = false) Optional<String> type,
-            @RequestParam(value = "userId", required = false) Optional<String> userId,
-            @RequestParam(value = "fromDate", required = false) Optional<OffsetDateTime> fromDate,
-            @RequestParam(value = "toDate", required = false) Optional<OffsetDateTime> toDate) {
+    public ResponseEntity<GetMessagesForUser> getMessagesForUser(
+            String userId,
+            Optional<String> type,
+            Optional<Integer> page,
+            Optional<Integer> pageSize,
+            Optional<String> sort,
+            Optional<String> search,
+            Optional<List<String>> filter) {
 
-        log.error("Authenticated user: {}", SecurityContextHolder.getContext().getAuthentication());
-        return ResponseEntity.ok(List.of());
+        log.debug("Authenticated user: {}", SecurityContextHolder.getContext().getAuthentication());
+
+        GetMessagesForUser resp = this.messagingService.listMessages(userId, type, page, pageSize, sort, search, filter);
+
+        return ResponseEntity.ok(resp);
     }
 
     @Override
-    public ResponseEntity<MessageResponse> sendMessage(@Valid @RequestBody MessageRequest messageRequest) {
+    public ResponseEntity<MessageResponse> sendMessageForUser(String userId, @Valid MessageRequest messageRequest) {
+        MessageResponse result = this.messagingService.sendMessage(messageRequest);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(this.messagingService.sendMessage(messageRequest));
+                .body(result);
+    }
+
+    @Override
+    public ResponseEntity<MessageResponse> getMessageById(String userId, String messageId) {
+        // TODO: implement retrieval by id; for now return 200 with empty body if not found
+        MessageResponse resp = new MessageResponse();
+        return ResponseEntity.ok(resp);
     }
 }

@@ -9,14 +9,59 @@ info:
 tags:
   - name: Message
     description: Operations related to sending messages
+
+# common error responses convenience anchor (references common API responses)
+x-common-error-responses: &common-error-responses
+  '400':
+    $ref: '.gen/common-api.yaml#/components/responses/ValidationError'
+  '401':
+    $ref: '.gen/common-api.yaml#/components/responses/UnauthorizedError'
+  '404':
+    $ref: '.gen/common-api.yaml#/components/responses/NotFoundError'
+  '500':
+    $ref: '.gen/common-api.yaml#/components/responses/InternalServerError'
+
+# Require bearer auth for all operations by default
+security:
+  - bearerAuth: []
+
 paths:
-  /messages/send:
+  /api/v1/users/{userId}/messages:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: User ID to scope messages to
+        schema:
+          type: string
+    get:
+      tags:
+        - Message
+      summary: Get a list of messages for a user
+      description: Retrieve a list of messages for the given user. Supports optional filtering by type.
+      operationId: getMessagesForUser
+      parameters:
+        - $ref: '#/components/parameters/TypeParameter'
+        - $ref: '.gen/common-api.yaml#/components/parameters/page'
+        - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
+        - $ref: '.gen/common-api.yaml#/components/parameters/sort'
+        - $ref: '.gen/common-api.yaml#/components/parameters/search'
+        - $ref: '.gen/common-api.yaml#/components/parameters/filter'
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMessagesForUser'
+        <<: *common-error-responses
+
     post:
       tags:
-        - Messages
-      summary: Send a message
-      description: Send a message of the specified type (sms, email, slack)
-      operationId: sendMessage
+        - Message
+      summary: Send a message for a user
+      description: Send a message of the specified type (sms, email, slack) on behalf of the given user.
+      operationId: sendMessageForUser
       requestBody:
         required: true
         content:
@@ -24,58 +69,39 @@ paths:
             schema:
               $ref: '#/components/schemas/MessageRequest'
       responses:
-        '200':
-          description: Message sent successfully
+        '201':
+          description: Message accepted for processing
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+        <<: *common-error-responses
 
-  /messages:
+  /api/v1/users/{userId}/messages/{messageId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: messageId
+        in: path
+        required: true
+        schema:
+          type: string
     get:
       tags:
-        - Messages
-      summary: Get a list of messages
-      description: Retrieve a list of messages of the specified type (sms, email, slack)
-      operationId: getMessages
-      parameters:
-        - $ref: '#/components/parameters/TypeParameter'
-        - $ref: '#/components/parameters/UserIDParameter'
-        - $ref: '#/components/parameters/FromDateParameter'
-        - $ref: '#/components/parameters/ToDateParameter'
+        - Message
+      summary: Get a message by id for a user
+      description: Retrieve a single message by its id scoped to the given user.
+      operationId: getMessageById
       responses:
         '200':
-          description: Messages retrieved successfully
+          description: Message retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MessageResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorWrapper'
+                $ref: '#/components/schemas/MessageResponse'
 
 components:
   schemas:
@@ -96,7 +122,6 @@ components:
           sms: "#/components/schemas/SmsRequest"
           email: "#/components/schemas/EmailRequest"
           slack: "#/components/schemas/SlackRequest"
-          # chat: "#/components/schemas/ChatMessageRequest"
 
     SmsRequest:
       type: object
@@ -177,35 +202,19 @@ components:
         data:
           $ref: '#/components/schemas/MessageRequest'
 
-    Error:
+    GetMessagesForUser:
       type: object
       properties:
-        ReasonCode:
-          type: string
-          description: Reason code for the error
-        Description:
-          type: string
-          description: Description of the error
-        Details:
-          type: string
-          description: Details of the error
-      required:
-        - ReasonCode
-        - Description
-        - Details
-
-    ErrorList:
-      type: array
-      items:
-        $ref: '#/components/schemas/Error'
-
-    ErrorWrapper:
-      type: object
-      properties:
-        errors:
-          $ref: '#/components/schemas/ErrorList'
-      required:
-        - errors
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageResponse'
 
   parameters:
     TypeParameter:
@@ -219,31 +228,3 @@ components:
           - sms
           - email
           - slack
-    UserIDParameter:
-      name: userId
-      in: query
-      required: false
-      description: User ID to filter messages
-      schema:
-        type: string
-    FromDateParameter:
-      name: fromDate
-      in: query
-      required: false
-      description: Start date to filter messages (inclusive)
-      schema:
-        type: string
-        format: date-time
-    ToDateParameter:
-      name: toDate
-      in: query
-      required: false
-      description: End date to filter messages (inclusive)
-      schema:
-        type: string
-        format: date-time
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

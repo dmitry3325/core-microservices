@@ -13,7 +13,6 @@ tags:
   - name: User
   - name: Profile
 
-# YAML anchor with common responses (points to the unpacked common-schemas under .gen)
 x-common-error-responses: &common-error-responses
   '400':
     $ref: '.gen/common-api.yaml#/components/responses/ValidationError'
@@ -23,6 +22,10 @@ x-common-error-responses: &common-error-responses
     $ref: '.gen/common-api.yaml#/components/responses/NotFoundError'
   '500':
     $ref: '.gen/common-api.yaml#/components/responses/InternalServerError'
+
+# Require bearer auth for all operations by default
+security:
+  - bearerAuth: []
 
 paths:
   /api/auth/signin:
