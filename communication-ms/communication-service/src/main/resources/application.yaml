@@ -9,8 +9,20 @@ spring:
     allow-bean-definition-overriding: true
   config:
     import: classpath:db-config.yaml
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:25}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    protocol: ${SPRING_MAIL_PROTOCOL:smtp}
+    properties:
+      mail.smtp.auth: ${SPRING_MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SPRING_MAIL_STARTTLS:false}
+
+mail:
+  from: ${MAIL_FROM:${EMAIL_FROM:no-reply@example.com}}
 
 slack:
-  enabled: true
-  senderApp: CoreMs
-  token: xoxb-5956947005089-5937689544470-sZtt7eMjE4jWo953E2Mlo8k3
+  enabled: ${SLACK_ENABLED:false}
+  senderApp: ${SLACK_SENDER_APP:CoreMS}
+  token: ${SLACK_BOT_TOKEN}

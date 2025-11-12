@@ -17,11 +17,11 @@ Strict rules (enforced)
   - Use `common/security`. Do NOT use client-supplied headers as identity.
   - For controller-level role checks use `com.corems.common.security.RequireRoles` (example: `@RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)`). Do NOT use `@PreAuthorize` or SpEL-based annotations.
   - Resolve identity from Spring Security context only (e.g., `Authentication auth = SecurityContextHolder.getContext().getAuthentication()` and cast principal to `UserPrincipal`).
-- Lombok: do not add module-level Lombok versions; centralize in parent dependencyManagement. Do NOT use `@Data` on JPA entities; prefer `@Getter`/`@Setter` and `@EqualsAndHashCode(onlyExplicitlyIncluded=true)` with id included.
+- Lombok: Lombok usage is allowed. Do not add module-level Lombok versions; centralize Lombok in the parent pom's dependencyManagement. Do NOT use `@Data` on JPA entities; prefer `@Getter`/`@Setter` and `@EqualsAndHashCode(onlyExplicitlyIncluded=true)` with id included.
 - Keep service POMs minimal: avoid plugin declarations managed by parent and add `com.corems.common:logging` dependency when using `@EnableCoreMsLogging` to make annotations resolve at compile time.
 
 Service application annotations (required):
-- All service main application classes MUST enable the shared cross-cutting auto-configuration by using the following annotations on the application class:
+- All service main application classes MUST enable the shared cross-cutting auto-configuration by using the following annotations on the application class (these are mandatory and must appear on the application class):
   - `@EnableCoreMsLogging` (enables shared logging helpers)
   - `@EnableCoreMsErrorHandling` (enables shared exception handling)
   - `@EnableCoreMsSecurity` (enables shared security filters and beans)

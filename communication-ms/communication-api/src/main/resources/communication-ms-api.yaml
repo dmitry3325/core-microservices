@@ -9,8 +9,10 @@ info:
 servers:
   - url: http://localhost
 tags:
-  - name: Message
-    description: Operations related to sending messages
+  - name: AdminMessages
+    description: Operations related to sending messages for admins
+  - name: UserMessages
+    description: Operations related to sending messages for users
 
 # common error responses convenience anchor (references common API responses)
 x-common-error-responses: &common-error-responses
@@ -18,6 +20,8 @@ x-common-error-responses: &common-error-responses
     $ref: '.gen/common-api.yaml#/components/responses/ValidationError'
   '401':
     $ref: '.gen/common-api.yaml#/components/responses/UnauthorizedError'
+  '403':
+    $ref: '.gen/common-api.yaml#/components/responses/ForbiddenError'
   '404':
     $ref: '.gen/common-api.yaml#/components/responses/NotFoundError'
   '500':
@@ -28,27 +32,25 @@ security:
   - bearerAuth: []
 
 paths:
-  /api/v1/users/{userId}/messages:
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        description: User ID to scope messages to
-        schema:
-          type: string
+  /api/admin/messages:
     get:
       tags:
-        - Message
-      summary: Get a list of messages for a user
-      description: Retrieve a list of messages for the given user. Supports optional filtering by type.
-      operationId: getMessagesForUser
+        - AdminMessages
+      summary: Get a list of messages (admin)
+      description: Retrieve a paginated list of messages. Admins may filter by userId, type and other filters.
+      operationId: getAdminMessages
       parameters:
-        - $ref: '#/components/parameters/TypeParameter'
         - $ref: '.gen/common-api.yaml#/components/parameters/page'
         - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
         - $ref: '.gen/common-api.yaml#/components/parameters/sort'
         - $ref: '.gen/common-api.yaml#/components/parameters/search'
         - $ref: '.gen/common-api.yaml#/components/parameters/filter'
+        - name: userId
+          in: query
+          required: false
+          description: Filter messages by user id
+          schema:
+            type: string
       responses:
         '200':
           description: Messages retrieved successfully
@@ -60,10 +62,10 @@ paths:
 
     post:
       tags:
-        - Message
-      summary: Send a message for a user
-      description: Send a message of the specified type (sms, email, slack) on behalf of the given user.
-      operationId: sendMessageForUser
+        - AdminMessages
+      summary: Send a message on behalf of a user (admin)
+      description: Send a message (sms, email, slack) on behalf of the specified user. The request body MUST include userId when sending for another user.
+      operationId: sendAdminMessage
       requestBody:
         required: true
         content:
@@ -79,31 +81,49 @@ paths:
                 $ref: '#/components/schemas/MessageResponse'
         <<: *common-error-responses
 
-  /api/v1/users/{userId}/messages/{messageId}:
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: messageId
-        in: path
-        required: true
-        schema:
-          type: string
+  /api/messages:
     get:
       tags:
-        - Message
-      summary: Get a message by id for a user
-      description: Retrieve a single message by its id scoped to the given user.
-      operationId: getMessageById
+        - UserMessages
+      summary: Get messages for the authenticated user
+      description: Retrieve a paginated list of messages that belong to the authenticated user. Use query parameters for paging, sorting and filtering.
+      operationId: getMyMessages
+      parameters:
+        - $ref: '.gen/common-api.yaml#/components/parameters/page'
+        - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
+        - $ref: '.gen/common-api.yaml#/components/parameters/sort'
+        - $ref: '.gen/common-api.yaml#/components/parameters/search'
+        - $ref: '.gen/common-api.yaml#/components/parameters/filter'
+        - $ref: '#/components/parameters/TypeParameter'
       responses:
         '200':
-          description: Message retrieved successfully
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMessagesForUser'
+        <<: *common-error-responses
+
+    post:
+      tags:
+        - UserMessages
+      summary: Send a message for the authenticated user
+      description: Send a message on behalf of the authenticated user. The server will associate the message with the authenticated user; userId in the payload is optional and ignored for non-admins.
+      operationId: sendMyMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '201':
+          description: Message accepted for processing
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
+        <<: *common-error-responses
 
 components:
   schemas:
@@ -112,6 +132,9 @@ components:
       required:
         - type
       properties:
+        userId:
+          type: string
+          description: For admin only to specify user on whose behalf the message is sent
         type:
           type: string
           enum:

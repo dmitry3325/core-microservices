@@ -1,19 +1,21 @@
 package com.corems.communicationms.service;
 
-import com.corems.communicationms.entity.EmailMessageEntity;
+import com.corems.common.service.exception.ServiceException;
+import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.communicationms.entity.MessageEntity;
-import com.corems.communicationms.entity.SMSMessageEntity;
+import com.corems.communicationms.model.EmailRequest;
 import com.corems.communicationms.model.MessageRequest;
 import com.corems.communicationms.model.MessageResponse;
 import com.corems.communicationms.model.GetMessagesForUser;
+import com.corems.communicationms.model.SlackRequest;
 import com.corems.communicationms.repository.MessageRepository;
 import com.corems.communicationms.service.provider.SlackServiceProvider;
+import com.corems.communicationms.service.provider.EmailServiceProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import com.corems.common.utils.db.utils.QueryParams;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.ZoneOffset;
 import java.util.List;
@@ -27,28 +29,39 @@ public class MessagingService {
     private final MessageRepository messageRepository;
 
     private final SlackServiceProvider slackServiceProvider;
+    private final EmailServiceProvider emailServiceProvider;
 
+    @Autowired
     public MessagingService(
-            MessageRepository notificationRepository,
-            SlackServiceProvider slackServiceProvider
+            MessageRepository messageRepository,
+            SlackServiceProvider slackServiceProvider,
+            EmailServiceProvider emailServiceProvider
     ) {
-        this.messageRepository = notificationRepository;
+        this.messageRepository = messageRepository;
         this.slackServiceProvider = slackServiceProvider;
+        this.emailServiceProvider = emailServiceProvider;
     }
 
     public MessageResponse sendMessage(MessageRequest message) {
-        MessageEntity notificationEntity = switch (message.getType()) {
-            case SMS -> new SMSMessageEntity();
-            case SLACK -> slackServiceProvider.sendMessage(message);
-            case EMAIL -> new EmailMessageEntity();
-        };
-
-        messageRepository.save(notificationEntity);
+        MessageEntity messageEntity;
+        switch (message.getType()) {
+            case SLACK -> {
+                slackServiceProvider.validate((SlackRequest) message);
+                messageEntity = slackServiceProvider.sendMessage((SlackRequest) message);
+            }
+            case EMAIL -> {
+                emailServiceProvider.validate((EmailRequest) message);
+                messageEntity = emailServiceProvider.sendMessage((EmailRequest) message);
+            }
+            case SMS -> throw ServiceException.of(DefaultExceptionReasonCodes.NOT_IMPLEMENTED, "SMS provider not implemented yet");
+            default -> throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Unexpected message type: " + message.getType());
+        }
 
         MessageResponse response = new MessageResponse();
-        response.setId(notificationEntity.getId().toString());
-        response.setType(notificationEntity.getType().getValue());
-        response.createdAt(notificationEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        response.setId(messageEntity.getUuid());
+        response.setType(messageEntity.getType().getValue());
+        response.setStatus(messageEntity.getStatus().toString());
+        response.createdAt(messageEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setData(message);
 
         return response;
@@ -56,7 +69,6 @@ public class MessagingService {
 
     public GetMessagesForUser listMessages(
             String userId,
-            Optional<String> type,
             Optional<Integer> page,
             Optional<Integer> pageSize,
             Optional<String> sort,
@@ -65,7 +77,10 @@ public class MessagingService {
     ) {
         // Merge userId constraint into filters so the executor will scope to this user
         List<String> mergedFilters = new java.util.ArrayList<>();
-        mergedFilters.add("userId:eq:" + userId);
+        // Only add user constraint when a userId is provided (for user-scoped listing)
+        if (userId != null && !userId.isBlank()) {
+            mergedFilters.add("userId:eq:" + userId);
+        }
         filter.ifPresent(mergedFilters::addAll);
 
         // Build QueryParams with controller-provided optionals (page/pageSize/search/sort/filter)
@@ -86,6 +101,7 @@ public class MessagingService {
             // data: put minimal payload info (we don't expose entity directly)
             // For now, set data to null to avoid exposing internal entity structure. If needed, map properly.
             mr.setData(null);
+            mr.setStatus(entity.getStatus() == null ? null : entity.getStatus().toString());
             return mr;
         }).collect(Collectors.toList());
 

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 public enum DefaultExceptionReasonCodes implements ExceptionReasonCodes {
 
     SERVER_ERROR("server.error", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error. We will fix it as soon as possible. Try later."),
+    NOT_IMPLEMENTED("server.error", HttpStatus.NOT_IMPLEMENTED, "Sorry, this functionality is not implemented yet."),
 
     UNAUTHORIZED("user.unauthorized", HttpStatus.UNAUTHORIZED, "User is unauthorized"),
     ACCESS_DENIED("user.access_denied", HttpStatus.UNAUTHORIZED, "Access is denied. You have no rights to perform this operation."),

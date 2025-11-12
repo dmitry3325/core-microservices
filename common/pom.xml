@@ -19,6 +19,7 @@
         <module>service-exception</module>
         <module>security</module>
         <module>utils</module>
+        <module>queue</module>
     </modules>
 
     <dependencyManagement>

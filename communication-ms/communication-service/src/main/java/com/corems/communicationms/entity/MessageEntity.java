@@ -16,7 +16,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Entity(name = "message")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -25,19 +24,16 @@ import java.time.OffsetDateTime;
 @Setter
 public abstract class MessageEntity implements Serializable {
 
+    @Getter
     public enum MessageType {
         SMS("sms"),
         SLACK("slack"),
         EMAIL("email");
 
-        private String value;
+        private final String value;
 
         MessageType(String value) {
             this.value = value;
-        }
-
-        public String getValue() {
-            return this.value;
         }
 
         public String toString() {
@@ -45,9 +41,20 @@ public abstract class MessageEntity implements Serializable {
         }
     }
 
+    @Getter
+    public enum MessageStatus {
+        CREATED,
+        ENQUEUED,
+        SENT,
+        FAILED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", insertable = false, updatable = false)
@@ -59,8 +66,16 @@ public abstract class MessageEntity implements Serializable {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MessageStatus status;
+
     public MessageEntity() {
         this.createdAt = Instant.now();
+        this.status = MessageStatus.CREATED;
     }
 
 }

@@ -98,5 +98,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- queue client from common -->
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>queue</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- mail sender for direct send fallback -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
     </dependencies>
 </project>

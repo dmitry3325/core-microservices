@@ -3,9 +3,13 @@ package com.corems.communicationms.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity(name = "email")
 @DiscriminatorValue("email")
+@Getter
+@Setter
 public class EmailMessageEntity extends MessageEntity {
 
     @Column(nullable = false)
