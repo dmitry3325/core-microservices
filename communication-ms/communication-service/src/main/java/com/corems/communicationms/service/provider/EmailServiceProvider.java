@@ -52,6 +52,9 @@ public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageE
         emailEntity.setEmailType(emailRequest.getEmailType() == null ? "TXT" : emailRequest.getEmailType().toString());
         emailEntity.setSubject(emailRequest.getSubject());
         emailEntity.setSender(emailRequest.getSender() == null ? defaultFrom : emailRequest.getSender());
+        emailEntity.setSenderName(emailRequest.getSenderName());
+        emailEntity.setCc(emailRequest.getCc());
+        emailEntity.setBcc(emailRequest.getBcc());
         emailEntity.setRecipient(emailRequest.getRecipient());
         emailEntity.setBody(emailRequest.getBody());
         emailEntity.setUserId(userPrincipal.getUserId());
@@ -68,9 +71,9 @@ public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageE
             MimeMessage mime = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
 
-            helper.setFrom(entity.getSender() == null ? defaultFrom : entity.getSender());
+            helper.setFrom(entity.getSender() == null ? defaultFrom : entity.getSender(), entity.getSenderName());
             helper.setTo(entity.getRecipient());
-            helper.setSubject(entity.getSubject() == null ? "(no-subject)" : entity.getSubject());
+            helper.setSubject(entity.getSubject() == null ? "No reply" : entity.getSubject());
             boolean isHtml = entity.getEmailType() != null && entity.getEmailType().equalsIgnoreCase("HTML");
             helper.setText(entity.getBody() == null ? "" : entity.getBody(), isHtml);
 
@@ -86,6 +89,7 @@ public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageE
             entity.setUpdatedAt(Instant.now());
             messageRepository.save(entity);
 
+            log.error("Failed to send email message: {}", ex.getMessage());
             throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Unable to send email message.");
         }
     }
