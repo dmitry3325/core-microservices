@@ -20,5 +20,4 @@ public class SlackMessageEntity extends MessageEntity {
         this.setType(MessageType.SLACK);
     }
 
-
 }

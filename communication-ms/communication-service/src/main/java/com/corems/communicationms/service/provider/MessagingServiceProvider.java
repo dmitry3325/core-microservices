@@ -17,7 +17,6 @@ public abstract class MessagingServiceProvider<T extends MessageEntity, U extend
     @Autowired(required = false)
     protected QueueProvider queueProvider;
 
-    public abstract void validate(U messageRequest);
     public abstract T sendDirect(T messageRequest);
     protected abstract T createEntityAndSave(U messageRequest);
 

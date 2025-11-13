@@ -152,6 +152,22 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/MessageRequest"
+        - type: object
+          required:
+            - phoneNumber
+            - message
+          properties:
+            phoneNumber:
+              type: string
+              pattern: '^\+\d{1,20}$'
+              description: Recipient phone number in E.164 format (e.g. +15551234567)
+            message:
+              type: string
+              minLength: 1
+              maxLength: 1600
+              description: >
+                SMS text body. Max 1600 chars accepted (concatenated messages).
+                Single-part SMS typical max: 160 chars (GSM-7) or 70 (UCS-2).
 
     EmailRequest:
       type: object
@@ -173,25 +189,45 @@ components:
                 - HTML
               description: Email type HTML or TXT
             cc:
-              type: string
-              description: Email addresses(comma separated) to include in CC
+              type: array
+              items:
+                type: string
+                format: email
+              example:
+                - john@example.com
+                - jane@example.org
+              description: CC recipient email addresses
             bcc:
-              type: string
-              description: Email addresses(comma separated) to include in BCC
+              type: array
+              items:
+                type: string
+                format: email
+              example:
+                - hidden@example.com
+              description: BCC recipient email addresses
             sender:
               type: string
+              format: email
+              maxLength: 254
               description: Sender's email address
             senderName:
               type: string
+              maxLength: 100
               description: Sender's name
             subject:
               type: string
+              minLength: 1
+              maxLength: 255
               description: Subject of the email message
             recipient:
               type: string
+              format: email
+              maxLength: 254
               description: Recipient's address
             body:
               type: string
+              minLength: 1
+              maxLength: 10000
               description: Body content of the message
 
     SlackRequest:
@@ -205,9 +241,12 @@ components:
           properties:
             channel:
               type: string
-              description: Slack channel
+              pattern: "^(#|@).+"
+              description: Slack channel (channel name starting with # or user mention starting with @)
             message:
               type: string
+              minLength: 1
+              maxLength: 4000
               description: Slack message
 
     MessageResponse:
@@ -255,3 +294,12 @@ components:
           - sms
           - email
           - slack
+
+    UserIdParameter:
+      name: userId
+      in: query
+      required: false
+      description: Filter messages by user id
+      schema:
+        type: string
+        pattern: "^[0-9a-fA-F\\-]{36}$"

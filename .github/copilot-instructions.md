@@ -42,6 +42,18 @@ OpenAPI YAML checklist (must follow)
    This keeps error responses, pagination metadata and common parameters consistent across services.
    - API error responses required: each operation MUST include or inherit references for common error responses: 400 (ValidationError), 401 (UnauthorizedError), 403 (ForbiddenError), 404 (NotFoundError), 500 (InternalServerError) by referencing `.gen/common-api.yaml#/components/responses/*` or using the shared `x-common-error-responses` anchor pattern used in `user-ms`.
  - Operation IDs: every operation object MUST include an explicit `operationId` (use stable, camelCase names) so generated code and clients have predictable method names.
+ - Validation constraints: For any request parameter or request body property that requires validation, include explicit constraints in the OpenAPI schema. At minimum add `pattern` for format checks (use anchored regex, e.g. E.164 phone `^\\+[1-9]\\d{1,14}$`), and `minLength`/`maxLength` where appropriate (e.g., `message` maxLength: 1600, `subject` maxLength: 255, `email` maxLength: 254). These constraints ensure generated DTOs contain expected validation and prevent silent contract mismatches.
+   - Examples:
+     - Phone (E.164):
+       phoneNumber:
+         type: string
+         pattern: "^\\+[1-9]\\d{1,14}$"
+     - SMS message body:
+       message:
+         type: string
+         minLength: 1
+         maxLength: 1600
+     - CC (comma-separated emails): add a `pattern` for comma-separated email tokens and set a conservative `maxLength` (e.g., 2000)
  - API generation pause for review: when generating a new microservice, after the `*-api` spec is created and API codegen + compile completes successfully, STOP and ask for a human review before implementing the service module. This prevents wasted work when the API contract needs changes.
 
 API generation action pattern (LLM -> code)

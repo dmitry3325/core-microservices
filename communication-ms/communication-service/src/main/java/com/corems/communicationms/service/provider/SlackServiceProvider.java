@@ -36,19 +36,19 @@ public class SlackServiceProvider extends MessagingServiceProvider<SlackMessageE
     }
 
     @Override
-    public void validate(SlackRequest messageRequest) {
-    }
-
-    @Override
     public SlackMessageEntity sendDirect(SlackMessageEntity slackMessageEntity) {
         try {
-            ChatPostMessageResponse response = client.chatPostMessage(
-                    ChatPostMessageRequest.builder()
-                    .channel(slackMessageEntity.getChannel())
-                    .text(slackMessageEntity.getMessage())
-                    .build());
-            if (!response.isOk()) {
-                throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Slack error: " + response.getError());
+            if (!config.enabled()) {
+                log.info("Slack sending disabled! Simulating send to channel {}: {}", slackMessageEntity.getChannel(), slackMessageEntity.getMessage());
+            } else {
+                ChatPostMessageResponse response = client.chatPostMessage(
+                        ChatPostMessageRequest.builder()
+                                .channel(slackMessageEntity.getChannel())
+                                .text(slackMessageEntity.getMessage())
+                                .build());
+                if (!response.isOk()) {
+                    throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Slack error: " + response.getError());
+                }
             }
         } catch (SlackApiException | IOException ex) {
             log.error("Unable to send slack message: ", ex);

@@ -3,11 +3,12 @@ package com.corems.communicationms.service.provider;
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.service.exception.ServiceException;
 import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.communicationms.config.MailConfig;
 import com.corems.communicationms.entity.EmailMessageEntity;
 import com.corems.communicationms.entity.MessageEntity;
 import com.corems.communicationms.model.EmailRequest;
-import com.corems.communicationms.model.MessageRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import jakarta.mail.internet.MimeMessage;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,20 +28,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageEntity, EmailRequest> {
 
     private final JavaMailSender mailSender;
-    private final String defaultFrom;
+    private final MailConfig config;
 
     @Autowired
-    public EmailServiceProvider(JavaMailSender mailSender,
-                                @Value("${mail.from:${EMAIL_FROM:no-reply@example.com}}") String defaultFrom) {
+    public EmailServiceProvider(MailConfig config,
+                                JavaMailSender mailSender) {
+        this.config = config;
         this.mailSender = mailSender;
-        this.defaultFrom = defaultFrom;
-    }
-
-    @Override
-    public void validate(EmailRequest messageRequest) {
-        if (messageRequest.getRecipient() == null || messageRequest.getRecipient().isBlank()) {
-            throw new IllegalArgumentException("Email recipient is required");
-        }
     }
 
     @Override
@@ -51,10 +46,14 @@ public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageE
         emailEntity.setUuid(UUID.randomUUID().toString());
         emailEntity.setEmailType(emailRequest.getEmailType() == null ? "TXT" : emailRequest.getEmailType().toString());
         emailEntity.setSubject(emailRequest.getSubject());
-        emailEntity.setSender(emailRequest.getSender() == null ? defaultFrom : emailRequest.getSender());
+        emailEntity.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
         emailEntity.setSenderName(emailRequest.getSenderName());
-        emailEntity.setCc(emailRequest.getCc());
-        emailEntity.setBcc(emailRequest.getBcc());
+        if (emailRequest.getCc()!= null && !emailRequest.getCc().isEmpty()) {
+            emailEntity.setCc(String.join(",", emailRequest.getCc()));
+        }
+        if (emailRequest.getBcc()!= null && !emailRequest.getBcc().isEmpty()) {
+            emailEntity.setBcc(String.join(",", emailRequest.getBcc()));
+        }
         emailEntity.setRecipient(emailRequest.getRecipient());
         emailEntity.setBody(emailRequest.getBody());
         emailEntity.setUserId(userPrincipal.getUserId());
@@ -68,14 +67,26 @@ public class EmailServiceProvider extends MessagingServiceProvider<EmailMessageE
     @Override
     public EmailMessageEntity sendDirect(EmailMessageEntity entity) {
         try {
+            if (!config.getEnabled()) {
+                log.info("Email sending disabled! Simulating send to {}: {}", entity.getRecipient(), entity.getBody());
+
+                entity.setStatus(MessageEntity.MessageStatus.SENT);
+                entity.setUpdatedAt(Instant.now());
+                messageRepository.save(entity);
+                return entity;
+            }
+
             MimeMessage mime = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
 
-            helper.setFrom(entity.getSender() == null ? defaultFrom : entity.getSender(), entity.getSenderName());
+            helper.setFrom(entity.getSender() == null ? config.getDefaultFrom() : entity.getSender(), entity.getSenderName());
             helper.setTo(entity.getRecipient());
             helper.setSubject(entity.getSubject() == null ? "No reply" : entity.getSubject());
             boolean isHtml = entity.getEmailType() != null && entity.getEmailType().equalsIgnoreCase("HTML");
             helper.setText(entity.getBody() == null ? "" : entity.getBody(), isHtml);
+
+            if (!Strings.isEmpty(entity.getCc())) helper.setBcc(entity.getCc());
+            if (!Strings.isEmpty(entity.getBcc())) helper.setBcc(entity.getBcc());
 
             mailSender.send(mime);
 

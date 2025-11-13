@@ -11,6 +11,7 @@ import com.corems.communicationms.model.SlackRequest;
 import com.corems.communicationms.repository.MessageRepository;
 import com.corems.communicationms.service.provider.SlackServiceProvider;
 import com.corems.communicationms.service.provider.EmailServiceProvider;
+import com.corems.communicationms.service.provider.SmsServiceProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -30,30 +31,27 @@ public class MessagingService {
 
     private final SlackServiceProvider slackServiceProvider;
     private final EmailServiceProvider emailServiceProvider;
+    private final SmsServiceProvider smsServiceProvider;
 
     @Autowired
     public MessagingService(
             MessageRepository messageRepository,
             SlackServiceProvider slackServiceProvider,
             EmailServiceProvider emailServiceProvider
+            ,SmsServiceProvider smsServiceProvider
     ) {
         this.messageRepository = messageRepository;
         this.slackServiceProvider = slackServiceProvider;
         this.emailServiceProvider = emailServiceProvider;
+        this.smsServiceProvider = smsServiceProvider;
     }
 
     public MessageResponse sendMessage(MessageRequest message) {
         MessageEntity messageEntity;
         switch (message.getType()) {
-            case SLACK -> {
-                slackServiceProvider.validate((SlackRequest) message);
-                messageEntity = slackServiceProvider.sendMessage((SlackRequest) message);
-            }
-            case EMAIL -> {
-                emailServiceProvider.validate((EmailRequest) message);
-                messageEntity = emailServiceProvider.sendMessage((EmailRequest) message);
-            }
-            case SMS -> throw ServiceException.of(DefaultExceptionReasonCodes.NOT_IMPLEMENTED, "SMS provider not implemented yet");
+            case SLACK -> messageEntity = slackServiceProvider.sendMessage((SlackRequest) message);
+            case EMAIL -> messageEntity = emailServiceProvider.sendMessage((EmailRequest) message);
+            case SMS -> messageEntity = smsServiceProvider.sendMessage((com.corems.communicationms.model.SmsRequest) message);
             default -> throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Unexpected message type: " + message.getType());
         }
 
