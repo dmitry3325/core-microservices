@@ -1,0 +1,110 @@
+package com.corems.communicationms.app.service;
+
+import com.corems.common.exception.ServiceException;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.communicationms.app.entity.MessageEntity;
+import com.corems.communicationms.api.model.SmsRequest;
+import com.corems.communicationms.api.model.EmailRequest;
+import com.corems.communicationms.api.model.MessageRequest;
+import com.corems.communicationms.api.model.MessageResponse;
+import com.corems.communicationms.api.model.GetMessagesForUser;
+import com.corems.communicationms.api.model.SlackRequest;
+import com.corems.communicationms.app.repository.MessageRepository;
+import com.corems.communicationms.app.service.provider.SlackServiceProvider;
+import com.corems.communicationms.app.service.provider.EmailServiceProvider;
+import com.corems.communicationms.app.service.provider.SmsServiceProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import com.corems.common.utils.db.utils.QueryParams;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+public class MessagingService {
+
+    private final MessageRepository messageRepository;
+
+    private final SlackServiceProvider slackServiceProvider;
+    private final EmailServiceProvider emailServiceProvider;
+    private final SmsServiceProvider smsServiceProvider;
+
+    @Autowired
+    public MessagingService(
+            MessageRepository messageRepository,
+            SlackServiceProvider slackServiceProvider,
+            EmailServiceProvider emailServiceProvider
+            ,SmsServiceProvider smsServiceProvider
+    ) {
+        this.messageRepository = messageRepository;
+        this.slackServiceProvider = slackServiceProvider;
+        this.emailServiceProvider = emailServiceProvider;
+        this.smsServiceProvider = smsServiceProvider;
+    }
+
+    public MessageResponse sendMessage(MessageRequest message) {
+        MessageEntity messageEntity;
+        switch (message.getType()) {
+            case SLACK -> messageEntity = slackServiceProvider.sendMessage((SlackRequest) message);
+            case EMAIL -> messageEntity = emailServiceProvider.sendMessage((EmailRequest) message);
+            case SMS -> messageEntity = smsServiceProvider.sendMessage((SmsRequest) message);
+            default -> throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Unexpected message type: " + message.getType());
+        }
+
+        MessageResponse response = new MessageResponse();
+        response.setId(messageEntity.getUuid());
+        response.setType(messageEntity.getType().getValue());
+        response.setStatus(messageEntity.getStatus().toString());
+        response.createdAt(messageEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        response.setData(message);
+
+        return response;
+    }
+
+    public GetMessagesForUser listMessages(
+            String userId,
+            Optional<Integer> page,
+            Optional<Integer> pageSize,
+            Optional<String> sort,
+            Optional<String> search,
+            Optional<List<String>> filter
+    ) {
+        // Merge userId constraint into filters so the executor will scope to this user
+        List<String> mergedFilters = new java.util.ArrayList<>();
+        // Only add user constraint when a userId is provided (for user-scoped listing)
+        if (userId != null && !userId.isBlank()) {
+            mergedFilters.add("userId:eq:" + userId);
+        }
+        filter.ifPresent(mergedFilters::addAll);
+
+        // Build QueryParams with controller-provided optionals (page/pageSize/search/sort/filter)
+        QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(mergedFilters));
+
+        Page<MessageEntity> result = messageRepository.findAllByQueryParams(params);
+
+        GetMessagesForUser messages = new GetMessagesForUser();
+        messages.setTotal((int) result.getTotalElements());
+        messages.setPage(result.getNumber() + 1); // repository returns 0-based; API is 1-based
+        messages.setPageSize(result.getSize());
+
+        List<MessageResponse> items = result.getContent().stream().map(entity -> {
+            MessageResponse mr = new MessageResponse();
+            mr.setId(entity.getId() == null ? null : entity.getId().toString());
+            mr.setType(entity.getType() == null ? null : entity.getType().getValue());
+            mr.createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+            // data: put minimal payload info (we don't expose entity directly)
+            // For now, set data to null to avoid exposing internal entity structure. If needed, map properly.
+            mr.setData(null);
+            mr.setStatus(entity.getStatus() == null ? null : entity.getStatus().toString());
+            return mr;
+        }).collect(Collectors.toList());
+
+        messages.setItems(items);
+        return messages;
+    }
+}

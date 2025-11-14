@@ -1,7 +1,7 @@
 package com.corems.common.utils.db.utils;
 
-import com.corems.common.service.exception.ServiceException;
-import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.exception.ServiceException;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.common.utils.db.spec.FilterOperation;
 import com.corems.common.utils.db.spec.FilterRequest;
 

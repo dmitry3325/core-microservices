@@ -1,7 +1,7 @@
 package com.corems.common.queue;
 
 import com.corems.common.queue.config.QueueProperties;
-import com.corems.common.service.exception.ServiceException;
+import com.corems.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;

@@ -12,7 +12,7 @@
     <artifactId>user-service</artifactId>
 
     <properties>
-        <module.mainClass>com.corems.userms.UserServiceApplication</module.mainClass>
+        <module.mainClass>com.corems.userms.app.UserServiceApplication</module.mainClass>
     </properties>
 
     <dependencies>

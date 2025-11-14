@@ -3,7 +3,7 @@ package com.corems.common.security.filter;
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.exception.AuthServiceException;
 import com.corems.common.security.service.TokenProvider;
-import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;

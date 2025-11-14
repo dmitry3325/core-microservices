@@ -1,7 +1,7 @@
 package com.corems.common.utils.db.spec;
 
-import com.corems.common.service.exception.ServiceException;
-import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.exception.ServiceException;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.*;

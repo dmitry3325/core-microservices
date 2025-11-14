@@ -1,8 +1,6 @@
 package com.corems.common.utils.db.spec;
 
-import com.corems.common.service.exception.ServiceException;
-import com.corems.common.utils.db.spec.FilterOperation;
-import com.corems.common.utils.db.spec.FilterRequest;
+import com.corems.common.exception.ServiceException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -10,7 +8,6 @@ import jakarta.persistence.criteria.Path;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.Month;
 import java.util.UUID;
 

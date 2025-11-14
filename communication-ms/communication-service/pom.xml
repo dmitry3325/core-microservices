@@ -12,7 +12,7 @@
     <artifactId>communication-service</artifactId>
 
     <properties>
-        <module.mainClass>com.corems.communicationms.CommunicationServiceApplication</module.mainClass>
+        <module.mainClass>com.corems.communicationms.app.CommunicationServiceApplication</module.mainClass>
     </properties>
 
     <dependencies>

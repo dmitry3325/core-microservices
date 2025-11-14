@@ -1,7 +1,7 @@
 package com.corems.common.security.service;
 
 import com.corems.common.security.exception.AuthServiceException;
-import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;

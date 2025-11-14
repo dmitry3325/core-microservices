@@ -12,6 +12,7 @@
 
     <artifactId>utils</artifactId>
     <packaging>pom</packaging>
+    <name>utils</name>
 
     <modules>
         <module>db-utils</module>

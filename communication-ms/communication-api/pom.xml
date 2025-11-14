@@ -93,7 +93,7 @@
                                 <interfaceOnly>true</interfaceOnly>
                                 <useBeanValidation>true</useBeanValidation>
                                 <serializableModel>true</serializableModel>
-                                <modelPackage>${project.groupId}.model</modelPackage>
+                                <modelPackage>${project.groupId}.api.model</modelPackage>
                                 <apiPackage>${project.groupId}.api</apiPackage>
                                 <useSpringBoot3>true</useSpringBoot3>
                             </configOptions>

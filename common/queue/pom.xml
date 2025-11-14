@@ -10,12 +10,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.corems.common</groupId>
     <artifactId>queue</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
-    <name>queue</name>
 
     <dependencies>
         <dependency>

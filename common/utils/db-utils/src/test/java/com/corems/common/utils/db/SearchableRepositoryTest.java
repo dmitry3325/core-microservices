@@ -1,6 +1,6 @@
 package com.corems.common.utils.db;
 
-import com.corems.common.service.exception.ServiceException;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.utils.db.entity.TestEntity;
 import com.corems.common.utils.db.repo.TestEntityRepository;
 import com.corems.common.utils.db.utils.QueryParams;

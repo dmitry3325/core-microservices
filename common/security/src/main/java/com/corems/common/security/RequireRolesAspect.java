@@ -1,12 +1,11 @@
 package com.corems.common.security;
 
 import com.corems.common.security.exception.AuthServiceException;
-import com.corems.common.service.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
