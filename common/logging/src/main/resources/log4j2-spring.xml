@@ -4,28 +4,26 @@
         <Property name="appender">${env:LOG_LAYOUT:-CONSOLE_APPENDER}</Property>
         <Property name="appLogLvl">${env:APP_LOG_LEVEL:-INFO}</Property>
         <Property name="springLogLvl">${env:SPRING_LOG_LEVEL:-ERROR}</Property>
-
-        <Property name="appName">${spring:spring.application.name}</Property>
-        <Property name="userId">$${ctx:userId}</Property>
-        <Property name="requestId">$${ctx:requestId}</Property>
-        <Property name="correlationId">$${ctx:correlationId}</Property>
+        <Property name="appName">${spring:spring.application.name:-}</Property>
     </Properties>
 
     <Appenders>
         <Console name="CONSOLE_APPENDER" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg - %notEmpty{[correlationId=%X{correlationId}]} %notEmpty{[userId=%X{userId}]} %n" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg - %notEmpty{[app=${appName}]} %notEmpty{[correlationId=%X{correlationId}]} %notEmpty{[userId=%X{userId}]} %n" />
         </Console>
 
         <Console name="JSON_APPENDER" target="SYSTEM_OUT">
             <JsonLayout compact="true" eventEol="true" properties="true">
                 <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd HH:mm:ss.SSS}" />
-                <KeyValuePair key="thread" value="$${threadName}" />
-                <KeyValuePair key="level" value="$${level}" />
-                <KeyValuePair key="logger" value="$${logger:short}" />
-                <KeyValuePair key="message" value="$${message}" />
-                <KeyValuePair key="correlationId" value="$${ctx:correlationId}" />
-                <KeyValuePair key="requestId" value="$${ctx:requestId}" />
-                <KeyValuePair key="userId" value="$${ctx:userId}" />
+                <KeyValuePair key="thread" value="$${threadName:-}" />
+                <KeyValuePair key="level" value="$${level:-}" />
+                <KeyValuePair key="logger" value="$${logger:short:-}" />
+                <KeyValuePair key="message" value="$${message:-}" />
+                <KeyValuePair key="app" value="${appName:-}" />
+                <KeyValuePair key="instance" value="${env:HOSTNAME:-}" />
+                <KeyValuePair key="correlationId" value="$${ctx:correlationId:-}" />
+                <KeyValuePair key="requestId" value="$${ctx:requestId:-}" />
+                <KeyValuePair key="userId" value="$${ctx:userId:-}" />
             </JsonLayout>
         </Console>
     </Appenders>
