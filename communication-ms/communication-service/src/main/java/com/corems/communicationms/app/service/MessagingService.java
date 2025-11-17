@@ -1,11 +1,16 @@
 package com.corems.communicationms.app.service;
 
 import com.corems.communicationms.api.model.ChannelType;
+import com.corems.communicationms.api.model.EmailPayload;
+import com.corems.communicationms.api.model.MessageResponsePayload;
 import com.corems.communicationms.api.model.SendStatus;
+import com.corems.communicationms.api.model.SmsPayload;
+import com.corems.communicationms.app.entity.EmailMessageEntity;
 import com.corems.communicationms.app.entity.MessageEntity;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.MessageListResponse;
 import com.corems.communicationms.api.model.PaginationMeta;
+import com.corems.communicationms.app.entity.SMSMessageEntity;
 import com.corems.communicationms.app.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,36 +40,92 @@ public class MessagingService {
     ) {
         // Merge userId constraint into filters so the executor will scope to this user
         List<String> mergedFilters = new java.util.ArrayList<>();
-        // Only add user constraint when a userId is provided (for user-scoped listing)
         if (userId != null && !userId.isBlank()) {
             mergedFilters.add("userId:eq:" + userId);
         }
         filter.ifPresent(mergedFilters::addAll);
 
-        // Build QueryParams with controller-provided optionals (page/pageSize/search/sort/filter)
-        QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(mergedFilters));
+        // If no sort provided, default to createdAt desc
+        if (sort.isEmpty()) {
+            mergedFilters.add("createdAt:desc");
+        }
 
+        QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(mergedFilters));
         Page<MessageEntity> result = messageRepository.findAllByQueryParams(params);
 
-        // Build list response
         PaginationMeta meta = new PaginationMeta(result.getNumber() + 1, result.getSize());
         meta.setTotalElements(result.getTotalElements());
         meta.setTotalPages(result.getTotalPages());
 
-        List<MessageResponse> items = result.getContent().stream().map(entity -> {
-            MessageResponse mr = new MessageResponse();
-            mr.setUuid(entity.getUuid());
-            mr.setType(entity.getType() == null ? null : ChannelType.valueOf(entity.getType().toString()));
-            mr.setStatus(SendStatus.valueOf(entity.getStatus().toString()));
-            mr.createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
-
-
-            return mr;
-        }).collect(Collectors.toList());
+        List<MessageResponse> items = result.getContent().stream()
+                .map(this::mapToMessageResponse)
+                .collect(Collectors.toList());
 
         MessageListResponse response = new MessageListResponse();
         response.setMeta(meta);
         response.setData(items);
+
         return response;
+    }
+
+    private MessageResponse mapToMessageResponse(MessageEntity entity) {
+        MessageResponse mr = new MessageResponse();
+        mr.setUuid(entity.getUuid());
+        mr.setType(entity.getType() == null ? null : ChannelType.fromValue(entity.getType().toString()));
+        mr.setStatus(SendStatus.fromValue(entity.getStatus().toString()));
+        mr.createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        mr.setUserId(entity.getUserId());
+
+        // if something went wrong, payload will be null
+        MessageResponsePayload payload = null;
+        if (entity.getType() == null) {
+            log.error("Message entity has null type for uuid={}", entity.getUuid());
+            return mr;
+        } else {
+            switch (entity.getType()) {
+                case email -> payload = mapEmail((EmailMessageEntity) entity);
+                case sms -> payload = mapSms((SMSMessageEntity) entity);
+                default -> log.error("Missing error mapper for type={}, uuid={}", entity.getType(), entity.getUuid());
+            }
+        }
+
+        mr.setPayload(payload);
+        return mr;
+    }
+
+    private EmailPayload mapEmail(EmailMessageEntity emailEntity) {
+        EmailPayload ep = new EmailPayload(
+                emailEntity.getSubject(),
+                emailEntity.getRecipient(),
+                emailEntity.getBody()
+        );
+        if (emailEntity.getEmailType() != null) {
+            try {
+                ep.setEmailType(EmailPayload.EmailTypeEnum.fromValue(emailEntity.getEmailType()));
+            } catch (IllegalArgumentException ex) {
+                log.warn("Unknown emailType '{}' for message uuid={}", emailEntity.getEmailType(), emailEntity.getUuid());
+            }
+        }
+        if (emailEntity.getSender() != null) ep.setSender(emailEntity.getSender());
+        if (emailEntity.getSenderName() != null) ep.setSenderName(emailEntity.getSenderName());
+        if (emailEntity.getCc() != null && !emailEntity.getCc().isBlank()) {
+            List<String> cc = java.util.Arrays.stream(emailEntity.getCc().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            ep.setCc(cc);
+        }
+        if (emailEntity.getBcc() != null && !emailEntity.getBcc().isBlank()) {
+            List<String> bcc = java.util.Arrays.stream(emailEntity.getBcc().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            ep.setBcc(bcc);
+        }
+        return ep;
+    }
+
+    private SmsPayload mapSms(SMSMessageEntity smsEntity) {
+        return new SmsPayload(smsEntity.getPhoneNumber(), smsEntity.getMessage());
     }
 }

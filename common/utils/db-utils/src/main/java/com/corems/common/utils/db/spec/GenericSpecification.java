@@ -5,6 +5,7 @@ import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +27,10 @@ public class GenericSpecification<T> implements Specification<T> {
         String raw = criteria.value() == null ? "" : criteria.value();
 
         return switch (criteria.op()) {
-            case LIKE -> cb.like(cb.lower(path.as(String.class)), "%" + raw.toLowerCase() + "%");
+            case LIKE -> {
+                Predicate[] variants = LikePredicateBuilder.buildLikeVariants(cb, path, raw);
+                yield cb.or(variants);
+            }
             case IN -> {
                 List<Object> values = Arrays.stream(raw.split(","))
                         .map(String::trim)

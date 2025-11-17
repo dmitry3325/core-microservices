@@ -254,10 +254,10 @@ components:
       properties:
         emailType:
           type: string
-          default: TXT
+          default: txt
           enum:
-            - TXT
-            - HTML
+            - txt
+            - html
           description: Email type HTML or TXT
         cc:
           type: array
@@ -368,10 +368,10 @@ components:
       type: string
       description: Status of the message or notification
       enum:
-         - CREATED
-         - ENQUEUED
-         - SENT
-         - FAILED
+         - created
+         - enqueued
+         - sent
+         - failed
 
     ChannelType:
       type: string

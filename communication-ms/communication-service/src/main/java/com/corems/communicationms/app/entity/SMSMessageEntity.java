@@ -16,7 +16,7 @@ import java.time.Instant;
 public class SMSMessageEntity extends MessageEntity {
 
     public SMSMessageEntity() {
-        this.setType(MessageType.SMS);
+        this.setType(MessageType.sms);
         this.setCreatedAt(Instant.now());
     }
 

@@ -35,22 +35,23 @@ public class EmailService {
         EmailMessageEntity emailEntity = createEntity(emailRequest);
         EmailPayload payload = getPayload(emailRequest);
         try {
-            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.EMAIL, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.email, payload);
             emailEntity.setStatus(status);
         } catch (ServiceException exception) {
             log.error("Failed to send email message: ", exception);
 
-            emailEntity.setStatus(MessageStatus.FAILED);
+            emailEntity.setStatus(MessageStatus.failed);
             emailEntity.setUpdatedAt(Instant.now());
-            messageRepository.save(emailEntity);
             throw exception;
         }
+
+        messageRepository.save(emailEntity);
 
         MessageResponse response = new MessageResponse();
         response.setUuid(emailEntity.getUuid());
         response.setUserId(emailEntity.getUserId());
         response.setType(ChannelType.EMAIL);
-        response.setStatus(SendStatus.valueOf(emailEntity.getStatus().toString()));
+        response.setStatus(SendStatus.fromValue(emailEntity.getStatus().toString()));
         response.setCreatedAt(emailEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setPayload(payload);
 
@@ -60,10 +61,10 @@ public class EmailService {
     public NotificationResponse sendNotification(EmailNotificationRequest emailRequest) {
         try {
             EmailPayload payload = getPayload(emailRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.EMAIL, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.email, payload);
 
             NotificationResponse response = new NotificationResponse();
-            response.setStatus(SendStatus.valueOf(status.toString()));
+            response.setStatus(SendStatus.fromValue(status.toString()));
             response.setSentAt(Instant.now().atOffset(ZoneOffset.UTC));
 
             return response;
@@ -76,7 +77,7 @@ public class EmailService {
     private EmailPayload getPayload(EmailMessageRequest emailRequest) {
         EmailPayload payload = new EmailPayload(emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
         payload.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
-        payload.setEmailType(EmailPayload.EmailTypeEnum.valueOf(emailRequest.getEmailType().getValue()));
+        payload.setEmailType(EmailPayload.EmailTypeEnum.fromValue(emailRequest.getEmailType().getValue()));
         payload.setSenderName(emailRequest.getSenderName());
         payload.setCc(emailRequest.getCc());
         payload.setBcc(emailRequest.getBcc());
@@ -86,7 +87,7 @@ public class EmailService {
     private EmailPayload getPayload(EmailNotificationRequest emailRequest) {
         EmailPayload payload = new EmailPayload(emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
         payload.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
-        payload.setEmailType(EmailPayload.EmailTypeEnum.valueOf(emailRequest.getEmailType().getValue()));
+        payload.setEmailType(EmailPayload.EmailTypeEnum.fromValue(emailRequest.getEmailType().getValue()));
         payload.setSenderName(emailRequest.getSenderName());
         payload.setCc(emailRequest.getCc());
         payload.setBcc(emailRequest.getBcc());
@@ -110,7 +111,7 @@ public class EmailService {
         emailEntity.setBody(emailRequest.getBody());
         emailEntity.setUserId(emailRequest.getUserId());
         emailEntity.setCreatedAt(Instant.now());
-        emailEntity.setStatus(MessageStatus.CREATED);
+        emailEntity.setStatus(MessageStatus.created);
 
         messageRepository.save(emailEntity);
         return emailEntity;

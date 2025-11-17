@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum MessageStatus {
-    CREATED,
-    ENQUEUED,
-    SENT,
-    FAILED
+    created,
+    enqueued,
+    sent,
+    failed
 }

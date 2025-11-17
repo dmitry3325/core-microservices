@@ -34,12 +34,13 @@ public class SmsService {
         SMSMessageEntity smsEntity = createEntity(smsRequest);
         SmsPayload payload = getPayload(smsRequest);
         try {
-            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.SMS, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.sms, payload);
             smsEntity.setStatus(status);
+            messageRepository.save(smsEntity);
         } catch (ServiceException exception) {
             log.error("Failed to send SMS message: ", exception);
 
-            smsEntity.setStatus(MessageStatus.FAILED);
+            smsEntity.setStatus(MessageStatus.failed);
             smsEntity.setUpdatedAt(Instant.now());
             messageRepository.save(smsEntity);
             throw exception;
@@ -49,7 +50,7 @@ public class SmsService {
         response.setUuid(smsEntity.getUuid());
         response.setUserId(smsEntity.getUserId());
         response.setType(ChannelType.SMS);
-        response.setStatus(SendStatus.valueOf(smsEntity.getStatus().toString()));
+        response.setStatus(SendStatus.fromValue(smsEntity.getStatus().toString()));
         response.setCreatedAt(smsEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setPayload(payload);
 
@@ -59,10 +60,10 @@ public class SmsService {
     public NotificationResponse sendNotification(SmsNotificationRequest smsRequest) {
         try {
             SmsPayload payload = getPayload(smsRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.SMS, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.sms, payload);
 
             NotificationResponse response = new NotificationResponse();
-            response.setStatus(SendStatus.valueOf(status.toString()));
+            response.setStatus(SendStatus.fromValue(status.toString()));
             response.setSentAt(Instant.now().atOffset(ZoneOffset.UTC));
 
             return response;
@@ -87,7 +88,7 @@ public class SmsService {
         smsEntity.setMessage(smsRequest.getMessage());
         smsEntity.setUserId(smsRequest.getUserId());
         smsEntity.setCreatedAt(Instant.now());
-        smsEntity.setStatus(MessageStatus.CREATED);
+        smsEntity.setStatus(MessageStatus.created);
 
         messageRepository.save(smsEntity);
         return smsEntity;

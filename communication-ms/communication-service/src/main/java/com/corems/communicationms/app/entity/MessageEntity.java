@@ -11,8 +11,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +23,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity(name = "message")
+@Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @Getter
@@ -55,6 +57,6 @@ public abstract class MessageEntity implements Serializable {
 
     public MessageEntity() {
         this.createdAt = Instant.now();
-        this.status = MessageStatus.CREATED;
+        this.status = MessageStatus.created;
     }
 }

@@ -36,10 +36,10 @@ public class SlackService {
     public NotificationResponse sendNotification(SlackNotificationRequest slackRequest) {
         try {
             SlackPayload payload = getPayload(slackRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(slackServiceProvider, MessageType.SLACK, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(slackServiceProvider, MessageType.slack, payload);
 
             NotificationResponse response = new NotificationResponse();
-            response.setStatus(SendStatus.valueOf(status.toString()));
+            response.setStatus(SendStatus.fromValue(status.toString()));
             response.setSentAt(Instant.now().atOffset(ZoneOffset.UTC));
 
             return response;

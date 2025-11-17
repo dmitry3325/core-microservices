@@ -1,5 +1,8 @@
 package com.corems.common.security;
 
+import java.util.EnumSet;
+import java.util.List;
+
 /**
  * Centralized roles enum for Core Microservices.
  * Use this enum across services instead of service-local role enums.
@@ -19,5 +22,10 @@ public enum CoreMsRoles {
     TRANSLATION_MS_ADMIN,
     // Document Microservice Roles
     DOCUMENT_MS_ADMIN,
-    DOCUMENT_MS_USER
+    DOCUMENT_MS_USER;
+
+
+    public static EnumSet<CoreMsRoles> getSystemRoles() {
+        return EnumSet.of(SYSTEM, SUPER_ADMIN);
+    }
 }

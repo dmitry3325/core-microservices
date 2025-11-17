@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum MessageType {
-    SMS,
-    SLACK,
-    EMAIL;
+    sms,
+    slack,
+    email
 }

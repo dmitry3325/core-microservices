@@ -22,6 +22,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,9 +45,18 @@ public class MessagesController implements MessagesApi {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
 
+        EnumSet<CoreMsRoles> privileged = EnumSet.copyOf(CoreMsRoles.getSystemRoles());
+        privileged.add(CoreMsRoles.COMMUNICATION_MS_ADMIN);
+
         boolean isAdmin = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(a -> a.equals("ROLE_" + CoreMsRoles.COMMUNICATION_MS_ADMIN.name()));
+                .anyMatch(granted -> {
+                    try {
+                        CoreMsRoles role = CoreMsRoles.valueOf(granted.getAuthority());
+                        return privileged.contains(role);
+                    } catch (IllegalArgumentException | NullPointerException ex) {
+                        return false;
+                    }
+                });
 
         String userScope = isAdmin ? null : userPrincipal.getUserId();
 

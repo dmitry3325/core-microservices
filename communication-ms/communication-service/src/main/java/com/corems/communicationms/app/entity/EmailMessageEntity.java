@@ -16,7 +16,7 @@ import java.time.Instant;
 public class EmailMessageEntity extends MessageEntity {
 
     public EmailMessageEntity() {
-        this.setType(MessageType.EMAIL);
+        this.setType(MessageType.email);
         this.setCreatedAt(Instant.now());
     }
 

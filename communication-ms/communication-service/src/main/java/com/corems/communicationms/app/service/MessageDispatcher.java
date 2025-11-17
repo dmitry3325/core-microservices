@@ -36,10 +36,10 @@ public class MessageDispatcher {
             }
 
             queueClient.send(qm);
-            return MessageStatus.ENQUEUED;
+            return MessageStatus.enqueued;
         }
 
         channelProvider.send(payload);
-        return MessageStatus.SENT;
+        return MessageStatus.sent;
     }
 }

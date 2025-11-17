@@ -2,6 +2,7 @@ package com.corems.common.utils.db.utils;
 
 import com.corems.common.utils.db.spec.FilterRequest;
 import com.corems.common.utils.db.spec.SpecificationBuilder;
+import com.corems.common.utils.db.spec.LikePredicateBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -69,7 +70,9 @@ public final class PaginatedQueryExecutor {
                             for (String part : field.split("\\.")) {
                                 path = path.get(part);
                             }
-                            return cb.like(cb.lower(path.as(String.class)), "%" + searchValue.toLowerCase() + "%");
+                            // build per-field OR of variants (contains, startsWith, endsWith)
+                            Predicate[] variants = LikePredicateBuilder.buildLikeVariants(cb, path, searchValue);
+                            return cb.or(variants);
                         })
                         .toArray(Predicate[]::new);
                 return cb.or(preds);
