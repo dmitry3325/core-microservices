@@ -319,7 +319,7 @@ components:
     MessageCommon:
       type: object
       required:
-          - userId
+        - userId
       properties:
         userId:
           type: string
@@ -368,10 +368,10 @@ components:
       type: string
       description: Status of the message or notification
       enum:
-         - created
-         - enqueued
-         - sent
-         - failed
+        - created
+        - enqueued
+        - sent
+        - failed
 
     ChannelType:
       type: string
@@ -414,14 +414,15 @@ components:
           description: Timestamp when the notification was sent
 
     MessageListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/MessageResponse'
-        meta:
-          $ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'
+      allOf:
+        - $ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageResponse'
+
 
   securitySchemes:
     bearerAuth:

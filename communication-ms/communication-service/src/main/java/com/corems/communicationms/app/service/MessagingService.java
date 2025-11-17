@@ -53,17 +53,15 @@ public class MessagingService {
         QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(mergedFilters));
         Page<MessageEntity> result = messageRepository.findAllByQueryParams(params);
 
-        PaginationMeta meta = new PaginationMeta(result.getNumber() + 1, result.getSize());
-        meta.setTotalElements(result.getTotalElements());
-        meta.setTotalPages(result.getTotalPages());
 
         List<MessageResponse> items = result.getContent().stream()
                 .map(this::mapToMessageResponse)
                 .collect(Collectors.toList());
 
-        MessageListResponse response = new MessageListResponse();
-        response.setMeta(meta);
-        response.setData(items);
+        MessageListResponse response = new MessageListResponse(result.getNumber() + 1, result.getSize());
+        response.setItems(items);
+        response.setTotalPages(result.getTotalPages());
+        response.setTotalElements(result.getTotalElements());
 
         return response;
     }
