@@ -248,8 +248,8 @@ components:
     EmailPayload:
       type: object
       required:
-        - subject
         - recipient
+        - subject
         - body
       properties:
         emailType:

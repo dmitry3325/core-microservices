@@ -451,7 +451,6 @@ components:
           example: StrongPass1!
         imageUrl:
           type: string
-          format: uri
           maxLength: 2048
           description: Optional URL to the user's profile image
           example: https://example.com/images/johndoe.jpg
@@ -547,7 +546,6 @@ components:
           example: Doe
         imageUrl:
           type: string
-          format: uri
           example: https://example.com/images/johndoe.jpg
 
     ChangePasswordRequest:

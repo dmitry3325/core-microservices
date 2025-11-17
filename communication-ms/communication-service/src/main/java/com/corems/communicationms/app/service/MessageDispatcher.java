@@ -10,18 +10,16 @@ import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.service.provider.ChannelProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MessageDispatcher {
     private final QueueProvider queueProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public MessageDispatcher(QueueProvider queueProvider) {
-        this.queueProvider = queueProvider;
-    }
 
     public <T> MessageStatus dispatchMessage(ChannelProvider<T> channelProvider, MessageType type, T payload) throws ServiceException {
         if (queueProvider.isEnabled()) {

@@ -14,6 +14,7 @@ import com.corems.communicationms.app.model.MessageStatus;
 import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.EmailServiceProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,21 +24,12 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class EmailService {
     private final MailConfig config;
     private final MessageRepository messageRepository;
     private final EmailServiceProvider emailServiceProvider;
     private final MessageDispatcher messageDispatcher;
-
-    public EmailService(MailConfig config,
-                        MessageDispatcher messageDispatcher,
-                        MessageRepository messageRepository,
-                        EmailServiceProvider emailServiceProvider) {
-        this.config = config;
-        this.messageDispatcher = messageDispatcher;
-        this.messageRepository = messageRepository;
-        this.emailServiceProvider = emailServiceProvider;
-    }
 
     public MessageResponse sendMessage(EmailMessageRequest emailRequest) {
         EmailMessageEntity emailEntity = createEntity(emailRequest);
@@ -84,6 +76,7 @@ public class EmailService {
     private EmailPayload getPayload(EmailMessageRequest emailRequest) {
         EmailPayload payload = new EmailPayload(emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
         payload.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
+        payload.setEmailType(EmailPayload.EmailTypeEnum.valueOf(emailRequest.getEmailType().getValue()));
         payload.setSenderName(emailRequest.getSenderName());
         payload.setCc(emailRequest.getCc());
         payload.setBcc(emailRequest.getBcc());

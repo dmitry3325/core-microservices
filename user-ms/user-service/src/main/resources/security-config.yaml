@@ -1,5 +1,7 @@
 spring:
   security:
+    common:
+      enabled: false
     cors:
       allowedOrigins: http://localhost:3000, http://localhost:8080
     jwt:

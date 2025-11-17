@@ -14,6 +14,7 @@ import com.corems.communicationms.app.model.MessageStatus;
 import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.SmsServiceProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,21 +24,11 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SmsService {
-    private final SmsConfig config;
     private final MessageRepository messageRepository;
     private final SmsServiceProvider smsServiceProvider;
     private final MessageDispatcher messageDispatcher;
-
-    public SmsService(SmsConfig config,
-                      MessageDispatcher messageDispatcher,
-                      MessageRepository messageRepository,
-                      SmsServiceProvider smsServiceProvider) {
-        this.config = config;
-        this.messageDispatcher = messageDispatcher;
-        this.messageRepository = messageRepository;
-        this.smsServiceProvider = smsServiceProvider;
-    }
 
     public MessageResponse sendMessage(SmsMessageRequest smsRequest) {
         SMSMessageEntity smsEntity = createEntity(smsRequest);

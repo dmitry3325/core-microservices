@@ -20,6 +20,25 @@
         </dependency>
 
         <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- shared inbound client helpers (correlation id, bearer token, builder) -->
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>inbound-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
@@ -51,6 +70,7 @@
                             <generateApis>true</generateApis>
                             <generateModels>false</generateModels>
                             <generatorName>java</generatorName>
+                            <generateApiTests>false</generateApiTests>
                             <configOptions>
                                 <library>webclient</library>
                                 <useJakartaEe>true</useJakartaEe>

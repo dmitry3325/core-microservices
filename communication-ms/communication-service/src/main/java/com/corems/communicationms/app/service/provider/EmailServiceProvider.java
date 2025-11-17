@@ -5,24 +5,18 @@ import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.communicationms.api.model.EmailPayload;
 import com.corems.communicationms.app.config.MailConfig;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailServiceProvider implements ChannelProvider<EmailPayload> {
     private final JavaMailSender mailSender;
     private final MailConfig config;
-
-    @Autowired
-    public EmailServiceProvider(MailConfig config,
-                                JavaMailSender mailSender) {
-        this.config = config;
-        this.mailSender = mailSender;
-    }
 
     public void send(EmailPayload payload) {
         if (!config.getEnabled()) {

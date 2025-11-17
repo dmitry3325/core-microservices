@@ -7,6 +7,7 @@ import com.corems.communicationms.api.model.*;
 import com.corems.communicationms.app.service.EmailService;
 import com.corems.communicationms.app.service.SlackService;
 import com.corems.communicationms.app.service.SmsService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +15,12 @@ import org.springframework.stereotype.Controller;
 
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class NotificationController implements NotificationsApi {
 
     private final EmailService emailService;
     private final SmsService smsService;
     private final SlackService slackService;
-
-    public NotificationController(EmailService emailService,
-                                   SmsService smsService,
-                                   SlackService slackService) {
-        this.emailService = emailService;
-        this.smsService = smsService;
-        this.slackService = slackService;
-    }
 
     @Override
     @RequireRoles(CoreMsRoles.COMMUNICATION_MS_ADMIN)

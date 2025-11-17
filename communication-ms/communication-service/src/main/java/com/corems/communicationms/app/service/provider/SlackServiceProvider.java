@@ -10,7 +10,6 @@ import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -21,7 +20,6 @@ public class SlackServiceProvider implements ChannelProvider<SlackPayload> {
     private final SlackConfig config;
     private final MethodsClient client;
 
-    @Autowired
     public SlackServiceProvider(SlackConfig slackConfig) {
         this.config = slackConfig;
         this.client = Slack.getInstance().methods(config.token());

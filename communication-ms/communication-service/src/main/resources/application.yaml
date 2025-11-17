@@ -7,14 +7,15 @@ spring:
   main:
     banner-mode: off
     allow-bean-definition-overriding: true
+  jackson:
+    default-property-inclusion: non_null
   config:
     import: classpath:db-config.yaml
-  mail:
 
 
 mail:
   enabled: ${MAIL_ENABLED:false}
-  defaultSender: ${MAIL_FROM:no-reply@corems.com}
+  defaultFrom: ${MAIL_FROM:no-reply@corems.com}
   host: ${MAIL_HOST}
   port: ${MAIL_PORT}
   username: ${MAIL_USERNAME}

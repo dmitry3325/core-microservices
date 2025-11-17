@@ -2,10 +2,15 @@ package com.corems.common.security.config;
 
 import com.corems.common.security.filter.MdcUserFilter;
 import com.corems.common.security.filter.ServiceAuthenticationFilter;
+import com.corems.common.security.service.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,24 +24,31 @@ import org.springframework.security.web.csrf.CsrfFilter;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@ComponentScan("com.corems.common.security")
 @PropertySource("classpath:security.properties")
+@ConditionalOnProperty(prefix = "spring.security.common", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CoreMsSecurityConfig {
 
-    private final ServiceAuthenticationFilter serviceAuthenticationFilter;
     private final MdcUserFilter mdcUserFilter;
+    private final TokenProvider tokenProvider;
 
     @Value("${spring.security.white-list-urls:/actuator/health}")
     private String[] whiteListUrls;
 
     @Bean
-    public SecurityFilterChain configure(HttpSecurity httpSecurity) throws Exception {
+    public ServiceAuthenticationFilter serviceAuthenticationFilter() {
+        return new ServiceAuthenticationFilter(tokenProvider);
+    }
+
+    @Bean
+    public SecurityFilterChain configure(HttpSecurity httpSecurity,
+                                         ObjectProvider<ServiceAuthenticationFilter> serviceAuthenticationFilterProvider) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.formLogin(AbstractHttpConfigurer::disable);
         httpSecurity.logout(AbstractHttpConfigurer::disable);
         httpSecurity.rememberMe(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
-
 
         httpSecurity.authorizeHttpRequests(
                 auth -> auth
@@ -45,12 +57,17 @@ public class CoreMsSecurityConfig {
                         .authenticated()
         );
 
+        ServiceAuthenticationFilter saf = serviceAuthenticationFilterProvider.getIfAvailable();
+        if (saf != null) {
+            httpSecurity.addFilterAfter(saf, CsrfFilter.class);
+            // Place MDC user filter after authentication so user id is available in MDC
+            httpSecurity.addFilterAfter(mdcUserFilter, ServiceAuthenticationFilter.class);
+        } else {
+            // If service auth filter is not present, register MDC user filter after CSRF to ensure it runs
+            httpSecurity.addFilterAfter(mdcUserFilter, CsrfFilter.class);
+        }
 
-        httpSecurity.addFilterAfter(serviceAuthenticationFilter, CsrfFilter.class);
-        // Place MDC user filter after authentication so user id is available in MDC
-        httpSecurity.addFilterAfter(mdcUserFilter, ServiceAuthenticationFilter.class);
-
-        log.info("Security configuration completed");
+        log.info("Security configuration completed (service-auth-filter present={})", saf != null);
 
         return httpSecurity.build();
     }

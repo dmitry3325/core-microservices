@@ -20,5 +20,6 @@
         <module>security</module>
         <module>utils</module>
         <module>queue</module>
+        <module>inbound-client</module>
     </modules>
 </project>

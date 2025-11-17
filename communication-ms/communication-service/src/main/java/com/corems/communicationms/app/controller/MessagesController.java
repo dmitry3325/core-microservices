@@ -12,6 +12,7 @@ import com.corems.communicationms.app.service.EmailService;
 import com.corems.communicationms.app.service.MessagingService;
 import com.corems.communicationms.app.service.SmsService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,26 +21,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class MessagesController implements MessagesApi {
     private final MessagingService messagingService;
     private final EmailService emailService;
     private final SmsService smsService;
-
-    @Autowired
-    public MessagesController(MessagingService messagingService,
-                              EmailService emailService,
-                              SmsService smsService) {
-        this.messagingService = messagingService;
-        this.emailService = emailService;
-        this.smsService = smsService;
-    }
 
     @Override
     public ResponseEntity<MessageListResponse> getMessages(

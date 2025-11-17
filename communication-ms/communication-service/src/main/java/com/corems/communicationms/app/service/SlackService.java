@@ -12,6 +12,7 @@ import com.corems.communicationms.app.config.SlackConfig;
 import com.corems.communicationms.app.model.MessageStatus;
 import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.service.provider.SlackServiceProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +21,10 @@ import java.time.ZoneOffset;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SlackService {
-    private final SlackConfig config;
     private final SlackServiceProvider slackServiceProvider;
     private final MessageDispatcher messageDispatcher;
-
-    public SlackService(SlackConfig config,
-                        MessageDispatcher messageDispatcher,
-                        SlackServiceProvider slackServiceProvider) {
-        this.config = config;
-        this.messageDispatcher = messageDispatcher;
-        this.slackServiceProvider = slackServiceProvider;
-    }
 
     public MessageResponse sendMessage(SlackNotificationRequest slackRequest) {
         throw ServiceException.of(

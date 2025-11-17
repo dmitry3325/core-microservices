@@ -2,6 +2,8 @@ package com.corems.userms.app.service;
 
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.service.TokenProvider;
+import com.corems.communicationms.api.model.EmailNotificationRequest;
+import com.corems.communicationms.client.NotificationsApi;
 import com.corems.userms.app.entity.LoginToken;
 import com.corems.userms.app.entity.Role;
 import com.corems.userms.app.entity.User;
@@ -21,6 +23,7 @@ import com.corems.userms.app.repository.LoginTokenRepository;
 import com.corems.userms.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,6 +44,7 @@ public class AuthService {
     private final LoginTokenRepository loginTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final NotificationsApi notificationsApi;
 
     public TokenResponse signIn(SignInRequest signRequest) {
         User user = userRepository
@@ -144,7 +148,7 @@ public class AuthService {
 
 
         if (signUpRequest.getImageUrl() != null) {
-            userBuilder.imageUrl(signUpRequest.getImageUrl().toString());
+            userBuilder.imageUrl(signUpRequest.getImageUrl());
         }
 
         User user = userBuilder.build();
@@ -152,8 +156,25 @@ public class AuthService {
 
         var savedUser = userRepository.save(user);
 
-        // TODO send email
+        sendWelcomeEmail(savedUser);
 
         return new SuccessfulResponse().result(true);
+    }
+
+    @Async
+    public void sendWelcomeEmail(User user) {
+        try {
+            var res = notificationsApi.sendEmailNotification(new EmailNotificationRequest(
+                    "Welcome to CoreMS",
+                    user.getEmail(),
+                    "Dear " + user.getFirstName() + ",\n\n" +
+                            "Welcome to CoreMS! We're excited to have you on board.\n\n" +
+                            "Best regards,\n" +
+                            "The CoreMS Team")).block();
+
+            log.info("Welcome email sent to user: {}, result: {}", user.getUuid(), res);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to user: {}", user.getEmail(), e);
+        }
     }
 }
