@@ -1,27 +1,27 @@
 package com.corems.communicationms.app.service;
 
-import com.corems.common.exception.ServiceException;
-import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.common.queue.QueueProvider;
+import com.corems.communicationms.api.model.ChannelType;
+import com.corems.communicationms.api.model.SendStatus;
 import com.corems.communicationms.app.entity.MessageEntity;
-import com.corems.communicationms.api.model.SmsRequest;
-import com.corems.communicationms.api.model.EmailRequest;
-import com.corems.communicationms.api.model.MessageRequest;
 import com.corems.communicationms.api.model.MessageResponse;
-import com.corems.communicationms.api.model.GetMessagesForUser;
-import com.corems.communicationms.api.model.SlackRequest;
+import com.corems.communicationms.api.model.MessageListResponse;
+import com.corems.communicationms.api.model.PaginationMeta;
 import com.corems.communicationms.app.repository.MessageRepository;
-import com.corems.communicationms.app.service.provider.SlackServiceProvider;
 import com.corems.communicationms.app.service.provider.EmailServiceProvider;
 import com.corems.communicationms.app.service.provider.SmsServiceProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import com.corems.common.utils.db.utils.QueryParams;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,43 +30,22 @@ public class MessagingService {
 
     private final MessageRepository messageRepository;
 
-    private final SlackServiceProvider slackServiceProvider;
-    private final EmailServiceProvider emailServiceProvider;
-    private final SmsServiceProvider smsServiceProvider;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final static List<ChannelType> SUPPORTED_TYPES = List.of(ChannelType.EMAIL, ChannelType.SMS);
+    private final static String QUEUE_NAME = "messages";
 
     @Autowired
     public MessagingService(
+            QueueProvider queueProvider,
             MessageRepository messageRepository,
-            SlackServiceProvider slackServiceProvider,
-            EmailServiceProvider emailServiceProvider
-            ,SmsServiceProvider smsServiceProvider
+            EmailServiceProvider emailServiceProvider,
+            SmsServiceProvider smsServiceProvider
     ) {
         this.messageRepository = messageRepository;
-        this.slackServiceProvider = slackServiceProvider;
-        this.emailServiceProvider = emailServiceProvider;
-        this.smsServiceProvider = smsServiceProvider;
     }
 
-    public MessageResponse sendMessage(MessageRequest message) {
-        MessageEntity messageEntity;
-        switch (message.getType()) {
-            case SLACK -> messageEntity = slackServiceProvider.sendMessage((SlackRequest) message);
-            case EMAIL -> messageEntity = emailServiceProvider.sendMessage((EmailRequest) message);
-            case SMS -> messageEntity = smsServiceProvider.sendMessage((SmsRequest) message);
-            default -> throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Unexpected message type: " + message.getType());
-        }
-
-        MessageResponse response = new MessageResponse();
-        response.setId(messageEntity.getUuid());
-        response.setType(messageEntity.getType().getValue());
-        response.setStatus(messageEntity.getStatus().toString());
-        response.createdAt(messageEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
-        response.setData(message);
-
-        return response;
-    }
-
-    public GetMessagesForUser listMessages(
+    public MessageListResponse listMessages(
             String userId,
             Optional<Integer> page,
             Optional<Integer> pageSize,
@@ -87,24 +66,25 @@ public class MessagingService {
 
         Page<MessageEntity> result = messageRepository.findAllByQueryParams(params);
 
-        GetMessagesForUser messages = new GetMessagesForUser();
-        messages.setTotal((int) result.getTotalElements());
-        messages.setPage(result.getNumber() + 1); // repository returns 0-based; API is 1-based
-        messages.setPageSize(result.getSize());
+        // Build list response
+        PaginationMeta meta = new PaginationMeta(result.getNumber() + 1, result.getSize());
+        meta.setTotalElements(result.getTotalElements());
+        meta.setTotalPages(result.getTotalPages());
 
         List<MessageResponse> items = result.getContent().stream().map(entity -> {
             MessageResponse mr = new MessageResponse();
-            mr.setId(entity.getId() == null ? null : entity.getId().toString());
-            mr.setType(entity.getType() == null ? null : entity.getType().getValue());
+            mr.setUuid(entity.getUuid());
+            mr.setType(entity.getType() == null ? null : ChannelType.valueOf(entity.getType().toString()));
+            mr.setStatus(SendStatus.valueOf(entity.getStatus().toString()));
             mr.createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
-            // data: put minimal payload info (we don't expose entity directly)
-            // For now, set data to null to avoid exposing internal entity structure. If needed, map properly.
-            mr.setData(null);
-            mr.setStatus(entity.getStatus() == null ? null : entity.getStatus().toString());
+
+
             return mr;
         }).collect(Collectors.toList());
 
-        messages.setItems(items);
-        return messages;
+        MessageListResponse response = new MessageListResponse();
+        response.setMeta(meta);
+        response.setData(items);
+        return response;
     }
 }

@@ -1,0 +1,106 @@
+package com.corems.communicationms.app.service;
+
+import com.corems.common.exception.ServiceException;
+import com.corems.communicationms.api.model.ChannelType;
+import com.corems.communicationms.api.model.SmsMessageRequest;
+import com.corems.communicationms.api.model.SmsNotificationRequest;
+import com.corems.communicationms.api.model.SmsPayload;
+import com.corems.communicationms.api.model.MessageResponse;
+import com.corems.communicationms.api.model.NotificationResponse;
+import com.corems.communicationms.api.model.SendStatus;
+import com.corems.communicationms.app.config.SmsConfig;
+import com.corems.communicationms.app.entity.SMSMessageEntity;
+import com.corems.communicationms.app.model.MessageStatus;
+import com.corems.communicationms.app.model.MessageType;
+import com.corems.communicationms.app.repository.MessageRepository;
+import com.corems.communicationms.app.service.provider.SmsServiceProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.UUID;
+
+@Slf4j
+@Component
+public class SmsService {
+    private final SmsConfig config;
+    private final MessageRepository messageRepository;
+    private final SmsServiceProvider smsServiceProvider;
+    private final MessageDispatcher messageDispatcher;
+
+    public SmsService(SmsConfig config,
+                      MessageDispatcher messageDispatcher,
+                      MessageRepository messageRepository,
+                      SmsServiceProvider smsServiceProvider) {
+        this.config = config;
+        this.messageDispatcher = messageDispatcher;
+        this.messageRepository = messageRepository;
+        this.smsServiceProvider = smsServiceProvider;
+    }
+
+    public MessageResponse sendMessage(SmsMessageRequest smsRequest) {
+        SMSMessageEntity smsEntity = createEntity(smsRequest);
+        SmsPayload payload = getPayload(smsRequest);
+        try {
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.SMS, payload);
+            smsEntity.setStatus(status);
+        } catch (ServiceException exception) {
+            log.error("Failed to send SMS message: ", exception);
+
+            smsEntity.setStatus(MessageStatus.FAILED);
+            smsEntity.setUpdatedAt(Instant.now());
+            messageRepository.save(smsEntity);
+            throw exception;
+        }
+
+        MessageResponse response = new MessageResponse();
+        response.setUuid(smsEntity.getUuid());
+        response.setUserId(smsEntity.getUserId());
+        response.setType(ChannelType.SMS);
+        response.setStatus(SendStatus.valueOf(smsEntity.getStatus().toString()));
+        response.setCreatedAt(smsEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        response.setPayload(payload);
+
+        return response;
+    }
+
+    public NotificationResponse sendNotification(SmsNotificationRequest smsRequest) {
+        try {
+            SmsPayload payload = getPayload(smsRequest);
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.SMS, payload);
+
+            NotificationResponse response = new NotificationResponse();
+            response.setStatus(SendStatus.valueOf(status.toString()));
+            response.setSentAt(Instant.now().atOffset(ZoneOffset.UTC));
+
+            return response;
+        } catch (ServiceException exception) {
+            log.error("Failed to send SMS notification: ", exception);
+            throw exception;
+        }
+    }
+
+    private SmsPayload getPayload(SmsMessageRequest smsRequest) {
+        return new SmsPayload(smsRequest.getPhoneNumber(), smsRequest.getMessage());
+    }
+
+    private SmsPayload getPayload(SmsNotificationRequest smsRequest) {
+        return new SmsPayload(smsRequest.getPhoneNumber(), smsRequest.getMessage());
+    }
+
+    private SMSMessageEntity createEntity(SmsMessageRequest smsRequest) {
+        SMSMessageEntity smsEntity = new SMSMessageEntity();
+        smsEntity.setUuid(UUID.randomUUID());
+        smsEntity.setPhoneNumber(smsRequest.getPhoneNumber());
+        smsEntity.setMessage(smsRequest.getMessage());
+        smsEntity.setUserId(smsRequest.getUserId());
+        smsEntity.setCreatedAt(Instant.now());
+        smsEntity.setStatus(MessageStatus.CREATED);
+
+        messageRepository.save(smsEntity);
+        return smsEntity;
+    }
+}
+
+

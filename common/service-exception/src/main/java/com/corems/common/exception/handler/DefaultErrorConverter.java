@@ -93,13 +93,21 @@ public class DefaultErrorConverter implements ErrorConverter {
     public List<Error> getErrorsFromHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
         Throwable rootCause = ex.getRootCause();
         if (rootCause instanceof MismatchedInputException mismatchedInputException) {
-            var path = mismatchedInputException.getPath().stream()
-                    .map(JsonMappingException.Reference::getFieldName)
-                    .collect(Collectors.joining("."));
+            String pathStr = mismatchedInputException.getPath().stream()
+                    .map(ref -> ref.getFieldName() != null ? ref.getFieldName() : "[" + ref.getIndex() + "]")
+                    .collect(Collectors.joining("."))
+                    .replace(".[", "["); // make "a.[0].b" -> "a[0].b"
+
+            // Determine whether the last segment is an object property or an array element
+            boolean isObjectProperty = !mismatchedInputException.getPath().isEmpty()
+                    && mismatchedInputException.getPath()
+                    .get(mismatchedInputException.getPath().size() - 1)
+                    .getFieldName() != null;
 
             String msg = "Invalid input data.";
-            if (!path.isBlank()) {
-                msg += new MessageFormat("In {0} property.").format(path);
+            if (!pathStr.isBlank()) {
+                msg += " " + new MessageFormat("In {0} {1}.")
+                        .format(new Object[]{pathStr, isObjectProperty ? "property" : "element"});
             }
 
             return List.of(Error.of(DefaultExceptionReasonCodes.INVALID_REQUEST.getErrorCode(), DefaultExceptionReasonCodes.INVALID_REQUEST.getDescription(), msg));

@@ -46,6 +46,7 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
 
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
+        log.error("RuntimeException: ", ex);
         return handleExceptionInternal(ex,
                 ErrorResponse.of(errorConverter.getErrorsFromConstraintViolationException(ex, request)),
                 errorConverter.buildHttpHeaders(), HttpStatus.BAD_REQUEST, request);

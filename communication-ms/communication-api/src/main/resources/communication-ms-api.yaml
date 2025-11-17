@@ -2,17 +2,21 @@ openapi: 3.0.3
 info:
   title: CoreMs Communication Service API
   description: |
-    The Communication Service API allows users to send messages of various types, such as SMS, email, and Slack. It provides endpoints to send message, retrieve messages by ID, and fetch a list of messages based on various parameters.
+    The Communication Service API provides two main capabilities:
+    1. **Messages** (SMS, Email): Stored in database, sent to clients by admins, viewable by both admins and clients.
+    2. **Notifications** (Slack, SMS, Email): System notifications sent by admins, not stored in database, not visible to clients.
     
     Authentication is required to access the API endpoints. The API expects a Bearer JWT token in the Authorization header for authentication.
   version: 1.0.0
+
 servers:
   - url: http://localhost
+
 tags:
-  - name: AdminMessages
-    description: Operations related to sending messages for admins
-  - name: UserMessages
-    description: Operations related to sending messages for users
+  - name: Messages
+    description: Operations for client messages (SMS, Email) - stored in database
+  - name: Notifications
+    description: Operations for system notifications (Slack, SMS, Email) - not stored in database
 
 # common error responses convenience anchor (references common API responses)
 x-common-error-responses: &common-error-responses
@@ -32,90 +36,46 @@ security:
   - bearerAuth: []
 
 paths:
-  /api/admin/messages:
-    get:
-      tags:
-        - AdminMessages
-      summary: Get a list of messages (admin)
-      description: Retrieve a paginated list of messages. Admins may filter by userId, type and other filters.
-      operationId: getAdminMessages
-      parameters:
-        - $ref: '.gen/common-api.yaml#/components/parameters/page'
-        - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
-        - $ref: '.gen/common-api.yaml#/components/parameters/sort'
-        - $ref: '.gen/common-api.yaml#/components/parameters/search'
-        - $ref: '.gen/common-api.yaml#/components/parameters/filter'
-        - name: userId
-          in: query
-          required: false
-          description: Filter messages by user id
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Messages retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetMessagesForUser'
-        <<: *common-error-responses
-
-    post:
-      tags:
-        - AdminMessages
-      summary: Send a message on behalf of a user (admin)
-      description: Send a message (sms, email, slack) on behalf of the specified user. The request body MUST include userId when sending for another user.
-      operationId: sendAdminMessage
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MessageRequest'
-      responses:
-        '201':
-          description: Message accepted for processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        <<: *common-error-responses
-
   /api/messages:
     get:
       tags:
-        - UserMessages
-      summary: Get messages for the authenticated user
-      description: Retrieve a paginated list of messages that belong to the authenticated user. Use query parameters for paging, sorting and filtering.
-      operationId: getMyMessages
+        - Messages
+      summary: Get messages
+      description: |
+        Retrieve a paginated list of messages (SMS, Email).
+        - **Clients** see only their own messages.
+        - **Admins** see all messages and can filter by userId using standard filter parameters.
+      operationId: getMessages
       parameters:
         - $ref: '.gen/common-api.yaml#/components/parameters/page'
         - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
         - $ref: '.gen/common-api.yaml#/components/parameters/sort'
         - $ref: '.gen/common-api.yaml#/components/parameters/search'
         - $ref: '.gen/common-api.yaml#/components/parameters/filter'
-        - $ref: '#/components/parameters/TypeParameter'
       responses:
         '200':
           description: Messages retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetMessagesForUser'
+                $ref: '#/components/schemas/MessageListResponse'
         <<: *common-error-responses
 
+  /api/messages/sms:
     post:
       tags:
-        - UserMessages
-      summary: Send a message for the authenticated user
-      description: Send a message on behalf of the authenticated user. The server will associate the message with the authenticated user; userId in the payload is optional and ignored for non-admins.
-      operationId: sendMyMessage
+        - Messages
+      summary: Send an SMS message (admin only)
+      description: |
+        Send an SMS message to a client. Only admins can send messages.
+        The request body MUST include userId to specify the recipient.
+      operationId: sendSmsMessage
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessageRequest'
+              $ref: '#/components/schemas/SmsMessageRequest'
       responses:
         '201':
           description: Message accepted for processing
@@ -123,183 +83,348 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
+        <<: *common-error-responses
+
+  /api/messages/email:
+    post:
+      tags:
+        - Messages
+      summary: Send an email message (admin only)
+      description: |
+        Send an email message to a client. Only admins can send messages.
+        The request body MUST include userId to specify the recipient.
+      operationId: sendEmailMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailMessageRequest'
+      responses:
+        '201':
+          description: Message accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        <<: *common-error-responses
+
+  /api/messages/email-multipart:
+    post:
+      tags:
+        - Messages
+      summary: Send an email message with attachments (admin only)
+      description: |
+        Send an email message with optional file attachments. Only admins can send messages.
+        Uses multipart/form-data to avoid base64 encoding overhead.
+      operationId: sendEmailMessageMultipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - emailRequest
+              properties:
+                emailRequest:
+                  $ref: '#/components/schemas/EmailMessageRequest'
+                attachments:
+                  type: array
+                  maxItems: 10
+                  items:
+                    type: string
+                    format: binary
+                  description: Optional file attachments (max 10 files)
+                saveAttachments:
+                  type: boolean
+                  default: false
+                  description: Whether to store attachments
+            encoding:
+              emailRequest:
+                contentType: application/json
+              attachments:
+                contentType: application/octet-stream
+      responses:
+        '201':
+          description: Message accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        <<: *common-error-responses
+
+  /api/notifications/slack:
+    post:
+      tags:
+        - Notifications
+      summary: Send a Slack notification (admin only)
+      description: |
+        Send a system notification via Slack. Only admins can send notifications.
+        Notifications are not stored in the database and are not visible to clients.
+      operationId: sendSlackNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackNotificationRequest'
+      responses:
+        '202':
+          description: Notification accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        <<: *common-error-responses
+
+  /api/notifications/sms:
+    post:
+      tags:
+        - Notifications
+      summary: Send an SMS notification (admin only)
+      description: |
+        Send a system notification via SMS. Only admins can send notifications.
+        Notifications are not stored in the database and are not visible to clients.
+      operationId: sendSmsNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsNotificationRequest'
+      responses:
+        '202':
+          description: Notification accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        <<: *common-error-responses
+
+  /api/notifications/email:
+    post:
+      tags:
+        - Notifications
+      summary: Send an email notification (admin only)
+      description: |
+        Send a system notification via email. Only admins can send notifications.
+        Notifications are not stored in the database and are not visible to clients.
+      operationId: sendEmailNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailNotificationRequest'
+      responses:
+        '202':
+          description: Notification accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
         <<: *common-error-responses
 
 components:
   schemas:
-    MessageRequest:
+    SmsPayload:
       type: object
       required:
-        - type
+        - phoneNumber
+        - message
+      properties:
+        phoneNumber:
+          type: string
+          pattern: '^\+\d{1,20}$'
+          description: Recipient phone number in E.164 format (e.g. +15551234567)
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1600
+          description: >
+            SMS text body. Max 1600 chars accepted (concatenated messages).
+            Single-part SMS typical max: 160 chars (GSM-7) or 70 (UCS-2).
+    EmailPayload:
+      type: object
+      required:
+        - subject
+        - recipient
+        - body
+      properties:
+        emailType:
+          type: string
+          default: TXT
+          enum:
+            - TXT
+            - HTML
+          description: Email type HTML or TXT
+        cc:
+          type: array
+          items:
+            type: string
+            format: email
+          example:
+            - john@example.com
+            - jane@example.org
+          description: CC recipient email addresses
+        bcc:
+          type: array
+          items:
+            type: string
+            format: email
+          example:
+            - hidden@example.com
+          description: BCC recipient email addresses
+        sender:
+          type: string
+          format: email
+          maxLength: 254
+          description: Sender's email address, by default comes from system config
+        senderName:
+          type: string
+          maxLength: 100
+          description: Sender's name
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Subject of the email message
+        recipient:
+          type: string
+          format: email
+          maxLength: 254
+          description: Recipient's address
+        body:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Body content of the message
+    SlackPayload:
+      type: object
+      required:
+        - channel
+        - message
+      properties:
+        channel:
+          type: string
+          pattern: '^(#|@).+'
+          description: Slack channel (starts with #) or user mention (starts with @)
+        message:
+          type: string
+          minLength: 1
+          description: Slack message text
+
+    # Common Message request schemas
+    MessageCommon:
+      type: object
+      required:
+          - userId
       properties:
         userId:
           type: string
-          description: For admin only to specify user on whose behalf the message is sent
-        type:
+          format: uuid
+          description: UUID of the recipient user to link message with user in system
+
+    SmsMessageRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageCommon'
+        - $ref: '#/components/schemas/SmsPayload'
+
+    EmailMessageRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageCommon'
+        - $ref: '#/components/schemas/EmailPayload'
+
+    # Common Notification request schemas (with optional level)
+    NotificationCommon:
+      type: object
+      properties:
+        level:
           type: string
+          default: info
+          description: Notification level/severity
           enum:
-            - sms
-            - slack
-            - email
-      discriminator:
-        propertyName: type
-        mapping:
-          sms: "#/components/schemas/SmsRequest"
-          email: "#/components/schemas/EmailRequest"
-          slack: "#/components/schemas/SlackRequest"
+            - info
+            - warning
+            - critical
 
-    SmsRequest:
-      type: object
+    SlackNotificationRequest:
       allOf:
-        - $ref: "#/components/schemas/MessageRequest"
-        - type: object
-          required:
-            - phoneNumber
-            - message
-          properties:
-            phoneNumber:
-              type: string
-              pattern: '^\+\d{1,20}$'
-              description: Recipient phone number in E.164 format (e.g. +15551234567)
-            message:
-              type: string
-              minLength: 1
-              maxLength: 1600
-              description: >
-                SMS text body. Max 1600 chars accepted (concatenated messages).
-                Single-part SMS typical max: 160 chars (GSM-7) or 70 (UCS-2).
+        - $ref: '#/components/schemas/NotificationCommon'
+        - $ref: '#/components/schemas/SlackPayload'
 
-    EmailRequest:
-      type: object
+    SmsNotificationRequest:
       allOf:
-        - $ref: "#/components/schemas/MessageRequest"
-        - type: object
-          required:
-            - emailType
-            - subject
-            - sender
-            - recipient
-            - body
-          properties:
-            emailType:
-              type: string
-              default: TXT
-              enum:
-                - TXT
-                - HTML
-              description: Email type HTML or TXT
-            cc:
-              type: array
-              items:
-                type: string
-                format: email
-              example:
-                - john@example.com
-                - jane@example.org
-              description: CC recipient email addresses
-            bcc:
-              type: array
-              items:
-                type: string
-                format: email
-              example:
-                - hidden@example.com
-              description: BCC recipient email addresses
-            sender:
-              type: string
-              format: email
-              maxLength: 254
-              description: Sender's email address
-            senderName:
-              type: string
-              maxLength: 100
-              description: Sender's name
-            subject:
-              type: string
-              minLength: 1
-              maxLength: 255
-              description: Subject of the email message
-            recipient:
-              type: string
-              format: email
-              maxLength: 254
-              description: Recipient's address
-            body:
-              type: string
-              minLength: 1
-              maxLength: 10000
-              description: Body content of the message
+        - $ref: '#/components/schemas/NotificationCommon'
+        - $ref: '#/components/schemas/SmsPayload'
 
-    SlackRequest:
-      type: object
+    EmailNotificationRequest:
       allOf:
-        - $ref: "#/components/schemas/MessageRequest"
-        - type: object
-          required:
-            - channel
-            - message
-          properties:
-            channel:
-              type: string
-              pattern: "^(#|@).+"
-              description: Slack channel (channel name starting with # or user mention starting with @)
-            message:
-              type: string
-              minLength: 1
-              maxLength: 4000
-              description: Slack message
+        - $ref: '#/components/schemas/NotificationCommon'
+        - $ref: '#/components/schemas/EmailPayload'
+
+    SendStatus:
+      type: string
+      description: Status of the message or notification
+      enum:
+         - CREATED
+         - ENQUEUED
+         - SENT
+         - FAILED
+
+    ChannelType:
+      type: string
+      enum:
+        - sms
+        - email
 
     MessageResponse:
       type: object
       properties:
-        id:
+        uuid:
           type: string
-          description: ID of the message
+          format: uuid
+          description: uuid of the message
         type:
-          type: string
-          description: Type of the message (sms, email, slack)
+          $ref: '#/components/schemas/ChannelType'
         status:
+          $ref: '#/components/schemas/SendStatus'
+        userId:
           type: string
-          description: Status of the message
+          format: uuid
+          description: UUID of the recipient user
         createdAt:
           type: string
           format: date-time
           description: Creation date of the message
-        data:
-          $ref: '#/components/schemas/MessageRequest'
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/SmsPayload'
+            - $ref: '#/components/schemas/EmailPayload'
 
-    GetMessagesForUser:
+    NotificationResponse:
       type: object
       properties:
-        total:
-          type: integer
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        items:
+        status:
+          $ref: '#/components/schemas/SendStatus'
+        sentAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was sent
+
+    MessageListResponse:
+      type: object
+      properties:
+        data:
           type: array
           items:
             $ref: '#/components/schemas/MessageResponse'
+        meta:
+          $ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'
 
-  parameters:
-    TypeParameter:
-      name: type
-      in: query
-      required: false
-      description: Type of the message (sms, email, slack)
-      schema:
-        type: string
-        enum:
-          - sms
-          - email
-          - slack
-
-    UserIdParameter:
-      name: userId
-      in: query
-      required: false
-      description: Filter messages by user id
-      schema:
-        type: string
-        pattern: "^[0-9a-fA-F\\-]{36}$"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,5 +1,7 @@
 package com.corems.common.queue.clients;
 
+import com.corems.common.exception.ServiceException;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.common.queue.QueueClient;
 import com.corems.common.queue.QueueMessage;
 import com.corems.common.queue.config.QueueProperties;
@@ -63,12 +65,12 @@ public class RabbitMqClient implements QueueClient {
     }
 
     @Override
-    public <T> void send(QueueMessage<T> message) {
+    public <T> void send(QueueMessage<T> message) throws ServiceException {
         send(props.getRoutingKey(), message);
     }
 
     @Override
-    public <T> void send(String destination, QueueMessage<T> message) {
+    public <T> void send(String destination, QueueMessage<T> message) throws ServiceException {
         String exchange = props.getExchange() == null ? "" : props.getExchange();
         String dest = (destination == null || destination.isEmpty()) ? props.getDefaultQueue() : destination;
         try {
@@ -76,13 +78,14 @@ public class RabbitMqClient implements QueueClient {
             log.debug("Sent message to exchange='{}' routing='{}' id={}", exchange, dest, message.getId());
         } catch (Exception e) {
             log.error("Failed to send message id={}", message.getId(), e);
-            throw e;
+            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Failed to send message.");
         }
     }
 
     @Override
     public <T> Optional<QueueMessage<T>> poll(String destination) {
         try {
+            // TODO check it
             @SuppressWarnings("unchecked")
             QueueMessage<T> msg = (QueueMessage<T>) rabbitTemplate.receiveAndConvert(destination, props.getPollTimeoutMs());
             return Optional.ofNullable(msg);

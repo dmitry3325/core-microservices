@@ -1,10 +1,13 @@
 package com.corems.communicationms.app.entity;
 
+import com.corems.communicationms.app.model.MessageType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.Instant;
 
 @Entity(name = "email")
 @DiscriminatorValue("email")
@@ -14,6 +17,7 @@ public class EmailMessageEntity extends MessageEntity {
 
     public EmailMessageEntity() {
         this.setType(MessageType.EMAIL);
+        this.setCreatedAt(Instant.now());
     }
 
     @Column(nullable = false)
