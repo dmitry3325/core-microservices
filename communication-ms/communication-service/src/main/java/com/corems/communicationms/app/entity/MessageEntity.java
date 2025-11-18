@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
+@Entity(name = "message")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @Getter
