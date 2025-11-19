@@ -1,21 +1,32 @@
-# CoreMicroservices Backend
+# Core Microservices
 
 ## Overview
 
-Overview
 Core Microservices provides a set of essential services to support startup applications 
 by offering modular and scalable services, to help companies save time and resources, allowing them to focus on their unique business logic.
 
+It provides a growing set of ready-to-use backend services and frontend modules that allow startups, small teams, and solo developers to launch production-quality systems without reinventing the architecture.
 
+
+## What is the goal?
+
+Modern applications require:
+Authentication & authorization
+Document management
+Event-driven communication
+Monitoring, observability, logging
+Frontend integration
+Scalability from day one
+
+## What’s included?
 The project will include services like:
 
 - User Management - managing users, roles, and permissions.
-- Notification service - sending emails, SMS, and push notifications, simple chat service.
+- Communication service - sending emails, SMS, and push notifications.
 - Document Management Service - managing documents, files, and attachments.
 - Localization Service - managing translations for multiple languages.
 - Template Service - managing email templates, SMS templates, and document templates in HTML format.
-- Questionnaire Service - managing questionnaires, surveys, and forms.
-- Product Management Service - managing products, categories, and orders.
+- Form Service - managing questionnaires, surveys, and forms.
 - Payment Service - managing payments, invoices, and subscriptions.
 - Analytics Service - managing analytics, reports, and dashboards.
 
@@ -23,66 +34,44 @@ More services will be added in the future to provide a complete set of services 
 You can choose what services you need and integrate them into your application with further customization.
 
 PLS NOTE: This project is still under development and not ready for production use.
-
 Contact me if you want to contribute or have any suggestions. 
+
+## Who is this for?
+
+- Startup founders
+- Small companies launching SaaS products
+- Developers building side projects
+- Engineering teams looking for a fast production-ready foundation
+- Students learning enterprise architecture
+
+If you want to start fast, scale safely, and keep your architecture clean, Core Microservices gives you the jump-start you need.
+
+## Documentation & Guides (Coming soon...)
+
+- API documentation (per service)
+- Setup instructions
+- Architecture diagrams
+- Example usage
+
+Also will try to publish YouTube walking through videos.
 
 ## Setup
 
-Prerequisites
-- Java 17+ (for Spring Boot compatibility)
+Backend
+- Java 17+ (Spring Boot)
 - Maven
+- Docker / Docker Compose
+- Flyway migrations
 - PostgreSQL or your preferred database
-
-## Project Structure
-
-The project is organized into multiple modules:
-
-- `user-ms`: Contains the user management service.
-    - `user-api`: API definitions for user management.
-    - `user-service`: The main service for user management.
-- `notification-ms`: Contains the notification service.
-    - `notification-api`: API definitions for notifications.
-    - `notification-serice`: The main service for notification management.
-
-
-## Configuration
-
-each service has its own .env-example file that you can use to create your own .env file
-
-### Database Configuration
-
-The application uses PostgreSQL. Check configuration files in the `src/main/resources/db-config.yaml`.
-
-## Building and Running the Application
-
-### Build the Project
-
-To build the project, navigate to the root directory and run:
-
-```sh
-mvn clean install
-```
-
-### Run the Application
-
-To run the application, navigate to the `user-service` module and execute:
-
-```sh
-mvn spring-boot:run
-```
-
-## Testing
-
-The project includes unit and integration tests. To run the tests, use the following command:
-
-```sh
-mvn test
-```
+- JWT Authentication
+- Prometheus / Actuator (observability)
+- RabbitMQ / Apache Kafka
+- CI/CD (GitHub Actions)
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request.
+Contributions, ideas, and pull requests are welcome!
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+Apache 2.0 — allows free commercial usage with patent protection.
