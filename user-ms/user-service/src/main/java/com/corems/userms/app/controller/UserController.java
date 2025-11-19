@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
+
 import com.corems.common.security.RequireRoles;
 import com.corems.common.security.CoreMsRoles;
 
@@ -27,12 +29,12 @@ public class UserController implements UserApi {
     private final UserService userService;
 
     @Override
-    public ResponseEntity<UserInfo> getUserById(String userId) {
+    public ResponseEntity<UserInfo> getUserById(UUID userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> updateUserById(String userId, UserInfo userInfo) {
+    public ResponseEntity<SuccessfulResponse> updateUserById(UUID userId, UserInfo userInfo) {
         return ResponseEntity.ok(userService.updateUserById(userId, userInfo));
     }
 
@@ -52,22 +54,22 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> deleteUserById(String userId) {
+    public ResponseEntity<SuccessfulResponse> deleteUserById(UUID userId) {
         return ResponseEntity.ok(userService.deleteUserById(userId));
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> triggerUserResetPassword(String userId) {
+    public ResponseEntity<SuccessfulResponse> triggerUserResetPassword(UUID userId) {
         return ResponseEntity.ok(userService.triggerUserResetPassword(userId));
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> adminChangeUserPassword(String userId, AdminSetPasswordRequest adminSetPasswordRequest) {
+    public ResponseEntity<SuccessfulResponse> adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         return ResponseEntity.ok(userService.adminChangeUserPassword(userId, adminSetPasswordRequest));
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> adminChangeUserEmail(String userId, ChangeEmailRequest changeEmailRequest) {
+    public ResponseEntity<SuccessfulResponse> adminChangeUserEmail(UUID userId, ChangeEmailRequest changeEmailRequest) {
         return ResponseEntity.ok(userService.adminChangeUserEmail(userId, changeEmailRequest));
     }
 }

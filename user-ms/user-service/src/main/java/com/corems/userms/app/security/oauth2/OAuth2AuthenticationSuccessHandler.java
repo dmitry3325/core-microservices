@@ -55,8 +55,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
-        String tokenId = UUID.randomUUID().toString();
-        String token = tokenProvider.createRefreshToken(tokenId, Map.of(
+        UUID tokenId = UUID.randomUUID();
+        String token = tokenProvider.createRefreshToken(tokenId.toString(), Map.of(
                 TokenProvider.CLAIM_USER_ID, userPrincipal.getUserId(),
                 TokenProvider.CLAIM_EMAIL, userPrincipal.getEmail(),
                 TokenProvider.CLAIM_FIRST_NAME, userPrincipal.getFirstName(),

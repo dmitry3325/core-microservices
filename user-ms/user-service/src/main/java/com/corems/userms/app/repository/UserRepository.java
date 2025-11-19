@@ -6,11 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface UserRepository extends SearchableRepository<User, String> {
     Optional<User> findByEmail(String username);
-    Optional<User> findByUuid(String id);
+    Optional<User> findByUuid(UUID id);
 
     @Override
     default List<String> getSearchFields() {

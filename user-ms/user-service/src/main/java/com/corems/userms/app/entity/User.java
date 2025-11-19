@@ -33,7 +33,7 @@ import java.util.UUID;
 public class User {
 
     public User() {
-        this.uuid = UUID.randomUUID().toString();
+        this.uuid = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
         this.lastLogin = Instant.now();
@@ -46,7 +46,7 @@ public class User {
     private static class CustomUserBuilder extends UserBuilder {
         @Override
         public User build() {
-            this.uuid(UUID.randomUUID().toString());
+            this.uuid(UUID.randomUUID());
             this.createdAt(Instant.now());
             this.updatedAt(Instant.now());
             this.lastLogin(Instant.now());
@@ -59,7 +59,7 @@ public class User {
     private Integer id;
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
-    private String uuid;
+    private UUID uuid;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
     private Collection<LoginToken> tokens = new ArrayList<>();

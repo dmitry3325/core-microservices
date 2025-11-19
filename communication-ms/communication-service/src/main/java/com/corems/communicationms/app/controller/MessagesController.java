@@ -25,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -58,7 +59,7 @@ public class MessagesController implements MessagesApi {
                     }
                 });
 
-        String userScope = isAdmin ? null : userPrincipal.getUserId();
+        UUID userScope = isAdmin ? null : userPrincipal.getUserId();
 
         MessageListResponse resp = this.messagingService.listMessages(
                 userScope,

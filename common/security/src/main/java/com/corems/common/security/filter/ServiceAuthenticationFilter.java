@@ -24,6 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -76,11 +77,11 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                     .collect(Collectors.toList());
 
             UserPrincipal principal = new UserPrincipal(
-                    claims.get(TokenProvider.CLAIM_USER_ID, String.class),
+                    UUID.fromString(claims.get(TokenProvider.CLAIM_USER_ID, String.class)),
                     claims.get(TokenProvider.CLAIM_EMAIL, String.class),
                     claims.get(TokenProvider.CLAIM_FIRST_NAME, String.class),
                     claims.get(TokenProvider.CLAIM_LAST_NAME, String.class),
-                    claims.getSubject(),
+                    UUID.fromString(claims.getSubject()),
                     authorities
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

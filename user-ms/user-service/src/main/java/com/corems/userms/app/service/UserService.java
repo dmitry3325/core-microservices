@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserInfo getUserById(String userId) {
+    public UserInfo getUserById(UUID userId) {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
@@ -50,7 +51,7 @@ public class UserService {
                 .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    public SuccessfulResponse updateUserById(String userId, UserInfo userInfo) {
+    public SuccessfulResponse updateUserById(UUID userId, UserInfo userInfo) {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
@@ -105,7 +106,7 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public SuccessfulResponse deleteUserById(String userId) {
+    public SuccessfulResponse deleteUserById(UUID userId) {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
@@ -113,7 +114,7 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public SuccessfulResponse triggerUserResetPassword(String userId) {
+    public SuccessfulResponse triggerUserResetPassword(UUID userId) {
         // TODO for now simply verify user exists and return success (real implementation would send email)
         userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
@@ -121,7 +122,7 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public SuccessfulResponse adminChangeUserPassword(String userId, AdminSetPasswordRequest adminSetPasswordRequest) {
+    public SuccessfulResponse adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
@@ -135,7 +136,7 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public SuccessfulResponse adminChangeUserEmail(String userId, ChangeEmailRequest changeEmailRequest) {
+    public SuccessfulResponse adminChangeUserEmail(UUID userId, ChangeEmailRequest changeEmailRequest) {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 

@@ -20,6 +20,7 @@ import com.corems.common.utils.db.utils.QueryParams;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class MessagingService {
     private final MessageRepository messageRepository;
 
     public MessageListResponse listMessages(
-            String userId,
+            UUID userId,
             Optional<Integer> page,
             Optional<Integer> pageSize,
             Optional<String> sort,
@@ -39,7 +40,7 @@ public class MessagingService {
     ) {
         // Merge userId constraint into filters so the executor will scope to this user
         List<String> mergedFilters = new java.util.ArrayList<>();
-        if (userId != null && !userId.isBlank()) {
+        if (userId != null) {
             mergedFilters.add("userId:eq:" + userId);
         }
         filter.ifPresent(mergedFilters::addAll);

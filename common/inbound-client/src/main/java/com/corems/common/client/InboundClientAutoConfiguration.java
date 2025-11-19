@@ -61,10 +61,10 @@ public class InboundClientAutoConfiguration {
                 claims.put(TokenProvider.CLAIM_EMAIL, principal.getEmail());
                 claims.put(TokenProvider.CLAIM_FIRST_NAME, principal.getFirstName());
                 claims.put(TokenProvider.CLAIM_LAST_NAME, principal.getLastName());
-                claims.put(TokenProvider.CLAIM_USER_ID, principal.getUserId());
+                claims.put(TokenProvider.CLAIM_USER_ID, principal.getUserId().toString());
                 claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));
 
-                token = tokenProvider.createAccessToken(principal.getUserId(), claims);
+                token = tokenProvider.createAccessToken(principal.getUserId().toString(), claims);
             } else {
                 Map<String, Object> claims = new HashMap<>();
                 claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));

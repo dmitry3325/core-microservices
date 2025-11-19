@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -48,7 +49,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
             Claims claims = tokenProvider.getAllClaims(jwt);
-            UserDetails userDetails = userDetailsService.loadUserById(claims.get(TokenProvider.CLAIM_USER_ID, String.class), claims.getSubject());
+            UserDetails userDetails = userDetailsService.loadUserById(
+                    UUID.fromString(claims.get(TokenProvider.CLAIM_USER_ID, String.class)),
+                    UUID.fromString(claims.getSubject())
+            );
+
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,

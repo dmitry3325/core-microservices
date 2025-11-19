@@ -97,8 +97,8 @@ public class AuthService {
     }
 
     public String createRefreshToken(User user) {
-        String tokenId = UUID.randomUUID().toString();
-        String refreshToken = tokenProvider.createRefreshToken(tokenId, getClaims(user));
+        UUID tokenId = UUID.randomUUID();
+        String refreshToken = tokenProvider.createRefreshToken(tokenId.toString(), getClaims(user));
 
         LoginToken loginToken = new LoginToken();
         loginToken.setUuid(tokenId);

@@ -42,7 +42,7 @@ public class MdcUserFilter extends OncePerRequestFilter {
     private String extractUserId(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserPrincipal up) {
-            return up.getUserId();
+            return up.getUserId().toString();
         }
 
         if (principal instanceof UserDetails ud) {

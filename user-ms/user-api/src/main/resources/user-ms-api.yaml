@@ -223,7 +223,7 @@ paths:
           description: ID of the user to return
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
 
       responses:
         '200':
@@ -245,7 +245,7 @@ paths:
           description: ID of the user to update
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
 
       requestBody:
         required: true
@@ -275,7 +275,7 @@ paths:
           description: ID of the user to delete
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
 
       responses:
         '200':
@@ -298,7 +298,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
       responses:
         '200':
           description: Password reset triggered
@@ -320,7 +320,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
       requestBody:
         required: true
         content:
@@ -348,7 +348,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9a-fA-F\\-]{36}$"
+            format: uuid
       requestBody:
         required: true
         content:
@@ -386,7 +386,6 @@ components:
           type: string
           format: email
           description: The user's email address
-          pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
           maxLength: 254
           example: user@example.com
         password:
@@ -409,7 +408,7 @@ components:
           example: Doe
         email:
           type: string
-          pattern: "^[A-Za-z0-9._%+-]+@[A-ZaZ0-9.-]+\\.[A-Za-z]{2,}$"
+          format: email
           maxLength: 254
           description: The user's email address
           example: user@example.com
@@ -430,7 +429,6 @@ components:
         email:
           type: string
           format: email
-          pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
           maxLength: 254
           description: The user's email address
           example: user@example.com
@@ -466,7 +464,7 @@ components:
         userId:
           type: string
           description: The user's ID
-          pattern: "^[0-9a-fA-F-]{36}$"
+          format: uuid
           example: 2a3e0b5c-2192-4612-9e02-693989dbb7e5
         provider:
           type: string
@@ -485,7 +483,7 @@ components:
         email:
           type: string
           description: The user's email address
-          pattern: "^[A-ZaZ0-9._%+-]+@[A-ZaZ0-9.-]+\\.[A-Za-z]{2,}$"
+          format: email
           maxLength: 254
           example: user@example.com
         imageUrl:
@@ -596,7 +594,6 @@ components:
         newEmail:
           type: string
           format: email
-          pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
           maxLength: 254
           description: New email address
           example: user+new@example.com

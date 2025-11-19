@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -30,7 +31,7 @@ public class LoginToken {
     }
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
-    private String uuid;
+    private UUID uuid;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

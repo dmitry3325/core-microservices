@@ -7,23 +7,24 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class UserPrincipal implements UserDetails, OAuth2User {
-    private String userId;
+    private UUID userId;
     private String email;
     private String firstName;
     private String lastName;
     private String password;
-    private String tokenId;
+    private UUID tokenId;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
-    public UserPrincipal(String userId,
+    public UserPrincipal(UUID userId,
                          String email,
                          String firstName,
                          String lastName,
-                         String tokenId,
+                         UUID tokenId,
                          Collection<? extends GrantedAuthority> authorities) {
         this.userId = userId;
         this.email = email;
@@ -88,11 +89,11 @@ public class UserPrincipal implements UserDetails, OAuth2User {
         return this.email;
     }
 
-    public String getTokenId() {
+    public UUID getTokenId() {
         return this.tokenId;
     }
 
-    public void setTokenId(String tokenId) {
+    public void setTokenId(UUID tokenId) {
         this.tokenId = tokenId;
     }
 }
