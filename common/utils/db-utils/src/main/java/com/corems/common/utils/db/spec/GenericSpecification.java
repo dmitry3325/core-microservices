@@ -43,6 +43,20 @@ public class GenericSpecification<T> implements Specification<T> {
                         .collect(Collectors.toList());
                 yield path.in(values);
             }
+            case CONTAINS -> {
+                if (!path.getJavaType().equals(String.class)) {
+                    throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID,
+                        "CONTAINS operation only supported for String fields");
+                }
+                String searchValue = raw.trim();
+                Expression<String> paddedField = cb.concat(",", cb.concat(path.as(String.class), ","));
+                Expression<String> paddedSearch = cb.concat(",", cb.concat(cb.literal(searchValue), ","));
+
+                Predicate exactMatch = cb.equal(path, searchValue);
+                Predicate containsInList = cb.like(paddedField, cb.concat("%", cb.concat(paddedSearch, "%")));
+
+                yield cb.or(exactMatch, containsInList);
+            }
             case NOT_EQUALS -> {
                 Object casted = castValue(path, raw);
                 yield cb.notEqual(path, casted);

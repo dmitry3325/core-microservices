@@ -75,6 +75,7 @@ public final class FilterUtil {
             case "ne" -> FilterOperation.NOT_EQUALS;
             case "like" -> FilterOperation.LIKE;
             case "in" -> FilterOperation.IN;
+            case "contains" -> FilterOperation.CONTAINS;
             case "gt" -> FilterOperation.GT;
             case "lt" -> FilterOperation.LT;
             case "gte" -> FilterOperation.GTE;

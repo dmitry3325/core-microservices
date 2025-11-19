@@ -63,7 +63,7 @@ components:
         Repeatable filter strings using colon separators. Format: `field[:op]:value`.
         If `op` is omitted the default operator is `eq` (equals).
         For multi-value `in` use comma-separated values in the value part.
-        Supported operators: `eq`, `ne`, `like`, `in`, `gt`, `lt`, `gte`, `lte`.
+        Supported operators: `eq`, `ne`, `like`, `in`, `contains`, `gt`, `lt`, `gte`, `lte`.
         Examples: `filter=provider:eq:local`, `filter=provider:local` (implicit equals),
         `filter=createdAt:gt:2024-01-01T00:00:00Z`, `filter=tags:in:tag1,tag2`.
       schema:

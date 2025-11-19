@@ -4,9 +4,10 @@ public enum FilterOperation {
     EQUALS,
     NOT_EQUALS,
     LIKE,
+    CONTAINS,
     IN,
     GT,
     LT,
     GTE,
-    LTE
+    LTE,
 }
