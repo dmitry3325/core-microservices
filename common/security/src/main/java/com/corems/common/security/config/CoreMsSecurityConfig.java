@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -60,10 +59,8 @@ public class CoreMsSecurityConfig {
         ServiceAuthenticationFilter saf = serviceAuthenticationFilterProvider.getIfAvailable();
         if (saf != null) {
             httpSecurity.addFilterAfter(saf, CsrfFilter.class);
-            // Place MDC user filter after authentication so user id is available in MDC
             httpSecurity.addFilterAfter(mdcUserFilter, ServiceAuthenticationFilter.class);
         } else {
-            // If service auth filter is not present, register MDC user filter after CSRF to ensure it runs
             httpSecurity.addFilterAfter(mdcUserFilter, CsrfFilter.class);
         }
 

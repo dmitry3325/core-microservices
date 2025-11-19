@@ -77,11 +77,11 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                     .collect(Collectors.toList());
 
             UserPrincipal principal = new UserPrincipal(
-                    UUID.fromString(claims.get(TokenProvider.CLAIM_USER_ID, String.class)),
+                    claims.get(TokenProvider.CLAIM_USER_ID, String.class),
                     claims.get(TokenProvider.CLAIM_EMAIL, String.class),
                     claims.get(TokenProvider.CLAIM_FIRST_NAME, String.class),
                     claims.get(TokenProvider.CLAIM_LAST_NAME, String.class),
-                    UUID.fromString(claims.getSubject()),
+                    claims.getSubject(),
                     authorities
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

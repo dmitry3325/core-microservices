@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
 
         return new UserPrincipal(
-                user.getUuid(),
+                user.getUuid().toString(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),

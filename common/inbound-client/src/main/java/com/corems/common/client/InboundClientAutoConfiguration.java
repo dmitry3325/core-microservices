@@ -25,14 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @AutoConfiguration
 @EnableConfigurationProperties(InboundClientProperties.class)
 public class InboundClientAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean(name = "correlationIdFilter")
-    public ExchangeFilterFunction correlationIdFilter() {
+    @Bean("inboundCorrelationIdFilter")
+    @ConditionalOnMissingBean(name = "inboundCorrelationIdFilter")
+    public ExchangeFilterFunction inboundCorrelationIdFilter() {
         return ExchangeFilterFunction.ofRequestProcessor(request -> {
             String correlationId = MDC.get(CorrelationIdFilter.MDC_CORRELATION_ID);
             if (correlationId == null || correlationId.isBlank()) {
@@ -64,12 +65,12 @@ public class InboundClientAutoConfiguration {
                 claims.put(TokenProvider.CLAIM_USER_ID, principal.getUserId().toString());
                 claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));
 
-                token = tokenProvider.createAccessToken(principal.getUserId().toString(), claims);
+                token = tokenProvider.createAccessToken(principal.getTokenId().toString(), claims);
             } else {
                 Map<String, Object> claims = new HashMap<>();
                 claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));
 
-                token = tokenProvider.createAccessToken(CoreMsRoles.SYSTEM.toString(), claims);
+                token = tokenProvider.createAccessToken(null, claims);
             }
 
             ClientRequest modifiedRequest = ClientRequest.from(request)
@@ -82,9 +83,10 @@ public class InboundClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "inboundWebClientBuilder")
-    public WebClient.Builder inboundWebClientBuilder(ExchangeFilterFunction correlationIdFilter,
-                                                     ExchangeFilterFunction bearerTokenFilter,
-                                                     InboundClientProperties props) {
+    public WebClient.Builder inboundWebClientBuilder(
+            @Qualifier("inboundCorrelationIdFilter") ExchangeFilterFunction correlationIdFilter,
+            @Qualifier("bearerTokenFilter") ExchangeFilterFunction bearerTokenFilter,
+            InboundClientProperties props) {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getDefaultTimeoutSeconds())
                 .responseTimeout(Duration.ofSeconds(props.getDefaultTimeoutSeconds()));
@@ -101,4 +103,3 @@ public class InboundClientAutoConfiguration {
                 .filter(bearerTokenFilter);
     }
 }
-

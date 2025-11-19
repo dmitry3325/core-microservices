@@ -3,7 +3,7 @@ spring:
     common:
       enabled: false
     cors:
-      allowedOrigins: http://localhost:3000, http://localhost:8080
+      allowedOrigins: http://localhost:8080
     jwt:
       secretKey: ${AUTH_TOKEN_SECRET} # secret key for signing JWT, define it in your environment variables
       refreshExpirationTimeInMS: 86400000 # a day

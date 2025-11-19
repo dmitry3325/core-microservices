@@ -1,6 +1,8 @@
 package com.corems.userms.app.config;
 
 import com.corems.common.security.RequireRolesAspect;
+import com.corems.common.security.config.CoreMsSecurityConfig;
+import com.corems.common.security.config.WebMvcConfig;
 import com.corems.common.security.filter.MdcUserFilter;
 import com.corems.userms.app.security.TokenAuthenticationFilter;
 import com.corems.userms.app.security.oauth2.CustomAccessTokenResponseConverter;
@@ -13,9 +15,9 @@ import com.corems.userms.app.security.oauth2.UserAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,6 +39,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 
 @Configuration
+@Import(WebMvcConfig.class)
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
@@ -61,7 +64,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
-        httpSecurity.cors(Customizer.withDefaults());
         httpSecurity.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.formLogin(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(AbstractHttpConfigurer::disable);

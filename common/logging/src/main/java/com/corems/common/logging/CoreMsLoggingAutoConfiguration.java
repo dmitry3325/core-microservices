@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 public class CoreMsLoggingAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     public CorrelationIdFilter correlationIdFilter() {
         return new CorrelationIdFilter();
     }

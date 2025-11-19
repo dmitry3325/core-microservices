@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class MdcUserFilter extends OncePerRequestFilter {
@@ -26,9 +27,9 @@ public class MdcUserFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            String userId = extractUserId(authentication);
-            if (userId != null && !userId.isBlank()) {
-                MDC.put(MDC_USER_ID, userId);
+            UUID userId = extractUserId(authentication);
+            if (userId != null) {
+                MDC.put(MDC_USER_ID, userId.toString());
             }
         }
 
@@ -39,19 +40,11 @@ public class MdcUserFilter extends OncePerRequestFilter {
         }
     }
 
-    private String extractUserId(Authentication authentication) {
+    private UUID extractUserId(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserPrincipal up) {
-            return up.getUserId().toString();
+            return up.getUserId();
         }
-
-        if (principal instanceof UserDetails ud) {
-            return ud.getUsername();
-        }
-
-        // Fallback to authentication name (subject)
-        String name = authentication.getName();
-        if (name != null && !name.isBlank()) return name;
 
         return null;
     }

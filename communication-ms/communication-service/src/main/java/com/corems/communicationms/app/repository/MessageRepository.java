@@ -15,12 +15,12 @@ public interface MessageRepository extends SearchableRepository<MessageEntity, L
 
     @Override
     default List<String> getSearchFields() {
-        return List.of("subject", "body", "recipient", "sender");
+        return List.of("recipient", "sender", "subject", "phoneNumber");
     }
 
     @Override
     default List<String> getAllowedFilterFields() {
-        return List.of("userId", "type", "createdAt", "subject", "recipient", "sender");
+        return List.of("userId", "type", "recipient", "sender");
     }
 
     @Override

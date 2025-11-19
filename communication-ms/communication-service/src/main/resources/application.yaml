@@ -6,7 +6,6 @@ spring:
     name: COMMUNICATION-SERVICE
   main:
     banner-mode: off
-    allow-bean-definition-overriding: true
   jackson:
     default-property-inclusion: non_null
   config:

@@ -61,7 +61,7 @@ public class User {
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private UUID uuid;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private Collection<LoginToken> tokens = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)

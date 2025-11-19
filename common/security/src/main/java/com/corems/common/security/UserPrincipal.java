@@ -20,17 +20,31 @@ public class UserPrincipal implements UserDetails, OAuth2User {
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
+    public UserPrincipal(String userId,
+                         String email,
+                         String firstName,
+                         String lastName,
+                         String tokenId,
+                         Collection<? extends GrantedAuthority> authorities) {
+        this.setTokenId(tokenId);
+        this.setUserId(userId);
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.authorities = authorities;
+    }
+
     public UserPrincipal(UUID userId,
                          String email,
                          String firstName,
                          String lastName,
                          UUID tokenId,
                          Collection<? extends GrantedAuthority> authorities) {
+        this.tokenId = tokenId;
         this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.tokenId = tokenId;
         this.authorities = authorities;
     }
 
@@ -93,7 +107,15 @@ public class UserPrincipal implements UserDetails, OAuth2User {
         return this.tokenId;
     }
 
-    public void setTokenId(UUID tokenId) {
-        this.tokenId = tokenId;
+    public void setUserId(String userId) {
+        if (userId != null) {
+            this.userId = UUID.fromString(userId);
+        }
+    }
+
+    public void setTokenId(String tokenId) {
+        if (tokenId != null) {
+            this.tokenId = UUID.fromString(tokenId);
+        }
     }
 }
