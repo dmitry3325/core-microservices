@@ -19,22 +19,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageDispatcher {
     private final QueueProvider queueProvider;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public <T> MessageStatus dispatchMessage(ChannelProvider<T> channelProvider, MessageType type, T payload) throws ServiceException {
+    public <T> MessageStatus dispatchMessage(ChannelProvider<T> channelProvider, UUID messageId, T payload) throws ServiceException {
         if (queueProvider.isEnabled()) {
             QueueClient queueClient = queueProvider.getDefaultClient();
 
-            QueueMessage<Object> qm = new QueueMessage<>();
-            qm.setId(UUID.randomUUID().toString());
-            qm.setType(type.toString());
-
-            try {
-                qm.setPayload(objectMapper.writeValueAsString(payload));
-            } catch (JsonProcessingException e) {
-                throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR);
-            }
-
+            QueueMessage qm = new QueueMessage();
+            qm.setId(messageId.toString());
+            qm.setType(channelProvider.getMessageType().toString());
+            qm.setPayload(payload);
             queueClient.send(qm);
             return MessageStatus.enqueued;
         }

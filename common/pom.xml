@@ -15,8 +15,8 @@
 
     <modules>
         <module>api</module>
+        <module>exception</module>
         <module>logging</module>
-        <module>service-exception</module>
         <module>security</module>
         <module>utils</module>
         <module>queue</module>

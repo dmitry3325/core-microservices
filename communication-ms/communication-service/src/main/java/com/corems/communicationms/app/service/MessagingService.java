@@ -9,7 +9,6 @@ import com.corems.communicationms.app.entity.EmailMessageEntity;
 import com.corems.communicationms.app.entity.MessageEntity;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.MessageListResponse;
-import com.corems.communicationms.api.model.PaginationMeta;
 import com.corems.communicationms.app.entity.SMSMessageEntity;
 import com.corems.communicationms.app.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +45,10 @@ public class MessagingService {
         filter.ifPresent(mergedFilters::addAll);
 
         // If no sort provided, default to createdAt desc
-        if (sort.isEmpty()) {
-            mergedFilters.add("createdAt:desc");
-        }
+        sort = sort.or(() -> Optional.of("createdAt:desc"));
 
         QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(mergedFilters));
         Page<MessageEntity> result = messageRepository.findAllByQueryParams(params);
-
 
         List<MessageResponse> items = result.getContent().stream()
                 .map(this::mapToMessageResponse)
@@ -91,7 +87,7 @@ public class MessagingService {
         return mr;
     }
 
-    private EmailPayload mapEmail(EmailMessageEntity emailEntity) {
+    public EmailPayload mapEmail(EmailMessageEntity emailEntity) {
         EmailPayload ep = new EmailPayload(
                 emailEntity.getSubject(),
                 emailEntity.getRecipient(),
@@ -123,7 +119,7 @@ public class MessagingService {
         return ep;
     }
 
-    private SmsPayload mapSms(SMSMessageEntity smsEntity) {
+    public SmsPayload mapSms(SMSMessageEntity smsEntity) {
         return new SmsPayload(smsEntity.getPhoneNumber(), smsEntity.getMessage());
     }
 }

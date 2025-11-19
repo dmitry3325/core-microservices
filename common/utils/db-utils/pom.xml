@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.corems.common</groupId>
-            <artifactId>service-exception</artifactId>
+            <artifactId>exception</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- Provide spring-data and jpa so repo interfaces can extend their types -->

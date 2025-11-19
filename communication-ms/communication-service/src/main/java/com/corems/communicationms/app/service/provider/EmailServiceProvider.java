@@ -4,6 +4,8 @@ import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.communicationms.api.model.EmailPayload;
 import com.corems.communicationms.app.config.MailConfig;
+import com.corems.communicationms.app.model.MessageType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +19,19 @@ import org.springframework.stereotype.Service;
 public class EmailServiceProvider implements ChannelProvider<EmailPayload> {
     private final JavaMailSender mailSender;
     private final MailConfig config;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Override
+    public MessageType getMessageType() {
+        return MessageType.email;
+    }
+
+    @Override
+    public void convertAndSend(Object payload) {
+        send(objectMapper.convertValue(payload, EmailPayload.class));
+    }
+
+    @Override
     public void send(EmailPayload payload) {
         if (!config.getEnabled()) {
             log.info("Email sending disabled! Simulating send to {}: {}", payload.getRecipient(), payload.getBody());

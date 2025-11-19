@@ -11,10 +11,14 @@ Step 1 is running the development database.
 From this folder:
 
 ```cmd
+# Start Postgres
 docker-compose --env-file ../.env -f postgres-compose.yaml up -d
+
+# Start RabbitMQ
+docker-compose --env-file ../.env -f rabbitmq-compose.yaml up -d
 ```
 
-### Connect (quick)
+### Connect DATABASE
 - From host (if you have psql):
 ```cmd
 psql -h localhost -p %POSTGRES_PORT% -U %DATABASE_USER% -d %DATABASE_DB%

@@ -4,7 +4,12 @@ import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import org.springframework.data.jpa.domain.Specification;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +70,7 @@ public class GenericSpecification<T> implements Specification<T> {
         };
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildGreaterThan(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
@@ -83,7 +88,7 @@ public class GenericSpecification<T> implements Specification<T> {
         return cb.greaterThan(path.as(String.class), casted.toString());
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildGreaterThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
@@ -99,7 +104,7 @@ public class GenericSpecification<T> implements Specification<T> {
         return cb.greaterThanOrEqualTo(path.as(String.class), casted.toString());
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildLessThan(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
@@ -115,7 +120,7 @@ public class GenericSpecification<T> implements Specification<T> {
         return cb.lessThan(path.as(String.class), casted.toString());
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildLessThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
@@ -149,19 +154,25 @@ public class GenericSpecification<T> implements Specification<T> {
 
         // UUID
         if (javaType.equals(UUID.class)) {
-            try { return UUID.fromString(value); } catch (IllegalArgumentException ex) {
+            try {
+                return UUID.fromString(value);
+            } catch (IllegalArgumentException ex) {
                 throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Invalid UUID value '" + value + "' for field '" + criteria.field() + "'");
             }
         }
 
         // Date/time
         if (javaType.equals(OffsetDateTime.class)) {
-            try { return OffsetDateTime.parse(value); } catch (DateTimeParseException ex) {
+            try {
+                return OffsetDateTime.parse(value);
+            } catch (DateTimeParseException ex) {
                 throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Invalid datetime value '" + value + "' for field '" + criteria.field() + "' (expected ISO-8601)");
             }
         }
         if (javaType.equals(Instant.class)) {
-            try { return Instant.parse(value); } catch (DateTimeParseException ex) {
+            try {
+                return Instant.parse(value);
+            } catch (DateTimeParseException ex) {
                 throw ServiceException.of(DefaultExceptionReasonCodes.PARAMETER_INVALID, "Invalid instant value '" + value + "' for field '" + criteria.field() + "' (expected ISO-8601)");
             }
         }
@@ -190,7 +201,6 @@ public class GenericSpecification<T> implements Specification<T> {
             }
         }
 
-        // Fallback: return raw string
         return value;
     }
 }

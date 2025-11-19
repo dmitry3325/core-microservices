@@ -34,14 +34,14 @@ public class SmsService {
         SMSMessageEntity smsEntity = createEntity(smsRequest);
         SmsPayload payload = getPayload(smsRequest);
         try {
-            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.sms, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, smsEntity.getUuid(), payload);
             smsEntity.setStatus(status);
             messageRepository.save(smsEntity);
         } catch (ServiceException exception) {
             log.error("Failed to send SMS message: ", exception);
 
             smsEntity.setStatus(MessageStatus.failed);
-            smsEntity.setUpdatedAt(Instant.now());
+            smsEntity.setSentAt(Instant.now());
             messageRepository.save(smsEntity);
             throw exception;
         }
@@ -60,7 +60,7 @@ public class SmsService {
     public NotificationResponse sendNotification(SmsNotificationRequest smsRequest) {
         try {
             SmsPayload payload = getPayload(smsRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, MessageType.sms, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(smsServiceProvider, UUID.randomUUID(), payload);
 
             NotificationResponse response = new NotificationResponse();
             response.setStatus(SendStatus.fromValue(status.toString()));

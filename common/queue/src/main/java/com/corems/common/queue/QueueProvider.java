@@ -2,6 +2,7 @@ package com.corems.common.queue;
 
 import com.corems.common.queue.config.QueueProperties;
 import com.corems.common.exception.ServiceException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public final class QueueProvider {
+    @Getter
     private final QueueProperties queueProperties;
     private final Map<SupportedQueueProvider, QueueClient> providers = new ConcurrentHashMap<>();
 

@@ -2,8 +2,11 @@ package com.corems.communicationms.app.service.provider;
 
 import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.communicationms.api.model.SlackPayload;
 import com.corems.communicationms.api.model.SmsPayload;
 import com.corems.communicationms.app.config.SmsConfig;
+import com.corems.communicationms.app.model.MessageType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SmsServiceProvider implements ChannelProvider<SmsPayload> {
     private final SmsConfig config;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public SmsServiceProvider(SmsConfig config) {
@@ -22,6 +26,16 @@ public class SmsServiceProvider implements ChannelProvider<SmsPayload> {
         if (config.enabled()) {
             Twilio.init(config.accountSid(), config.authToken());
         }
+    }
+
+    @Override
+    public MessageType getMessageType() {
+        return MessageType.sms;
+    }
+
+    @Override
+    public void convertAndSend(Object payload) {
+        send(objectMapper.convertValue(payload, SmsPayload.class));
     }
 
     @Override

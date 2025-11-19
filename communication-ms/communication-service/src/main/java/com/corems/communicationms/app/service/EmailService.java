@@ -35,13 +35,13 @@ public class EmailService {
         EmailMessageEntity emailEntity = createEntity(emailRequest);
         EmailPayload payload = getPayload(emailRequest);
         try {
-            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.email, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, emailEntity.getUuid(), payload);
             emailEntity.setStatus(status);
         } catch (ServiceException exception) {
             log.error("Failed to send email message: ", exception);
 
             emailEntity.setStatus(MessageStatus.failed);
-            emailEntity.setUpdatedAt(Instant.now());
+            emailEntity.setSentAt(Instant.now());
             throw exception;
         }
 
@@ -61,7 +61,7 @@ public class EmailService {
     public NotificationResponse sendNotification(EmailNotificationRequest emailRequest) {
         try {
             EmailPayload payload = getPayload(emailRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, MessageType.email, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, UUID.randomUUID(), payload);
 
             NotificationResponse response = new NotificationResponse();
             response.setStatus(SendStatus.fromValue(status.toString()));

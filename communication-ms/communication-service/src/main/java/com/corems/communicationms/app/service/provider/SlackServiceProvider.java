@@ -2,8 +2,11 @@ package com.corems.communicationms.app.service.provider;
 
 import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
+import com.corems.communicationms.api.model.EmailPayload;
 import com.corems.communicationms.api.model.SlackPayload;
 import com.corems.communicationms.app.config.SlackConfig;
+import com.corems.communicationms.app.model.MessageType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slack.api.Slack;
 import com.slack.api.methods.MethodsClient;
 import com.slack.api.methods.SlackApiException;
@@ -19,12 +22,24 @@ import java.io.IOException;
 public class SlackServiceProvider implements ChannelProvider<SlackPayload> {
     private final SlackConfig config;
     private final MethodsClient client;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public SlackServiceProvider(SlackConfig slackConfig) {
         this.config = slackConfig;
         this.client = Slack.getInstance().methods(config.token());
     }
 
+    @Override
+    public MessageType getMessageType() {
+        return MessageType.slack;
+    }
+
+    @Override
+    public void convertAndSend(Object payload) {
+        send(objectMapper.convertValue(payload, SlackPayload.class));
+    }
+
+    @Override
     public void send(SlackPayload payload) {
         if (!config.enabled()) {
             log.info("Slack sending disabled! Simulating send to channel {}: {}", payload.getChannel(), payload.getMessage());

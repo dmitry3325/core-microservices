@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -36,7 +37,7 @@ public class SlackService {
     public NotificationResponse sendNotification(SlackNotificationRequest slackRequest) {
         try {
             SlackPayload payload = getPayload(slackRequest);
-            MessageStatus status = messageDispatcher.dispatchMessage(slackServiceProvider, MessageType.slack, payload);
+            MessageStatus status = messageDispatcher.dispatchMessage(slackServiceProvider, UUID.randomUUID(), payload);
 
             NotificationResponse response = new NotificationResponse();
             response.setStatus(SendStatus.fromValue(status.toString()));

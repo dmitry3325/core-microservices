@@ -10,7 +10,7 @@ spring:
   jackson:
     default-property-inclusion: non_null
   config:
-    import: classpath:db-config.yaml
+    import: classpath:db-config.yaml, queue-config.yaml
 
 
 mail:

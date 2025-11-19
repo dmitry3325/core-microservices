@@ -50,8 +50,8 @@ public abstract class MessageEntity implements Serializable {
     @Column(nullable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Column
+    private Instant sentAt;
 
     public MessageEntity() {
         this.createdAt = Instant.now();

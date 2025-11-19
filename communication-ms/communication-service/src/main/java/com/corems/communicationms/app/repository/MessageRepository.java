@@ -5,9 +5,13 @@ import org.springframework.stereotype.Repository;
 import com.corems.common.utils.db.repo.SearchableRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface MessageRepository extends SearchableRepository<MessageEntity, Long> {
+
+    Optional<MessageEntity> findByUuid(UUID uuid);
 
     @Override
     default List<String> getSearchFields() {
@@ -22,18 +26,5 @@ public interface MessageRepository extends SearchableRepository<MessageEntity, L
     @Override
     default List<String> getAllowedSortFields() {
         return List.of("createdAt", "type");
-    }
-
-    @Override
-    default Map<String, String> getFieldAliases() {
-        // API field -> JPA attribute path (dot-separated for nested)
-        return Map.of(
-                "userId", "userId",
-                "createdAt", "createdAt",
-                "subject", "subject",
-                "recipient", "recipient",
-                "sender", "sender",
-                "type", "type"
-        );
     }
 }

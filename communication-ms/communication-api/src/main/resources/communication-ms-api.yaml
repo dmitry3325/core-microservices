@@ -109,51 +109,6 @@ paths:
                 $ref: '#/components/schemas/MessageResponse'
         <<: *common-error-responses
 
-  /api/messages/email-multipart:
-    post:
-      tags:
-        - Messages
-      summary: Send an email message with attachments (admin only)
-      description: |
-        Send an email message with optional file attachments. Only admins can send messages.
-        Uses multipart/form-data to avoid base64 encoding overhead.
-      operationId: sendEmailMessageMultipart
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - emailRequest
-              properties:
-                emailRequest:
-                  $ref: '#/components/schemas/EmailMessageRequest'
-                attachments:
-                  type: array
-                  maxItems: 10
-                  items:
-                    type: string
-                    format: binary
-                  description: Optional file attachments (max 10 files)
-                saveAttachments:
-                  type: boolean
-                  default: false
-                  description: Whether to store attachments
-            encoding:
-              emailRequest:
-                contentType: application/json
-              attachments:
-                contentType: application/octet-stream
-      responses:
-        '201':
-          description: Message accepted for processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        <<: *common-error-responses
-
   /api/notifications/slack:
     post:
       tags:

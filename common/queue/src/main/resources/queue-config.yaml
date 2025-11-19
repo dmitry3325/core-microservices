@@ -2,12 +2,13 @@ queue:
   enabled: ${QUEUE_ENABLED:false}
   provider: ${PROVIDER:rabbitmq} # Supported providers: rabbitmq, kafka etc
   providers:
-    rabbitmq:
-      exchange: ""
-      defaultQueue: corems.default
-      routingKey: corems.default
+    rabbitMq:
       host: ${RABBIT_HOST:localhost}
       port: ${RABBIT_PORT:5672}
       username: ${RABBIT_USER:}
-      password: ${RABBIT_PASS:}
-      pollTimeoutMs: ${QUEUE_POLL_TIMEOUT_MS:5000}
+      password: ${RABBIT_PASSWORD:}
+      exchange: ${RABBIT_DEFAULT_EXCHANGE:}
+      defaultQueue: ${RABBIT_DEFAULT_QUEUE:corems.default}
+      requiredQueues: ${RABBIT_REQUIRED_QUEUES:}
+      pollIntervalMs: ${QUEUE_POLL_INTERVAL_MS:1000}
+      retryCount: ${QUEUE_RETRY_COUNT:1}
