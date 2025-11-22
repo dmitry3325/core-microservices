@@ -353,6 +353,16 @@ components:
           type: string
           format: date-time
           description: Creation date of the message
+        sentById:
+          type: string
+          format: uuid
+          description: UUID of the sender when available (e.g. user id). May be null for system senders.
+        sentByType:
+          type: string
+          description: Type of sender
+          enum:
+            - user
+            - system
         payload:
           oneOf:
             - $ref: '#/components/schemas/SmsPayload'

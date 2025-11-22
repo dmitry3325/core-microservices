@@ -24,9 +24,8 @@ import com.corems.userms.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.corems.common.security.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,8 +68,7 @@ public class AuthService {
 
     @Transactional
     public SuccessfulResponse signOut() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         validateRefreshToken(userPrincipal);
         System.out.println("Deleting token with ID: " + userPrincipal.getTokenId());
@@ -80,8 +78,7 @@ public class AuthService {
     }
 
     public AccessTokenResponse getAccessToken() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         validateRefreshToken(userPrincipal);
 

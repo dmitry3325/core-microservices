@@ -25,6 +25,6 @@ public interface MessageRepository extends SearchableRepository<MessageEntity, L
 
     @Override
     default List<String> getAllowedSortFields() {
-        return List.of("createdAt", "type");
+        return List.of("createdAt");
     }
 }

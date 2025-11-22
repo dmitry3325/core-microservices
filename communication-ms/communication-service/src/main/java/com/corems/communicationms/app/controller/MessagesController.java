@@ -2,6 +2,7 @@ package com.corems.communicationms.app.controller;
 
 import com.corems.common.security.CoreMsRoles;
 import com.corems.common.security.RequireRoles;
+import com.corems.common.security.SecurityUtils;
 import com.corems.common.security.UserPrincipal;
 import com.corems.communicationms.api.MessagesApi;
 import com.corems.communicationms.api.model.EmailMessageRequest;
@@ -43,13 +44,12 @@ public class MessagesController implements MessagesApi {
             Optional<String> search,
             Optional<List<String>> filter) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         EnumSet<CoreMsRoles> privileged = EnumSet.copyOf(CoreMsRoles.getSystemRoles());
         privileged.add(CoreMsRoles.COMMUNICATION_MS_ADMIN);
 
-        boolean isAdmin = auth.getAuthorities().stream()
+        boolean isAdmin = userPrincipal.getAuthorities().stream()
                 .anyMatch(granted -> {
                     try {
                         CoreMsRoles role = CoreMsRoles.valueOf(granted.getAuthority());

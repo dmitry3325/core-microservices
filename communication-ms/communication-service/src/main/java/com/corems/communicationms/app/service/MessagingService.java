@@ -1,5 +1,7 @@
 package com.corems.communicationms.app.service;
 
+import com.corems.common.security.SecurityUtils;
+import com.corems.common.security.UserPrincipal;
 import com.corems.communicationms.api.model.ChannelType;
 import com.corems.communicationms.api.model.EmailPayload;
 import com.corems.communicationms.api.model.MessageResponsePayload;
@@ -10,6 +12,7 @@ import com.corems.communicationms.app.entity.MessageEntity;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.MessageListResponse;
 import com.corems.communicationms.app.entity.SMSMessageEntity;
+import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,21 +73,23 @@ public class MessagingService {
         mr.setStatus(SendStatus.fromValue(entity.getStatus().toString()));
         mr.createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
         mr.setUserId(entity.getUserId());
+        mr.setSentById(entity.getSentById());
+        if (entity.getSentByType() != null) {
+            mr.setSentByType(MessageResponse.SentByTypeEnum.fromValue(entity.getSentByType().name()));
+        }
 
-        // if something went wrong, payload will be null
         MessageResponsePayload payload = null;
         if (entity.getType() == null) {
             log.error("Message entity has null type for uuid={}", entity.getUuid());
             return mr;
-        } else {
-            switch (entity.getType()) {
-                case email -> payload = mapEmail((EmailMessageEntity) entity);
-                case sms -> payload = mapSms((SMSMessageEntity) entity);
-                default -> log.error("Missing error mapper for type={}, uuid={}", entity.getType(), entity.getUuid());
-            }
         }
 
-        mr.setPayload(payload);
+        switch (entity.getType()) {
+            case email -> mr.setPayload(mapEmail((EmailMessageEntity) entity));
+            case sms -> mr.setPayload(mapSms((SMSMessageEntity) entity));
+            default -> log.error("Missing error mapper for type={}, uuid={}", entity.getType(), entity.getUuid());
+        }
+
         return mr;
     }
 

@@ -1,6 +1,7 @@
 package com.corems.communicationms.app.service;
 
 import com.corems.common.exception.ServiceException;
+import com.corems.common.security.SecurityUtils;
 import com.corems.communicationms.api.model.ChannelType;
 import com.corems.communicationms.api.model.EmailMessageRequest;
 import com.corems.communicationms.api.model.EmailNotificationRequest;
@@ -11,9 +12,12 @@ import com.corems.communicationms.api.model.SendStatus;
 import com.corems.communicationms.app.config.MailConfig;
 import com.corems.communicationms.app.entity.EmailMessageEntity;
 import com.corems.communicationms.app.model.MessageStatus;
-import com.corems.communicationms.app.model.MessageType;
+import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.EmailServiceProvider;
+import com.corems.common.security.UserPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,6 +25,8 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
+
+import com.corems.communicationms.api.model.MessageResponse.SentByTypeEnum;
 
 @Slf4j
 @Component
@@ -54,6 +60,10 @@ public class EmailService {
         response.setStatus(SendStatus.fromValue(emailEntity.getStatus().toString()));
         response.setCreatedAt(emailEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setPayload(payload);
+        response.setSentById(emailEntity.getSentById());
+        if (emailEntity.getSentByType() != null) {
+            response.setSentByType(SentByTypeEnum.fromValue(emailEntity.getSentByType().name()));
+        }
 
         return response;
     }
@@ -112,6 +122,14 @@ public class EmailService {
         emailEntity.setUserId(emailRequest.getUserId());
         emailEntity.setCreatedAt(Instant.now());
         emailEntity.setStatus(MessageStatus.created);
+
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
+        if (userPrincipal.getUserId() != null) {
+            emailEntity.setSentById(userPrincipal.getUserId());
+            emailEntity.setSentByType(MessageSenderType.user);
+        } else {
+            emailEntity.setSentByType(MessageSenderType.system);
+        }
 
         messageRepository.save(emailEntity);
         return emailEntity;

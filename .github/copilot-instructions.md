@@ -18,8 +18,42 @@ Platform & conventions
 - Java 17, Spring Boot 3.3+, Maven multi-module reactor.
 - Shared code lives in `common/`. Do NOT edit `common` in service PRs.
 - Generated API models (from `*-api`) are canonical DTOs. Do NOT duplicate them locally.
-- Parent POM manages dependency and plugin versions. Child modules MUST NOT redeclare parent-managed plugin versions.
-- Never commit `.gen` or generated artifacts that duplicate `common/api`.
+
+Import and commenting style (project conventions)
+- Prefer explicit imports for generated models and nested enums (example: `import com.corems.communicationms.api.model.MessageResponse.SentByTypeEnum;`) instead of using fully-qualified class names inline.
+
+Commenting guidelines (strict)
+
+Goal: keep code self-explanatory; comments are exceptional. Prefer clear, well-named code and small functions over inline comments.
+
+Policy (short):
+- Allow only the following comment kinds inside method bodies:
+  1) Short rationale for a non-obvious decision (one or two lines).
+  2) Links/references to external issues or specifications when a workaround or behavior depends on them.
+  3) Brief markers to separate logical blocks in very long methods (try to avoid by refactoring).
+- All other inline comments that restate the code (e.g., `// set userId`, `// populate sender info`) must be removed.
+
+Formatting rules:
+- Prefer Javadoc for public APIs and complex algorithm descriptions. Javadoc is required for public controller/service method signatures that form the module API.
+- Use `//` for short rationale only. Start with a verb and keep it focused (no paragraphs).
+- Tag actionable comments with `TODO:`/`FIXME:` and include an owner or ticket link.
+
+Enforcement:
+- Add a lightweight pre-commit sample that warns about trivial comment patterns (for example: `// set `, `// populate `, `// set the `). Treat this as a warning by default; teams can opt to make it fail in CI.
+- Reviewers should remove trivial comments in code review. Commits that add many trivial comments should be rejected.
+
+Examples:
+- Acceptable (short rationale):
+  // Prefer DB-generated UUID to avoid distributed coordination (see DOC-456)
+
+- Unacceptable (remove):
+  // set createdAt on the response
+  // populate sender info from entity
+
+Maintenance:
+- Update or remove comments when code changes. Prefer removing an outdated comment instead of trying to reconcile it.
+
+If you'd like a stricter automated rule (fail on match), I can add a CI job to fail when trivial comments are detected. Otherwise the sample hook below provides a local pre-commit warning.
 
 Autoconfiguration-first rules (short)
 - Preferred dependency: include the shared auto-config starter on the service classpath (artifact example: `com.corems.common:autoconfig-starter`). The starter wires logging, error handling, security and other cross-cutting beans.
@@ -68,6 +102,29 @@ Security rules (short)
 - Resolve identity from Spring Security only; cast to `UserPrincipal` in service layer.
 - Do NOT rely on X-User or any client-supplied headers.
 
+Security helper (preferred)
+- We provide a small helper in `com.corems.common.security.SecurityUtils` to centralize SecurityContext access and standardize error handling.
+  - `SecurityUtils.getUserPrincipal()` — returns the authenticated `UserPrincipal` or throws `AuthServiceException` (UNAUTHORIZED) if missing. Use this when your code requires an authenticated user and should fail with a 401 when none is present.
+  - `SecurityUtils.getUserPrincipalOptional()` — returns `Optional<UserPrincipal>` when presence is optional.
+
+Usage guidance - Prefer `SecurityUtils.getUserPrincipal()` in service methods that require authentication (for example: token management, user-profile operations). It reduces boilerplate and yields consistent error handling.
+- Prefer `SecurityUtils.getUserPrincipal()` in service methods that require authentication (for example: token management, user-profile operations). It reduces boilerplate and yields consistent error handling:
+- Do not mix `SecurityUtils.getUserPrincipal()` in places where the caller should be allowed to proceed without authentication; choose the Optional or OrNull variants there.
+
+Rationale: centralizing SecurityContext access avoids repeated boilerplate, ensures a single error path for unauthorized access, and makes unit testing simpler (mock SecurityUtils or the SecurityContext in one place).
+
+Sender identity rules (messages / notifications)
+- Where to populate: populate sender metadata on the JPA entity in the service layer at creation time (do not rely on controllers or client headers to set identity).
+- How to resolve identity: read the Authentication from the SecurityContext:
+  - Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+  - If auth != null and auth.getPrincipal() is an instance of `UserPrincipal` and `up.getUserId()` is NOT null, then:
+    - set entity.sentById = up.getUserId()
+    - set entity.sentByType = MessageSenderType.user
+  - Otherwise (no auth, different principal type, or principal with null userId):
+    - set entity.sentByType = MessageSenderType.system
+    - do NOT populate sentById
+- Rationale: service-to-service calls or unauthenticated system actions should be clearly marked as system senders; avoid exposing a null/invalid user id.
+
 Testing guidance
 - For tests that need shared auto-config, include the starter on the test classpath or use `@ImportAutoConfiguration(...)`.
 - For slice tests that should mock shared beans, use `@MockBean` for those beans. Mock `Authentication`/`UserPrincipal` from `SecurityContext` for identity.
@@ -84,7 +141,7 @@ Quick PR checklist
 - Did I run API codegen + build for the `*-api`? YES/NO
 - Did I avoid re-declaring parent-managed plugins in child POMs? YES/NO
 - Did I not commit `.gen`? YES/NO
-
+User-visible changed file should be clean now.
 Minimal service skeleton to generate
 - `<service>-ms/`
   - `<service>-api/` (OpenAPI + codegen wiring)
@@ -102,4 +159,4 @@ If you'd like I will:
 - Create a short `docs/autoconfig.md` example showing the preferred pom dependency and a minimal application class, and
 - Add a small grep-based pre-commit script under `.git/hooks/pre-commit.sample` that enforces `.gen` blocking and starter/annotation mismatches.
 
-// End of file
+

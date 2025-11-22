@@ -1,5 +1,6 @@
 package com.corems.userms.app.service;
 
+import com.corems.common.security.SecurityUtils;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.app.entity.Role;
 import com.corems.userms.app.entity.User;
@@ -28,8 +29,7 @@ public class ProfileService {
     private final PasswordEncoder passwordEncoder;
 
     public UserInfo getCurrentUserInfo() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         User user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
@@ -52,8 +52,7 @@ public class ProfileService {
     }
 
     public UserInfo updateCurrentUserProfile(UserProfileUpdateRequest userProfileUpdateRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         User user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
         if (userProfileUpdateRequest.getFirstName() != null) user.setFirstName(userProfileUpdateRequest.getFirstName());
@@ -69,8 +68,7 @@ public class ProfileService {
     }
 
     public SuccessfulResponse changeOwnPassword(ChangePasswordRequest changePasswordRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         User user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
 

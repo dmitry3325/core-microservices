@@ -1,6 +1,7 @@
 package com.corems.communicationms.app.service;
 
 import com.corems.common.exception.ServiceException;
+import com.corems.common.security.SecurityUtils;
 import com.corems.communicationms.api.model.ChannelType;
 import com.corems.communicationms.api.model.SmsMessageRequest;
 import com.corems.communicationms.api.model.SmsNotificationRequest;
@@ -8,12 +9,14 @@ import com.corems.communicationms.api.model.SmsPayload;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.NotificationResponse;
 import com.corems.communicationms.api.model.SendStatus;
-import com.corems.communicationms.app.config.SmsConfig;
 import com.corems.communicationms.app.entity.SMSMessageEntity;
 import com.corems.communicationms.app.model.MessageStatus;
-import com.corems.communicationms.app.model.MessageType;
+import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.SmsServiceProvider;
+import com.corems.common.security.UserPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,6 +24,8 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
+
+import com.corems.communicationms.api.model.MessageResponse.SentByTypeEnum;
 
 @Slf4j
 @Component
@@ -53,6 +58,10 @@ public class SmsService {
         response.setStatus(SendStatus.fromValue(smsEntity.getStatus().toString()));
         response.setCreatedAt(smsEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setPayload(payload);
+        response.setSentById(smsEntity.getSentById());
+        if (smsEntity.getSentByType() != null) {
+            response.setSentByType(SentByTypeEnum.fromValue(smsEntity.getSentByType().name()));
+        }
 
         return response;
     }
@@ -90,9 +99,15 @@ public class SmsService {
         smsEntity.setCreatedAt(Instant.now());
         smsEntity.setStatus(MessageStatus.created);
 
+        UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
+        if (userPrincipal.getUserId() != null) {
+            smsEntity.setSentById(userPrincipal.getUserId());
+            smsEntity.setSentByType(MessageSenderType.user);
+        } else {
+            smsEntity.setSentByType(MessageSenderType.system);
+        }
+
         messageRepository.save(smsEntity);
         return smsEntity;
     }
 }
-
-

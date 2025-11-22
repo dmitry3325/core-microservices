@@ -1,5 +1,6 @@
 package com.corems.communicationms.app.entity;
 
+import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.model.MessageStatus;
 import com.corems.communicationms.app.model.MessageType;
 import jakarta.persistence.Column;
@@ -52,6 +53,13 @@ public abstract class MessageEntity implements Serializable {
 
     @Column
     private Instant sentAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private MessageSenderType sentByType;
+
+    @Column(name = "sent_by_id", length = 36)
+    private UUID sentById;
 
     public MessageEntity() {
         this.createdAt = Instant.now();
