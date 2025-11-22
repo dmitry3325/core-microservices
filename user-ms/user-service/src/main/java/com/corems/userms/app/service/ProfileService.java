@@ -45,6 +45,7 @@ public class ProfileService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .imageUrl(user.getImageUrl())
+                .phoneNumber(user.getPhoneNumber())
                 .roles(user.getRoles().stream().map(Role::getName).toList())
                 .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
                 .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
@@ -58,6 +59,7 @@ public class ProfileService {
         if (userProfileUpdateRequest.getFirstName() != null) user.setFirstName(userProfileUpdateRequest.getFirstName());
         if (userProfileUpdateRequest.getLastName() != null) user.setLastName(userProfileUpdateRequest.getLastName());
         if (userProfileUpdateRequest.getImageUrl() != null) user.setImageUrl(userProfileUpdateRequest.getImageUrl().toString());
+        if (userProfileUpdateRequest.getPhoneNumber() != null) user.setPhoneNumber(userProfileUpdateRequest.getPhoneNumber());
         userRepository.save(user);
         return new UserInfo()
                 .userId(user.getUuid())

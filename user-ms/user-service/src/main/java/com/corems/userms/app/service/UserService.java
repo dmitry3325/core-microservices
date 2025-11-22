@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,17 +39,7 @@ public class UserService {
         User user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
-        return new UserInfo()
-                .userId(user.getUuid())
-                .provider(user.getProvider())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .imageUrl(user.getImageUrl())
-                .roles(user.getRoles().stream().map(Role::getName).toList())
-                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
-                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        return mapToUserInfo(user);
     }
 
     public SuccessfulResponse updateUserById(UUID userId, UserInfo userInfo) {
@@ -59,26 +50,10 @@ public class UserService {
         if (userInfo.getLastName() != null) user.setLastName(userInfo.getLastName());
         if (userInfo.getEmail() != null) user.setEmail(userInfo.getEmail());
         if (userInfo.getImageUrl() != null) user.setImageUrl(userInfo.getImageUrl());
+        if (userInfo.getPhoneNumber() != null) user.setPhoneNumber(userInfo.getPhoneNumber());
 
         if (userInfo.getRoles() != null) {
-            List<String> desired = userInfo.getRoles().stream().map(String::trim).map(String::toUpperCase).toList();
-            for (String rn : desired) {
-                try {
-                    CoreMsRoles.valueOf(rn);
-                } catch (IllegalArgumentException ex) {
-                    throw UserServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
-                }
-            }
-
-            List<String> current = user.getRoles().stream().map(Role::getName).toList();
-            for (String rn : desired) {
-                if (!current.contains(rn)) {
-                    CoreMsRoles roleEnum = CoreMsRoles.valueOf(rn);
-                    user.getRoles().add(new Role(roleEnum, user));
-                }
-            }
-
-            user.getRoles().removeIf(r -> !desired.contains(r.getName()));
+            assignRoles(user, userInfo.getRoles());
         }
 
         userRepository.save(user);
@@ -98,8 +73,14 @@ public class UserService {
                 .provider(AuthProvider.local.name())
                 .password("{noop}temporary");
 
+        if (createUserRequest.getPhoneNumber() != null) {
+            userBuilder.phoneNumber(createUserRequest.getPhoneNumber());
+        }
+
         User user = userBuilder.build();
-        user.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, user)));
+
+        List<String> desired = createUserRequest.getRoles() == null ? List.of("USER") : new ArrayList<>(createUserRequest.getRoles());
+        assignRoles(user, desired);
 
         userRepository.save(user);
 
@@ -157,16 +138,7 @@ public class UserService {
         QueryParams params = new QueryParams(page, pageSize, search, sort, filters);
         Page<User> userPage = userRepository.findAllByQueryParams(params);
         List<UserInfo> items = userPage.getContent().stream()
-                .map(user -> new UserInfo()
-                        .userId(user.getUuid())
-                        .provider(user.getProvider())
-                        .email(user.getEmail())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .imageUrl(user.getImageUrl())
-                        .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
-                        .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
-                        .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC)))
+                .map(this::mapToUserInfo)
                 .collect(Collectors.toList());
 
         UsersPagedResponse response = new UsersPagedResponse(userPage.getNumber() + 1, userPage.getSize());
@@ -174,5 +146,40 @@ public class UserService {
         response.setTotalPages(userPage.getTotalPages());
         response.setTotalElements(userPage.getTotalElements());
         return response;
+    }
+
+    private UserInfo mapToUserInfo(User user) {
+        return new UserInfo()
+                .userId(user.getUuid())
+                .provider(user.getProvider())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .imageUrl(user.getImageUrl())
+                .phoneNumber(user.getPhoneNumber())
+                .roles(user.getRoles().stream().map(Role::getName).toList())
+                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
+    }
+
+    private void assignRoles(User user, List<String> desiredRoles) {
+        List<String> normalized = desiredRoles.stream().map(String::trim).map(String::toUpperCase).toList();
+
+        for (String rn : normalized) {
+            try {
+                CoreMsRoles.valueOf(rn);
+            } catch (IllegalArgumentException ex) {
+                throw UserServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
+            }
+        }
+
+        if (user.getRoles() != null) user.getRoles().clear();
+        else user.setRoles(new ArrayList<>());
+
+        for (String rn : normalized) {
+            CoreMsRoles roleEnum = CoreMsRoles.valueOf(rn);
+            user.getRoles().add(new Role(roleEnum, user));
+        }
     }
 }

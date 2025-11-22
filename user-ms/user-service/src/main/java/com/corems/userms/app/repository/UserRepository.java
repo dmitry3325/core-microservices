@@ -20,7 +20,7 @@ public interface UserRepository extends SearchableRepository<User, String> {
 
     @Override
     default List<String> getAllowedFilterFields() {
-        return List.of("provider");
+        return List.of("provider", "uuid");
     }
 
     @Override

@@ -406,12 +406,24 @@ components:
           description: The user's last name
           maxLength: 100
           example: Doe
+        phoneNumber:
+          type: string
+          pattern: '^\+\d{1,20}$'
+          maxLength: 20
+          description: E.164 phone number for the user (e.g. +15551234567)
+          example: +15551234567
         email:
           type: string
           format: email
           maxLength: 254
           description: The user's email address
           example: user@example.com
+        roles:
+          type: array
+          description: List of roles assigned to the user
+          items:
+            type: string
+          example: [ "USER", "ADMIN" ]
 
     SignUpRequest:
       type: object
@@ -491,6 +503,11 @@ components:
           description: Optional URL to the user's profile image
           maxLength: 2048
           example: https://example.com/images/johndoe.jpg
+        phoneNumber:
+          type: string
+          pattern: '^\+\d{1,20}$'
+          maxLength: 20
+          description: E.164 phone number for the user (e.g. +15551234567). May be null if not provided.
         roles:
           type: array
           description: List of roles assigned to the user
@@ -542,6 +559,11 @@ components:
         lastName:
           type: string
           example: Doe
+        phoneNumber:
+          type: string
+          pattern: '^\+\d{1,20}$'
+          maxLength: 20
+
         imageUrl:
           type: string
           example: https://example.com/images/johndoe.jpg

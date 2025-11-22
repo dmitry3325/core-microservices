@@ -74,11 +74,16 @@ public class User {
     @Column(unique = true)
     private String email;
 
+    @Column(length = 50)
     private String firstName;
 
+    @Column(length = 50)
     private String lastName;
 
     private String imageUrl;
+
+    @Column(length = 50)
+    private String phoneNumber;
 
     @JsonIgnore
     private String password;
