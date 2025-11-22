@@ -19,6 +19,7 @@ import com.corems.common.utils.db.utils.QueryParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserInfo getUserById(UUID userId) {
         User user = userRepository.findByUuid(userId)
@@ -111,7 +113,7 @@ public class UserService {
             !adminSetPasswordRequest.getNewPassword().equals(adminSetPasswordRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "New password and confirm password do not match");
         }
-        user.setPassword("{noop}" + adminSetPasswordRequest.getNewPassword());
+        user.setPassword(passwordEncoder.encode(adminSetPasswordRequest.getNewPassword()));
         userRepository.save(user);
 
         return new SuccessfulResponse().result(true);
