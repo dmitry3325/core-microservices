@@ -10,7 +10,8 @@ info:
 
 
 servers:
-  - url: http://localhost
+  - url: /
+    description: Default server
 
 tags:
   - name: Authentication
@@ -630,3 +631,7 @@ components:
 
     SuccessfulResponse:
       $ref: '.gen/common-api.yaml#/components/schemas/SuccessfulResponse'
+
+  securitySchemes:
+    bearerAuth:
+      $ref: '.gen/common-api.yaml#/components/securitySchemes/bearerAuth'

@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: Translation API
+  version: 1.0.0
+  description: API for retrieving and updating translations per realm and language
+
+servers:
+  - url: /
+    description: Default server
+
+security:
+  - bearerAuth: []
+
+# Common error responses are provided by the shared common API (unpacked into .gen)
+x-common-error-responses: &common-error-responses
+  '400':
+    $ref: '.gen/common-api.yaml#/components/responses/ValidationError'
+  '401':
+    $ref: '.gen/common-api.yaml#/components/responses/UnauthorizedError'
+  '403':
+    $ref: '.gen/common-api.yaml#/components/responses/ForbiddenError'
+  '404':
+    $ref: '.gen/common-api.yaml#/components/responses/NotFoundError'
+  '500':
+    $ref: '.gen/common-api.yaml#/components/responses/InternalServerError'
+
+tags:
+  - name: translation
+    description: Operations to read and update translations
+  - name: translation-admin
+    description: Administrative operations for translations (requires TRANSLATION_MS_ADMIN)
+
+paths:
+  /api/translation/{realm}/{lang}:
+    get:
+      tags:
+        - translation
+      summary: Get translations for a realm and language (public/user)
+      operationId: getTranslationByRealmAndLang
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+      security: []
+      responses:
+        '200':
+          description: A map of translation keys to values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationMap'
+        <<: *common-error-responses
+
+  /api/admin/translation:
+    get:
+      tags:
+        - translation-admin
+      summary: List realms with languages and metadata (admin)
+      operationId: realmsList
+      description: >-
+        Administrative endpoint that returns a list of realms. For each realm it returns
+        the available languages and for each language the last update timestamp and the
+        identifier of the principal who performed the update.
+      parameters:
+        - $ref: '.gen/common-api.yaml#/components/parameters/page'
+        - $ref: '.gen/common-api.yaml#/components/parameters/pageSize'
+        - $ref: '.gen/common-api.yaml#/components/parameters/sort'
+        - $ref: '.gen/common-api.yaml#/components/parameters/search'
+      responses:
+        '200':
+          description: Paged response of realms with language metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmsPagedResponse'
+        <<: *common-error-responses
+
+  /api/admin/translation/{realm}/{lang}:
+    get:
+      tags:
+        - translation-admin
+      summary: Get translations with metadata for a realm and language (admin)
+      operationId: getTranslationAdminByRealmAndLang
+      description: >-
+        Returns translations together with administrative metadata (last updated timestamp
+        and principal) for the specified realm+lang. Requires TRANSLATION_MS_ADMIN.
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Translations with admin metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationAdminView'
+        <<: *common-error-responses
+
+    put:
+      tags:
+        - translation-admin
+      summary: Update translations for a realm and language (admin only)
+      operationId: updateTranslationAdminByRealmAndLang
+      description: >-
+        Update translations for the specified realm+lang. Requires authentication and
+        the TRANSLATION_MS_ADMIN role.
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Translation update payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationUpdateRequest'
+            example:
+              translations:
+                hello: "Hello"
+                goodbye: "Goodbye"
+      responses:
+        '204':
+          description: Translations updated
+        <<: *common-error-responses
+
+components:
+  schemas:
+    TranslationMap:
+      type: object
+      additionalProperties:
+        type: string
+
+    TranslationUpdateRequest:
+      type: object
+      description: Request to update translations for a realm+lang
+      properties:
+        translations:
+          type: object
+          description: Map of translation key -> translated value
+          additionalProperties:
+            type: string
+      required:
+        - translations
+
+    LanguageInfo:
+      type: object
+      properties:
+        lang:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+          format: uuid
+      required:
+        - lang
+        - updatedAt
+        - updatedBy
+
+    RealmLanguages:
+      type: object
+      properties:
+        realm:
+          type: string
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/LanguageInfo'
+      required:
+        - realm
+        - languages
+
+    RealmsPagedResponse:
+      type: object
+      allOf:
+        - $ref: '.gen/common-api.yaml#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/RealmLanguages'
+
+    TranslationAdminView:
+      type: object
+      properties:
+        translations:
+          type: object
+          additionalProperties:
+            type: string
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+          format: uuid
+      required:
+        - translations
+        - updatedAt
+        - updatedBy
+
+  securitySchemes:
+    bearerAuth:
+      $ref: '.gen/common-api.yaml#/components/securitySchemes/bearerAuth'

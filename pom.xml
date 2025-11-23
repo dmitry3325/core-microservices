@@ -55,6 +55,7 @@
         <module>common</module>
         <module>user-ms</module>
         <module>communication-ms</module>
+        <module>translation-ms</module>
     </modules>
 
     <build>

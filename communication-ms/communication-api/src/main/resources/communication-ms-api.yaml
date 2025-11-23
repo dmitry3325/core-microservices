@@ -10,7 +10,9 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost
+  - url: /
+    description: Default server
+
 
 tags:
   - name: Messages
@@ -391,6 +393,4 @@ components:
 
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+      $ref: '.gen/common-api.yaml#/components/securitySchemes/bearerAuth'
