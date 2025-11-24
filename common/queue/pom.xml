@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>service-exception</artifactId>
+            <artifactId>exception</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -61,11 +61,6 @@
         </dependency>
         <dependency>
             <groupId>com.corems.common</groupId>
-            <artifactId>utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.corems.common</groupId>
             <artifactId>db-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
