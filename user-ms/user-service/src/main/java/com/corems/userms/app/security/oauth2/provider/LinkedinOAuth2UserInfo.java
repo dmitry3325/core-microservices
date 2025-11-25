@@ -13,7 +13,6 @@ public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
         return (String) attributes.get("sub");
     }
 
-    //TODO fix attributes.get
     @Override
     public String getFullName() {
         return (String) attributes.get("name");
@@ -21,12 +20,29 @@ public class LinkedinOAuth2UserInfo extends OAuth2UserInfo {
 
     @Override
     public String getFirstName() {
-        return (String) attributes.get("name");
+        String givenName = (String) attributes.get("given_name");
+        if (givenName != null) {
+            return givenName;
+        }
+        String fullName = getFullName();
+        if (fullName != null && fullName.contains(" ")) {
+            return fullName.split(" ")[0];
+        }
+        return fullName;
     }
 
     @Override
     public String getLastName() {
-        return (String) attributes.get("name");
+        String familyName = (String) attributes.get("family_name");
+        if (familyName != null) {
+            return familyName;
+        }
+        String fullName = getFullName();
+        if (fullName != null && fullName.contains(" ")) {
+            String[] parts = fullName.split(" ");
+            return parts[parts.length - 1];
+        }
+        return null;
     }
 
     @Override

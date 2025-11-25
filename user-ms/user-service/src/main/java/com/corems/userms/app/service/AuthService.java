@@ -71,7 +71,7 @@ public class AuthService {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         validateRefreshToken(userPrincipal);
-        System.out.println("Deleting token with ID: " + userPrincipal.getTokenId());
+        log.info("Deleting token with ID: {}", userPrincipal.getTokenId());
         loginTokenRepository.deleteByUuid(userPrincipal.getTokenId());
 
         return new SuccessfulResponse().result(true);
@@ -127,7 +127,7 @@ public class AuthService {
     }
 
     public SuccessfulResponse signUp(SignUpRequest signUpRequest) {
-        log.error("Sign up request: {}", signUpRequest);
+        log.info("Sign up request for email: {}", signUpRequest.getEmail());
         if (!Objects.equals(signUpRequest.getPassword(), signUpRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Sorry, confirm password value is not valid.");
         }
