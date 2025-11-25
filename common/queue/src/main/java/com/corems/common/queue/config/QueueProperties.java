@@ -1,6 +1,5 @@
 package com.corems.common.queue.config;
 
-import com.corems.common.queue.QueueClient;
 import com.corems.common.queue.SupportedQueueProvider;
 import lombok.Getter;
 import lombok.Setter;

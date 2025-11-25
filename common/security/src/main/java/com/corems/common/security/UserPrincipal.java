@@ -10,15 +10,14 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-public class UserPrincipal implements UserDetails, OAuth2User {
+public final class UserPrincipal implements UserDetails, OAuth2User {
     private UUID userId;
-    private String email;
-    private String firstName;
-    private String lastName;
+    private final String email;
+    private final String firstName;
+    private final String lastName;
     private String password;
     private UUID tokenId;
-    private Collection<? extends GrantedAuthority> authorities;
-    private Map<String, Object> attributes;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     public UserPrincipal(String userId,
                          String email,
@@ -86,6 +85,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
         return true;
     }
 
+    @Override
     public Map<String, Object> getAttributes() {
         return null;
     }
@@ -95,6 +95,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
         return authorities;
     }
 
+    @Override
     public String getName() {
         return String.valueOf(userId);
     }

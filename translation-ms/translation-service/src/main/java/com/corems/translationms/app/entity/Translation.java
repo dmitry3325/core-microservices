@@ -1,7 +1,7 @@
 package com.corems.translationms.app.entity;
 
 import com.corems.translationms.app.config.JsonMapConverter;
-import jakarta.persistence.Column;;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

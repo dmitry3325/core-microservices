@@ -2,7 +2,6 @@ package com.corems.common.exception.handler;
 
 import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.model.Error;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,8 @@ import java.util.stream.Collectors;
 public class DefaultErrorConverter implements ErrorConverter {
 
     protected final Comparator<Error> errorComparator;
-
+    
+    @Override
     public HttpHeaders buildHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

@@ -1,12 +1,7 @@
 package com.corems.common.exception.filter;
 
-import com.corems.common.exception.handler.RestServiceExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import java.io.IOException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -15,14 +10,20 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.corems.common.exception.handler.RestServiceExceptionHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 @Component
 public class ExceptionHandlingFilter extends OncePerRequestFilter {
 
-    private RestServiceExceptionHandler exceptionHandler;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final RestServiceExceptionHandler exceptionHandler;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public ExceptionHandlingFilter(RestServiceExceptionHandler exceptionHandler) {
@@ -34,7 +35,7 @@ public class ExceptionHandlingFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             filterChain.doFilter(request, response);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request, response);
             RequestContextHolder.setRequestAttributes(requestAttributes);
 

@@ -12,7 +12,6 @@ public class GithubOAuth2UserInfo extends OAuth2UserInfo {
         return ((Integer) attributes.get("id")).toString();
     }
 
-    //TODO fix attributes.get
     @Override
     public String getFullName() {
         return (String) attributes.get("name");

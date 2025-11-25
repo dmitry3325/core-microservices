@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -92,10 +91,6 @@ public class InboundClientAutoConfiguration {
                 .responseTimeout(Duration.ofSeconds(props.getDefaultTimeoutSeconds()));
 
         ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
-
-        ExchangeFilterFunction requestTimeoutFilter = (ClientRequest request, ExchangeFunction next) ->
-                next.exchange(request)
-                        .timeout(Duration.ofSeconds(props.getDefaultTimeoutSeconds()));
 
         return WebClient.builder()
                 .clientConnector(connector)

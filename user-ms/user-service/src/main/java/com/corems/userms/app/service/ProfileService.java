@@ -14,8 +14,6 @@ import com.corems.userms.app.model.exception.AuthServiceException;
 import com.corems.userms.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,10 +32,6 @@ public class ProfileService {
         User user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
 
-        log.info(String.valueOf(user.getId()));
-        log.info(String.valueOf(user.getLastLogin()));
-        log.info(String.valueOf(user.getCreatedAt()));
-        log.info(String.valueOf(user.getUpdatedAt()));
         return new UserInfo()
                 .userId(user.getUuid())
                 .provider(user.getProvider())

@@ -12,6 +12,7 @@ public class CommunicationMsClientConfig {
 
     @Value("${communication.notifications.base-url:http://localhost:3001}")
     private String communicationBaseUrl;
+    
 
     @Bean(name = "communicationWebClient")
     @ConditionalOnMissingBean(name = "communicationWebClient")

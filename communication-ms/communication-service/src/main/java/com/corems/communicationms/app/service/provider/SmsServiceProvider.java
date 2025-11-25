@@ -2,7 +2,6 @@ package com.corems.communicationms.app.service.provider;
 
 import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
-import com.corems.communicationms.api.model.SlackPayload;
 import com.corems.communicationms.api.model.SmsPayload;
 import com.corems.communicationms.app.config.SmsConfig;
 import com.corems.communicationms.app.model.MessageType;

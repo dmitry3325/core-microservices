@@ -1,7 +1,6 @@
 package com.corems.common.security;
 
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Centralized roles enum for Core Microservices.

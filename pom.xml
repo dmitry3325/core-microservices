@@ -22,6 +22,7 @@
 
         <spring-boot.version>3.3.2</spring-boot.version>
         <spring-cloud.version>2022.0.3</spring-cloud.version>
+        <lombok.version>1.18.38</lombok.version>
 
         <openapi-generator-plugin.version>6.6.0</openapi-generator-plugin.version>
     </properties>
@@ -36,7 +37,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <optional>true</optional>
+            </dependency>
+          
             <!-- OpenAPI/Swagger related libs used by *-api modules -->
             <dependency>
                 <groupId>org.openapitools</groupId>
