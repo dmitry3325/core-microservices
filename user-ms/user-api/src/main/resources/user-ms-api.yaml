@@ -101,7 +101,7 @@ paths:
               $ref: '#/components/schemas/SignUpRequest'
 
       responses:
-        '200':
+        '201':
           description: Sign Up successfully
           content:
             application/json:
@@ -203,7 +203,7 @@ paths:
               $ref: '#/components/schemas/CreateUserRequest'
 
       responses:
-        '200':
+        '201':
           description: User created successfully
           content:
             application/json:

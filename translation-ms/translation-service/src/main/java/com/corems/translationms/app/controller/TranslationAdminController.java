@@ -4,6 +4,7 @@ import com.corems.common.security.CoreMsRoles;
 import com.corems.common.security.RequireRoles;
 import com.corems.translationms.api.TranslationAdminApi;
 import com.corems.translationms.api.model.RealmsPagedResponse;
+import com.corems.translationms.api.model.SuccessfulResponse;
 import com.corems.translationms.api.model.TranslationAdminView;
 import com.corems.translationms.api.model.TranslationUpdateRequest;
 import com.corems.translationms.app.service.TranslationService;
@@ -31,19 +32,19 @@ public class TranslationAdminController implements TranslationAdminApi {
     @Override
     @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<RealmsPagedResponse> realmsList(
-            @RequestParam Optional<Integer> page,
-            @RequestParam Optional<Integer> pageSize,
-            @RequestParam Optional<String> sort,
-            @RequestParam Optional<String> search) {
+            Optional<Integer> page,
+            Optional<Integer> pageSize,
+            Optional<String> sort,
+            Optional<String> search) {
         var resp = service.listRealmsWithLanguages(page, pageSize, search, sort);
         return ResponseEntity.ok(resp);
     }
 
     @Override
     @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
-    public ResponseEntity<Void> updateTranslationAdminByRealmAndLang(String realm, String lang, TranslationUpdateRequest translationUpdateRequest) {
+    public ResponseEntity<SuccessfulResponse> updateTranslationAdminByRealmAndLang(String realm, String lang, TranslationUpdateRequest translationUpdateRequest) {
         Map<String, String> translations = translationUpdateRequest.getTranslations();
-        service.updateTranslations(realm, lang, translations);
-        return ResponseEntity.noContent().build();
+        SuccessfulResponse response = service.updateTranslations(realm, lang, translations);
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,8 +1,8 @@
 package com.corems.translationms.app.service;
 
 import com.corems.common.security.SecurityUtils;
-import com.corems.common.security.UserPrincipal;
 import com.corems.translationms.api.model.RealmsPagedResponse;
+import com.corems.translationms.api.model.SuccessfulResponse;
 import com.corems.translationms.api.model.TranslationAdminView;
 import com.corems.translationms.app.entity.Translation;
 import com.corems.translationms.app.repository.TranslationRepository;
@@ -68,7 +68,7 @@ public class TranslationService {
     }
 
     @Transactional
-    public void updateTranslations(String realm, String lang, Map<String, String> translations) {
+    public SuccessfulResponse updateTranslations(String realm, String lang, Map<String, String> translations) {
         Optional<Translation> existing = repository.findByRealmAndLang(realm, lang);
         Translation t = existing.orElseGet(() -> {
             Translation n = new Translation();
@@ -82,6 +82,8 @@ public class TranslationService {
         t.setUpdatedBy(SecurityUtils.getUserPrincipal().getUserId());
 
         repository.save(t);
+
+        return new SuccessfulResponse().result(true);
     }
 
     @Transactional(readOnly = true)

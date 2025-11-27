@@ -81,6 +81,8 @@ OpenAPI checklist (must follow)
 - Include `servers:` section to silence generator warnings.
 - Every operation MUST have an explicit `operationId` (stable, camelCase).
 - Reuse `.gen/common-api.yaml` components for shared responses/parameters (errors, pagination).
+  - For create/update operations or operations that do not require a response body, return the shared `SuccessfulResponse` schema from `.gen/common-api.yaml` as the operation response (use HTTP 200 or 201 where appropriate). This keeps client code consistent when an operation only needs to indicate success.
+  - Use accurate HTTP status codes following common semantics: prefer `201 Created` for resource creation, `200 OK` when returning a response body, and `204 No Content` for successful operations with no body. Use appropriate 4xx codes for client errors (e.g., `400` validation/bad request, `401` unauthorized, `403` forbidden, `404` not found, `409` conflict) and 5xx for server errors. Do not overload `200` for failure cases — model errors with shared error components in `.gen/common-api.yaml`.
 - Add validation constraints in the schema (pattern, minLength/maxLength) for fields that require them.
 - After creating/updating the API spec run codegen + compile before implementing service logic.
 

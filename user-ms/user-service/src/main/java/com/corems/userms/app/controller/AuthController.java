@@ -9,6 +9,7 @@ import com.corems.userms.api.model.TokenResponse;
 import com.corems.userms.app.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class AuthController implements AuthenticationApi {
 
     @Override
     public ResponseEntity<SuccessfulResponse> signUp(SignUpRequest signUpRequest) {
-        return ResponseEntity.ok(authService.signUp(signUpRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signUp(signUpRequest));
     }
 
     @Override

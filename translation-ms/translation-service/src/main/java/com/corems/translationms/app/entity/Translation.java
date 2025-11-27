@@ -1,8 +1,6 @@
 package com.corems.translationms.app.entity;
 
-import com.corems.translationms.app.config.JsonMapConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +12,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.Map;
@@ -41,9 +41,9 @@ public class Translation {
     @Column(name = "lang", nullable = false)
     private String lang;
 
-    @Convert(converter = JsonMapConverter.class)
-    @Column(name = "data", nullable = false, columnDefinition = "jsonb")
-    private Map<String,String> data;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "data", columnDefinition = "jsonb", nullable = false)
+    private Map<String, String> data;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;

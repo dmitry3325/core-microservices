@@ -10,6 +10,7 @@ import com.corems.userms.api.model.UsersPagedResponse;
 import com.corems.userms.app.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,7 +51,7 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<SuccessfulResponse> createUser(CreateUserRequest createUserRequest) {
-        return ResponseEntity.ok(userService.createUser(createUserRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(createUserRequest));
     }
 
     @Override

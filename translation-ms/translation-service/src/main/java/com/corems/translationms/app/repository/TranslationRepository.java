@@ -28,8 +28,4 @@ public interface TranslationRepository extends SearchableRepository<Translation,
         return List.of("updatedAt", "realm", "lang");
     }
 
-    @Override
-    default Map<String, String> getFieldAliases() {
-        return Map.of();
-    }
 }

@@ -142,8 +142,12 @@ paths:
                 hello: "Hello"
                 goodbye: "Goodbye"
       responses:
-        '204':
-          description: Translations updated
+        '200':
+          description: Translations updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulResponse'
         <<: *common-error-responses
 
 components:
@@ -222,6 +226,8 @@ components:
         - translations
         - updatedAt
         - updatedBy
+    SuccessfulResponse:
+      $ref: '.gen/common-api.yaml#/components/schemas/SuccessfulResponse'
 
   securitySchemes:
     bearerAuth:
