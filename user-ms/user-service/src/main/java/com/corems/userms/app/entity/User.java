@@ -36,7 +36,6 @@ public class User {
         this.uuid = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        this.lastLogin = Instant.now();
     }
 
     public static UserBuilder builder() {
@@ -49,7 +48,7 @@ public class User {
             this.uuid(UUID.randomUUID());
             this.createdAt(Instant.now());
             this.updatedAt(Instant.now());
-            this.lastLogin(Instant.now());
+            this.lastLoginAt(Instant.now());
             return super.build();
         }
     }
@@ -97,7 +96,6 @@ public class User {
     @CreationTimestamp
     private Instant updatedAt;
 
-    @NotNull
     @CreationTimestamp
-    private Instant lastLogin;
+    private Instant lastLoginAt;
 }

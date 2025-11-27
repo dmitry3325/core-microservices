@@ -41,7 +41,7 @@ public class ProfileService {
                 .imageUrl(user.getImageUrl())
                 .phoneNumber(user.getPhoneNumber())
                 .roles(user.getRoles().stream().map(Role::getName).toList())
-                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                .lastLoginAt(user.getLastLoginAt().atOffset(ZoneOffset.UTC))
                 .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
@@ -52,7 +52,7 @@ public class ProfileService {
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
         if (userProfileUpdateRequest.getFirstName() != null) user.setFirstName(userProfileUpdateRequest.getFirstName());
         if (userProfileUpdateRequest.getLastName() != null) user.setLastName(userProfileUpdateRequest.getLastName());
-        if (userProfileUpdateRequest.getImageUrl() != null) user.setImageUrl(userProfileUpdateRequest.getImageUrl().toString());
+        if (userProfileUpdateRequest.getImageUrl() != null) user.setImageUrl(userProfileUpdateRequest.getImageUrl());
         if (userProfileUpdateRequest.getPhoneNumber() != null) user.setPhoneNumber(userProfileUpdateRequest.getPhoneNumber());
         userRepository.save(user);
         return new UserInfo()

@@ -69,7 +69,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             if(!user.getProvider().contains(authProvider.name())) {
                 user.setProvider(user.getProvider() + "," + authProvider.name());
             }
-            user.setLastLogin(Instant.now());
+            user.setLastLoginAt(Instant.now());
             userRepository.save(user);
 
             log.info("User found id: {}", user.getId());

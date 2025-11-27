@@ -160,7 +160,7 @@ public class UserService {
                 .imageUrl(user.getImageUrl())
                 .phoneNumber(user.getPhoneNumber())
                 .roles(user.getRoles().stream().map(Role::getName).toList())
-                .lastLoginAt(user.getLastLogin().atOffset(ZoneOffset.UTC))
+                .lastLoginAt((user.getLastLoginAt() != null) ? user.getLastLoginAt().atOffset(ZoneOffset.UTC) : null)
                 .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
