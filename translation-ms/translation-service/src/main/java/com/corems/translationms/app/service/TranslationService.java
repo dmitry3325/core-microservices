@@ -37,6 +37,15 @@ public class TranslationService {
     }
 
     @Transactional(readOnly = true)
+    public List<String> getAvailableLanguagesByRealm(String realm) {
+        return repository.findDistinctLanguagesByRealm(realm).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public RealmsPagedResponse listRealmsWithLanguages(Optional<Integer> page,
                                                        Optional<Integer> pageSize,
                                                        Optional<String> search,
@@ -93,5 +102,12 @@ public class TranslationService {
                         t.getData(),
                         OffsetDateTime.ofInstant(t.getUpdatedAt(), ZoneOffset.UTC),
                         t.getUpdatedBy()));
+    }
+
+    @Transactional
+    public SuccessfulResponse deleteTranslation(String realm, String lang) {
+        Optional<Translation> existing = repository.findByRealmAndLang(realm, lang);
+        existing.ifPresent(repository::delete);
+        return new SuccessfulResponse().result(true);
     }
 }

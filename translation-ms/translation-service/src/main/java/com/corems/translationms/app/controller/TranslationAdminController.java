@@ -24,8 +24,7 @@ public class TranslationAdminController implements TranslationAdminApi {
     @Override
     @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<TranslationAdminView> getTranslationAdminByRealmAndLang(String realm, String lang) {
-        var optView = service.getTranslationAdminView(realm, lang);
-        return ResponseEntity.of(optView);
+        return ResponseEntity.of(service.getTranslationAdminView(realm, lang));
     }
 
     @Override
@@ -35,15 +34,20 @@ public class TranslationAdminController implements TranslationAdminApi {
             Optional<Integer> pageSize,
             Optional<String> sort,
             Optional<String> search) {
-        var resp = service.listRealmsWithLanguages(page, pageSize, search, sort);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(service.listRealmsWithLanguages(page, pageSize, search, sort));
     }
 
     @Override
     @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
-    public ResponseEntity<SuccessfulResponse> updateTranslationAdminByRealmAndLang(String realm, String lang, TranslationUpdateRequest translationUpdateRequest) {
-        Map<String, String> translations = translationUpdateRequest.getTranslations();
-        SuccessfulResponse response = service.updateTranslations(realm, lang, translations);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<SuccessfulResponse> updateTranslationAdminByRealmAndLang(String realm,
+                                                                                   String lang,
+                                                                                   TranslationUpdateRequest translationUpdateRequest) {
+        return ResponseEntity.ok(service.updateTranslations(realm, lang, translationUpdateRequest.getTranslations()));
+    }
+
+    @Override
+    @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
+    public ResponseEntity<SuccessfulResponse> deleteTranslationAdminByRealmAndLang(String realm, String lang) {
+        return ResponseEntity.ok(service.deleteTranslation(realm, lang));
     }
 }

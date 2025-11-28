@@ -58,6 +58,30 @@ paths:
                 $ref: '#/components/schemas/TranslationMap'
         <<: *common-error-responses
 
+  /api/languages/{realm}:
+    get:
+      tags:
+        - translation
+      summary: List available language codes for a realm (public)
+      operationId: getAvailableLanguagesByRealm
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema:
+            type: string
+      security: []
+      responses:
+        '200':
+          description: A list of available language codes for the specified realm
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        <<: *common-error-responses
+
   /api/admin/translation:
     get:
       tags:
@@ -144,6 +168,34 @@ paths:
       responses:
         '200':
           description: Translations updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulResponse'
+        <<: *common-error-responses
+
+    delete:
+      tags:
+        - translation-admin
+      summary: Delete translations for a realm and language (admin only)
+      operationId: deleteTranslationAdminByRealmAndLang
+      description: >-
+        Deletes translations for the specified realm+lang. Requires authentication and
+        the TRANSLATION_MS_ADMIN role.
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Translations deleted successfully
           content:
             application/json:
               schema:

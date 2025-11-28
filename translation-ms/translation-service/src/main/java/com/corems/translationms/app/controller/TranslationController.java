@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -16,8 +17,11 @@ public class TranslationController implements TranslationApi {
 
     @Override
     public ResponseEntity<Map<String, String>> getTranslationByRealmAndLang(String realm, String lang) {
-        Map<String, String> translations = service.getTranslations(realm, lang);
-        return ResponseEntity.ok(translations);
+        return ResponseEntity.ok(service.getTranslations(realm, lang));
+    }
+
+    @Override
+    public ResponseEntity<List<String>> getAvailableLanguagesByRealm(String realm) {
+        return ResponseEntity.ok(service.getAvailableLanguagesByRealm(realm));
     }
 }
-
