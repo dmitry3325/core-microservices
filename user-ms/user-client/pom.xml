@@ -8,33 +8,42 @@
         <artifactId>user-ms</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
     <artifactId>user-client</artifactId>
     <dependencies>
-        <!-- Generated API interfaces for communication service -->
         <dependency>
             <groupId>com.corems.userms</groupId>
             <artifactId>user-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>inbound-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -50,6 +59,7 @@
                             <generateApis>true</generateApis>
                             <generateModels>false</generateModels>
                             <generatorName>java</generatorName>
+                            <generateApiTests>false</generateApiTests>
                             <configOptions>
                                 <library>webclient</library>
                                 <useJakartaEe>true</useJakartaEe>

@@ -13,6 +13,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.corems.userms</groupId>
+            <artifactId>user-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.corems.translationms</groupId>
             <artifactId>translation-api</artifactId>
             <version>${project.version}</version>

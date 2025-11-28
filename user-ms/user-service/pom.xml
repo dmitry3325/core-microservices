@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>user-api</artifactId>
+            <artifactId>user-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -26,24 +26,6 @@
             <artifactId>communication-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- TODO move out  to dependency manager -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.12.6</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.12.6</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.6</version>
-        </dependency>
-
         <dependency>
             <groupId>com.corems.common</groupId>
             <artifactId>exception</artifactId>

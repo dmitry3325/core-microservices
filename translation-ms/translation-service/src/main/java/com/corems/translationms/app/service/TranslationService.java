@@ -9,6 +9,7 @@ import com.corems.translationms.app.repository.TranslationRepository;
 import com.corems.translationms.api.model.LanguageInfo;
 import com.corems.translationms.api.model.RealmLanguages;
 import com.corems.common.utils.db.utils.QueryParams;
+import com.corems.userms.client.UserApi;
 import org.springframework.data.domain.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ import java.util.stream.Collectors;
 public class TranslationService {
 
     private final TranslationRepository repository;
+
+    private final UserApi userApi;
 
     @Transactional(readOnly = true)
     public Map<String, String> getTranslations(String realm, String lang) {
