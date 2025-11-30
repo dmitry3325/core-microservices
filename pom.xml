@@ -43,7 +43,6 @@
                 <version>${lombok.version}</version>
                 <optional>true</optional>
             </dependency>
-          
             <!-- OpenAPI/Swagger related libs used by *-api modules -->
             <dependency>
                 <groupId>org.openapitools</groupId>
@@ -55,6 +54,12 @@
                 <artifactId>swagger-core-jakarta</artifactId>
                 <version>2.2.7</version>
             </dependency>
+            <!-- Force a single checker-qual version to satisfy enforcer dependency convergence -->
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>3.42.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -63,6 +68,7 @@
         <module>user-ms</module>
         <module>communication-ms</module>
         <module>translation-ms</module>
+        <module>document-ms</module>
     </modules>
 
     <build>

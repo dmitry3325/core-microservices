@@ -1,8 +1,6 @@
 package com.corems.translationms.client;
 
 import com.corems.translationms.ApiClient;
-import com.corems.translationms.client.TranslationAdminApi;
-import com.corems.translationms.client.TranslationApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -43,11 +41,4 @@ public class TranslationMsClientConfig {
     public TranslationAdminApi translationAdminApi(ApiClient translationMsApiClient) {
         return new TranslationAdminApi(translationMsApiClient);
     }
-
-    // Add beans for generated API interfaces as needed, e.g.:
-    // @Bean
-    // @ConditionalOnMissingBean(TranslationsApi.class)
-    // public TranslationsApi translationsApi(ApiClient translationMsApiClient) {
-    //     return new TranslationsApi(translationMsApiClient);
-    // }
 }

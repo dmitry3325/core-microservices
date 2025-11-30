@@ -107,6 +107,13 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorWrapper'
 
+    ConflictError:
+      description: Conflict - resource already exists or replace not confirmed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorWrapper'
+
   schemas:
     PaginationMeta:
       type: object

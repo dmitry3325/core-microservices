@@ -1,0 +1,372 @@
+openapi: 3.0.3
+info:
+  title: Document Service API
+  version: 1.0.0
+servers:
+  - url: /
+
+tags:
+  - name: DocumentsList
+    description: Operations that create or list documents
+  - name: Document
+    description: Operations that operate on a single existing document
+
+x-common-error-responses: &common-error-responses
+  '400':
+    $ref: './.gen/common-api.yaml#/components/responses/ValidationError'
+  '401':
+    $ref: './.gen/common-api.yaml#/components/responses/UnauthorizedError'
+  '403':
+    $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+  '404':
+    $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+  '500':
+    $ref: './.gen/common-api.yaml#/components/responses/InternalServerError'
+
+# Require bearer auth for all operations by default (consistent with other APIs)
+security:
+  - bearerAuth: []
+
+paths:
+  /api/documents:
+    post:
+      tags: [DocumentsList]
+      summary: Upload document (multipart)
+      operationId: uploadDocumentMultipart
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                visibility:
+                  $ref: '#/components/schemas/Visibility'
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                confirmReplace:
+                  type: boolean
+              required: [file]
+      responses:
+        '201':
+          description: Document created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '409':
+          $ref: './.gen/common-api.yaml#/components/responses/ConflictError'
+        <<: *common-error-responses
+    get:
+      tags: [DocumentsList]
+      summary: List documents
+      operationId: listDocuments
+      parameters:
+        - $ref: './.gen/common-api.yaml#/components/parameters/page'
+        - $ref: './.gen/common-api.yaml#/components/parameters/pageSize'
+        - $ref: './.gen/common-api.yaml#/components/parameters/sort'
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: extension
+          in: query
+          schema:
+            type: string
+        - name: visibility
+          in: query
+          schema:
+            $ref: '#/components/schemas/Visibility'
+        - name: uploadedById
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentList'
+        <<: *common-error-responses
+
+  /api/documents/base64:
+    post:
+      tags: [DocumentsList]
+      summary: Upload document (base64 JSON)
+      operationId: uploadDocumentBase64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadBase64Request'
+      responses:
+        '201':
+          description: Document created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '413':
+          description: Payload too large
+        <<: *common-error-responses
+
+  /api/documents/{uuid}/download:
+    get:
+      tags: [Document]
+      summary: Stream/download document content
+      operationId: streamDocumentByUuid
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Binary stream
+          content:
+            application/octet-stream: {}
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        '403':
+          $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+        <<: *common-error-responses
+
+  /api/documents/{uuid}:
+    get:
+      tags: [Document]
+      summary: Get document metadata
+      operationId: getDocumentMetadata
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        <<: *common-error-responses
+    delete:
+      tags: [Document]
+      summary: Delete document
+      operationId: deleteDocument
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: permanent
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: './.gen/common-api.yaml#/components/schemas/SuccessfulResponse'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        <<: *common-error-responses
+
+  /api/documents/{uuid}/replace:
+    put:
+      tags: [Document]
+      summary: Replace document content
+      operationId: replaceDocument
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: confirmReplace
+          in: query
+          required: true
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+              required: [file]
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          $ref: './.gen/common-api.yaml#/components/responses/ValidationError'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        <<: *common-error-responses
+
+  /api/documents/{uuid}/generate-link:
+    post:
+      tags: [Document]
+      summary: Generate access link/token for BY_LINK documents
+      operationId: generateDocumentAccessLink
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateLinkRequest'
+      responses:
+        '200':
+          description: Link generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkResponse'
+        '403':
+          $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        <<: *common-error-responses
+
+components:
+  # Reuse shared parameters/responses/schemas from .gen/common-api.yaml where possible
+  responses: {}
+  schemas:
+    Visibility:
+      type: string
+      enum: [PUBLIC, PRIVATE, BY_LINK]
+    UploadedByType:
+      type: string
+      enum: [USER, SYSTEM]
+    DocumentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        originalFilename:
+          type: string
+        size:
+          type: integer
+        extension:
+          type: string
+        contentType:
+          type: string
+        bucket:
+          type: string
+        objectKey:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        uploadedById:
+          type: string
+          format: uuid
+        uploadedByType:
+          $ref: '#/components/schemas/UploadedByType'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        checksum:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    UploadBase64Request:
+      type: object
+      properties:
+        name:
+          type: string
+        base64Data:
+          type: string
+        contentType:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        confirmReplace:
+          type: boolean
+      required: [name, base64Data]
+    GenerateLinkRequest:
+      type: object
+      properties:
+        expiresInSeconds:
+          type: integer
+    LinkResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        url:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    PaginatedDocumentList:
+      allOf:
+        - $ref: './.gen/common-api.yaml#/components/schemas/PagedResponse'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentResponse'

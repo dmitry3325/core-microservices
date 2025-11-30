@@ -1,0 +1,25 @@
+server:
+  port: ${DOCUMENT-SERVICE-PORT:3001}
+
+spring:
+  application:
+    name: DOCUMENT-SERVICE
+  main:
+    banner-mode: off
+  jackson:
+    default-property-inclusion: non_null
+  config:
+    import: classpath:db-config.yaml
+
+storage:
+  provider: minio # or s3
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    accessKey: ${MINIO_ACCESS_KEY:minioadmin}
+    secretKey: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:documents}
+
+# application specific
+app:
+  maxUploadSize: ${MAX_UPLOAD_SIZE:10485760} # 10MB
+
