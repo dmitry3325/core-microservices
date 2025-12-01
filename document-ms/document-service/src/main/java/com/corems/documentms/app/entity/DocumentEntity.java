@@ -8,16 +8,6 @@ import java.util.UUID;
 import java.util.Set;
 import java.util.LinkedHashSet;
 
-/**
- * JPA entity that represents a stored document.
- *
- * Notes:
- * - `tags` are mapped as an ElementCollection into `document_tags` (document_id, tag).
- *   It's recommended to add a DB-level UNIQUE(document_id, tag) and an index on `tag` via Flyway
- *   migrations for deduplication and fast tag-based queries (we'll add migrations later).
- * - Tag normalization (trim/lowercase) will be performed in the service layer as you requested —
- *   the entity itself stores whatever the service persists.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -42,6 +32,9 @@ public class DocumentEntity {
 
     @Column(nullable = false, unique = true)
     private UUID uuid;
+
+    @Column(nullable = false, unique = true)
+    private UUID userId;
 
     @Column(nullable = false)
     private String name;
@@ -81,6 +74,12 @@ public class DocumentEntity {
     private Set<String> tags = new LinkedHashSet<>();
 
     private Boolean deleted = false;
+
+    @Column(name = "deleted_by")
+    private UUID deletedBy;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @Version
     private Long version;

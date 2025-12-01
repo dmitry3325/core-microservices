@@ -11,11 +11,14 @@ Step 1 is running the development database.
 From this folder:
 
 ```cmd
-# Start Postgres
+# Start Postgres DB server
 docker-compose --env-file ../.env -f postgres-compose.yaml up -d
 
-# Start RabbitMQ
+# Start RabbitMQ queue server
 docker-compose --env-file ../.env -f rabbitmq-compose.yaml up -d
+
+# Start MINIO S3 server
+docker-compose --env-file ../.env -f s3-minio-compose.yaml up -d
 ```
 
 ### Connect DATABASE

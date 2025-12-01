@@ -12,8 +12,73 @@
     <artifactId>document-client</artifactId>
 
     <dependencies>
-        <!-- Will depend on generated API models/artifacts; add after codegen if needed -->
+        <dependency>
+            <groupId>com.corems.documentms</groupId>
+            <artifactId>document-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>inbound-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corems.common</groupId>
+            <artifactId>logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../document-api/src/main/resources/document-api.yaml</inputSpec>
+                            <generateApis>true</generateApis>
+                            <generateModels>false</generateModels>
+                            <generatorName>java</generatorName>
+                            <generateApiTests>false</generateApiTests>
+                            <configOptions>
+                                <library>webclient</library>
+                                <useJakartaEe>true</useJakartaEe>
+                                <apiPackage>${project.groupId}.client</apiPackage>
+                                <clientPackage>${project.groupId}.client</clientPackage>
+                                <modelPackage>${project.groupId}.api.model</modelPackage>
+                                <useOptional>true</useOptional>
+                                <dateLibrary>java8</dateLibrary>
+                                <useBeanValidation>true</useBeanValidation>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
 

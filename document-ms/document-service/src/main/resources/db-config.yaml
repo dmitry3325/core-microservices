@@ -10,4 +10,4 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_schema: ${DATABASE_SCHEMA:communication_ms}
+        default_schema: ${DATABASE_SCHEMA:document_ms}

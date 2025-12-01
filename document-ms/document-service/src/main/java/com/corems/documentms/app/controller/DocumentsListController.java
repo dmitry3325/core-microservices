@@ -2,10 +2,12 @@ package com.corems.documentms.app.controller;
 
 import com.corems.documentms.api.DocumentsListApi;
 import com.corems.documentms.api.model.DocumentResponse;
+import com.corems.documentms.api.model.DocumentUploadMetadata;
 import com.corems.documentms.api.model.UploadBase64Request;
 import com.corems.documentms.api.model.PaginatedDocumentList;
 import com.corems.documentms.api.model.Visibility;
 import com.corems.documentms.app.service.DocumentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,41 +26,35 @@ public class DocumentsListController implements DocumentsListApi {
 
     @Override
     public ResponseEntity<DocumentResponse> uploadDocumentMultipart(MultipartFile file,
+                                                                    UUID ownerUserId,
                                                                     Visibility visibility,
                                                                     String description,
                                                                     List<String> tags,
                                                                     Boolean confirmReplace) {
-        try {
-            DocumentResponse res = service.uploadMultipart(
-                    file,
-                    Optional.ofNullable(visibility).map(Enum::name),
-                    Optional.ofNullable(description),
-                    Optional.ofNullable(tags),
-                    Optional.ofNullable(confirmReplace)
-            );
-            return ResponseEntity.status(201).body(res);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        DocumentUploadMetadata metadata = new DocumentUploadMetadata();
+        metadata.setOwnerUserId(ownerUserId);
+        metadata.setVisibility(visibility);
+        metadata.setDescription(description);
+        metadata.setTags(tags);
+        metadata.setConfirmReplace(confirmReplace);
+
+        DocumentResponse response = service.uploadMultipart(file, metadata);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
     public ResponseEntity<DocumentResponse> uploadDocumentBase64(UploadBase64Request uploadBase64Request) {
-        try {
-            var res = service.uploadBase64(uploadBase64Request);
-            return ResponseEntity.status(201).body(res);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        DocumentResponse response = service.uploadBase64(uploadBase64Request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
-    public ResponseEntity<PaginatedDocumentList> listDocuments(Optional<Integer> page, Optional<Integer> pageSize, Optional<String> sort, Optional<List<String>> tags, Optional<String> name, Optional<String> extension, Optional<com.corems.documentms.api.model.Visibility> visibility, Optional<UUID> uploadedById) {
-        var pageRes = service.list(page, pageSize, sort, name, extension, visibility, uploadedById, tags);
-        PaginatedDocumentList pl = new PaginatedDocumentList(page.orElse(1), pageSize.orElse(10));
-        pl.setItems(pageRes.getContent());
-        pl.setTotalElements(pageRes.getTotalElements());
-        pl.setTotalPages(pageRes.getTotalPages());
-        return ResponseEntity.ok(pl);
+    public ResponseEntity<PaginatedDocumentList> listDocuments(Optional<Integer> page,
+                                                                Optional<Integer> pageSize,
+                                                                Optional<String> sort,
+                                                                Optional<String> search,
+                                                                Optional<List<String>> filters,
+                                                                Optional<Boolean> includeDeleted) {
+        return ResponseEntity.ok(service.getDocumentList(page, pageSize, search, sort, filters, includeDeleted));
     }
 }

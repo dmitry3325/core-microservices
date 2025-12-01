@@ -24,8 +24,8 @@ public class CommunicationMsClientConfig {
 
     @Bean(name = "communicationApiClient")
     @ConditionalOnMissingBean(name = "communicationApiClient")
-    public ApiClient communicationApiClient(@Qualifier("communicationWebClient") WebClient communicationWebClient) {
-        ApiClient apiClient = new ApiClient(communicationWebClient);
+    public ApiClient communicationApiClient(@Qualifier("communicationWebClient") WebClient webClient) {
+        ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(communicationBaseUrl);
         return apiClient;
     }

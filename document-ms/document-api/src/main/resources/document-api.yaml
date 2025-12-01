@@ -7,9 +7,11 @@ servers:
 
 tags:
   - name: DocumentsList
-    description: Operations that create or list documents
+    description: Operations that create or list documents (user sees only their documents, admin sees all)
   - name: Document
-    description: Operations that operate on a single existing document
+    description: Operations that operate on a single existing document (with ownership checks)
+  - name: PublicDocuments
+    description: Public access to documents (no authentication required for public/by-link documents)
 
 x-common-error-responses: &common-error-responses
   '400':
@@ -23,7 +25,6 @@ x-common-error-responses: &common-error-responses
   '500':
     $ref: './.gen/common-api.yaml#/components/responses/InternalServerError'
 
-# Require bearer auth for all operations by default (consistent with other APIs)
 security:
   - bearerAuth: []
 
@@ -37,22 +38,14 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                visibility:
-                  $ref: '#/components/schemas/Visibility'
-                description:
-                  type: string
-                tags:
-                  type: array
-                  items:
-                    type: string
-                confirmReplace:
-                  type: boolean
-              required: [file]
+              allOf:
+                - $ref: '#/components/schemas/DocumentUploadMetadata'
+                - type: object
+                  properties:
+                    file:
+                      type: string
+                      format: binary
+                  required: [file]
       responses:
         '201':
           description: Document created
@@ -71,31 +64,14 @@ paths:
         - $ref: './.gen/common-api.yaml#/components/parameters/page'
         - $ref: './.gen/common-api.yaml#/components/parameters/pageSize'
         - $ref: './.gen/common-api.yaml#/components/parameters/sort'
-        - name: tags
+        - $ref: './.gen/common-api.yaml#/components/parameters/search'
+        - $ref: './.gen/common-api.yaml#/components/parameters/filter'
+        - name: includeDeleted
           in: query
+          description: Include soft-deleted documents (admin only)
           schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: true
-        - name: name
-          in: query
-          schema:
-            type: string
-        - name: extension
-          in: query
-          schema:
-            type: string
-        - name: visibility
-          in: query
-          schema:
-            $ref: '#/components/schemas/Visibility'
-        - name: uploadedById
-          in: query
-          schema:
-            type: string
-            format: uuid
+            type: boolean
+            default: false
       responses:
         '200':
           description: Document list
@@ -142,7 +118,10 @@ paths:
         '200':
           description: Binary stream
           content:
-            application/octet-stream: {}
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
         '404':
           $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
         '403':
@@ -197,52 +176,6 @@ paths:
           $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
         <<: *common-error-responses
 
-  /api/documents/{uuid}/replace:
-    put:
-      tags: [Document]
-      summary: Replace document content
-      operationId: replaceDocument
-      parameters:
-        - name: uuid
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: confirmReplace
-          in: query
-          required: true
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                description:
-                  type: string
-                tags:
-                  type: array
-                  items:
-                    type: string
-              required: [file]
-      responses:
-        '200':
-          description: Replaced
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentResponse'
-        '400':
-          $ref: './.gen/common-api.yaml#/components/responses/ValidationError'
-        '404':
-          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
-        <<: *common-error-responses
-
   /api/documents/{uuid}/generate-link:
     post:
       tags: [Document]
@@ -273,16 +206,116 @@ paths:
           $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
         <<: *common-error-responses
 
+  /api/public/documents/{uuid}:
+    get:
+      tags: [PublicDocuments]
+      summary: Get public document metadata (no auth required)
+      operationId: getPublicDocumentMetadata
+      security: []  # No authentication required
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Public document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        '403':
+          $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+        <<: *common-error-responses
+
+  /api/public/documents/{uuid}/download:
+    get:
+      tags: [PublicDocuments]
+      summary: Download public document (no auth required)
+      operationId: downloadPublicDocument
+      security: []  # No authentication required
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Binary stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        '403':
+          $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+        <<: *common-error-responses
+
+  /api/public/documents/link/{token}:
+    get:
+      tags: [PublicDocuments]
+      summary: Access document by link token (no auth required)
+      operationId: accessDocumentByToken
+      security: []  # No authentication required
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        '403':
+          $ref: './.gen/common-api.yaml#/components/responses/ForbiddenError'
+        <<: *common-error-responses
+
 components:
-  # Reuse shared parameters/responses/schemas from .gen/common-api.yaml where possible
-  responses: {}
   schemas:
     Visibility:
       type: string
       enum: [PUBLIC, PRIVATE, BY_LINK]
+
     UploadedByType:
       type: string
       enum: [USER, SYSTEM]
+
+    DocumentUploadMetadata:
+      type: object
+      description: Shared metadata fields for document uploads
+      properties:
+        ownerUserId:
+          type: string
+          format: uuid
+          description: User ID of the document owner (for admin/system creating documents on behalf of users). If not provided, authenticated user becomes owner.
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        description:
+          type: string
+          maxLength: 1000
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 50
+        confirmReplace:
+          type: boolean
+          description: If true, replace existing document with same name/checksum
+
     DocumentResponse:
       type: object
       properties:
@@ -327,30 +360,29 @@ components:
           items:
             type: string
     UploadBase64Request:
-      type: object
-      properties:
-        name:
-          type: string
-        base64Data:
-          type: string
-        contentType:
-          type: string
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        description:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        confirmReplace:
-          type: boolean
-      required: [name, base64Data]
+      allOf:
+        - $ref: '#/components/schemas/DocumentUploadMetadata'
+        - type: object
+          properties:
+            name:
+              type: string
+              description: Document name (will be used as filename if not provided)
+              minLength: 1
+              maxLength: 255
+            base64Data:
+              type: string
+              description: Base64-encoded file content
+            contentType:
+              type: string
+              description: MIME type of the file
+          required: [name, base64Data]
+
     GenerateLinkRequest:
       type: object
       properties:
         expiresInSeconds:
           type: integer
+
     LinkResponse:
       type: object
       properties:
@@ -361,6 +393,7 @@ components:
         expiresAt:
           type: string
           format: date-time
+
     PaginatedDocumentList:
       allOf:
         - $ref: './.gen/common-api.yaml#/components/schemas/PagedResponse'

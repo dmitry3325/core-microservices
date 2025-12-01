@@ -28,8 +28,8 @@ public class UserMsClientConfig {
 
     @Bean(name = "userApiClient")
     @ConditionalOnMissingBean(name = "userApiClient")
-    public ApiClient userApiClient(@Qualifier("userWebClient") WebClient userWebClient) {
-        ApiClient apiClient = new ApiClient(userWebClient);
+    public ApiClient userApiClient(@Qualifier("userWebClient") WebClient webClient) {
+        ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(userMsBaseUrl);
         return apiClient;
     }

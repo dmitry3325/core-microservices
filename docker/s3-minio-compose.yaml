@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_USER}
+      MINIO_ROOT_PASSWORD: ${S3_PASSWORD}
+      # Optional: Create a default bucket on startup
+      MINIO_DEFAULT_BUCKETS: corems
+    volumes:
+      - ~/minio/data:/data
+    command: server /data --console-address ":9001"

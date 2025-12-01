@@ -24,8 +24,8 @@ public class TranslationMsClientConfig {
 
     @Bean(name = "translationMsApiClient")
     @ConditionalOnMissingBean(name = "translationMsApiClient")
-    public ApiClient translationMsApiClient(@Qualifier("translationMsWebClient") WebClient translationMsWebClient) {
-        ApiClient apiClient = new ApiClient(translationMsWebClient);
+    public ApiClient translationMsApiClient(@Qualifier("translationMsWebClient") WebClient webClient) {
+        ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(translationMsBaseUrl);
         return apiClient;
     }
