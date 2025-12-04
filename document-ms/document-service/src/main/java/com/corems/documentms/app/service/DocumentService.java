@@ -11,6 +11,8 @@ import com.corems.documentms.api.model.LinkResponse;
 import com.corems.documentms.api.model.PaginatedDocumentList;
 import com.corems.documentms.api.model.SuccessfulResponse;
 import com.corems.documentms.api.model.UploadBase64Request;
+import com.corems.documentms.api.model.UploadedByType;
+import com.corems.documentms.api.model.Visibility;
 import com.corems.documentms.app.config.DocumentConfig;
 import com.corems.documentms.app.config.StorageConfig;
 import com.corems.documentms.app.entity.DocumentAccessToken;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -84,6 +87,8 @@ public class DocumentService {
                     String.format("Document with name '%s' already exists", name));
         }
 
+        UserPrincipal principal = SecurityUtils.getUserPrincipal();
+
         String checksum;
         byte[] fileContent;
         try {
@@ -94,77 +99,94 @@ public class DocumentService {
                     "Failed to read file content: " + e.getMessage());
         }
 
+        DocumentEntity entity;
+        boolean isReplacement = false;
+
         if (existingDoc.isPresent()) {
-            DocumentEntity existing = existingDoc.get();
-            if (checksum.equals(existing.getChecksum())) {
-                return toResponse(existing);
+            entity = existingDoc.get();
+            isReplacement = true;
+
+            checkDocumentAccess(entity);
+
+            entity.setOriginalFilename(file.getOriginalFilename());
+            entity.setContentType(file.getContentType());
+            entity.setExtension(extension);
+            entity.setSize(file.getSize());
+            entity.setDeleted(false);
+            entity.setDeletedBy(null);
+            entity.setDeletedAt(null);
+            entity.setChecksum(checksum);
+            entity.setUpdatedAt(Instant.now());
+
+            if (metadata.getVisibility() != null) {
+                entity.setVisibility(DocumentEntity.Visibility.valueOf(metadata.getVisibility().name()));
             }
-        }
-
-        DocumentEntity entity = new DocumentEntity();
-        entity.setName(name);
-        entity.setOriginalFilename(file.getOriginalFilename());
-        entity.setSize(file.getSize());
-        entity.setContentType(file.getContentType());
-        entity.setExtension(extension);
-        entity.setBucket(storageConfig.getDefaultBucket());
-
-        UUID documentUuid = UUID.randomUUID();
-
-        UserPrincipal principal = SecurityUtils.getUserPrincipal();
-
-        // SECURITY: Validate ownerUserId usage (only admins can create for other users)
-        if (metadata != null && metadata.getOwnerUserId() != null) {
-            boolean isAdmin = principal.getAuthorities() != null &&
-                    principal.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals(CoreMsRoles.DOCUMENT_MS_ADMIN.name()));
-
-            if (!isAdmin) {
-                throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
-                        "Only administrators can create documents for other users");
+            if (metadata.getDescription() != null) {
+                entity.setDescription(metadata.getDescription());
             }
-        }
+            if (metadata.getTags() != null) {
+                entity.setTags(normalizeTags(metadata.getTags()));
+            }
 
-        // Determine ownership:
-        // 1. If metadata.ownerUserId is provided (admin/system creating for user), use it
-        // 2. Otherwise, use authenticated user's ID
-        UUID ownerId = (metadata != null && metadata.getOwnerUserId() != null)
-                ? metadata.getOwnerUserId()
-                : principal.getUserId();
+            if (checksum.equals(entity.getChecksum())) {
+                repository.save(entity);
+                return toResponse(entity);
+            }
 
-        // Use user-based folder structure: ownerId/documentUuid
-        // Documents are always stored under the owner's folder
-        String objectKey = ownerId != null
-                ? ownerId.toString() + "/" + documentUuid.toString()
-                : "system/" + documentUuid.toString();
-
-        entity.setObjectKey(objectKey);
-        entity.setUuid(documentUuid);
-        entity.setVisibility(metadata != null && metadata.getVisibility() != null
-                ? DocumentEntity.Visibility.valueOf(metadata.getVisibility().name())
-                : DocumentEntity.Visibility.PRIVATE);
-        entity.setDescription(metadata != null ? metadata.getDescription() : null);
-        entity.setTags(normalizeTags(metadata != null ? metadata.getTags() : null));
-        entity.setChecksum(checksum);
-
-        // Set ownership information
-        if (ownerId != null) {
-            entity.setUploadedById(ownerId);
-            entity.setUploadedByType(DocumentEntity.UploadedByType.USER);
         } else {
-            entity.setUploadedByType(DocumentEntity.UploadedByType.SYSTEM);
+            entity = new DocumentEntity();
+            entity.setName(name);
+            entity.setOriginalFilename(file.getOriginalFilename());
+            entity.setSize(file.getSize());
+            entity.setContentType(file.getContentType());
+            entity.setExtension(extension);
+            entity.setBucket(storageConfig.getDefaultBucket());
+            entity.setChecksum(checksum);
+
+            UUID documentUuid = UUID.randomUUID();
+            UUID ownerId = (metadata != null && metadata.getOwnerUserId() != null)
+                    ? metadata.getOwnerUserId()
+                    : principal.getUserId();
+
+            if (metadata != null && metadata.getOwnerUserId() != null) {
+                if (!SecurityUtils.hasRole(CoreMsRoles.DOCUMENT_MS_ADMIN)) {
+                    throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
+                            "Only administrators can create documents for other users");
+                }
+            }
+
+            String objectKey = ownerId != null
+                    ? ownerId + "/" + documentUuid
+                    : "system/" + documentUuid;
+
+            entity.setUserId(ownerId);
+            entity.setObjectKey(objectKey);
+            entity.setUuid(documentUuid);
+            entity.setVisibility(metadata != null && metadata.getVisibility() != null
+                    ? DocumentEntity.Visibility.valueOf(metadata.getVisibility().name())
+                    : DocumentEntity.Visibility.PRIVATE);
+            entity.setDescription(metadata != null ? metadata.getDescription() : null);
+            entity.setTags(normalizeTags(metadata != null ? metadata.getTags() : null));
+
+            if (ownerId != null) {
+                entity.setUploadedById(ownerId);
+                entity.setUploadedByType(DocumentEntity.UploadedByType.USER);
+            } else {
+                entity.setUploadedByType(DocumentEntity.UploadedByType.SYSTEM);
+            }
         }
 
         DocumentEntity saved = repository.save(entity);
 
         try {
             storage.upload(entity.getBucket(), entity.getObjectKey(),
-                    new java.io.ByteArrayInputStream(fileContent),
+                    new ByteArrayInputStream(fileContent),
                     file.getSize(), file.getContentType());
-        } catch (Exception ex) {
-            repository.delete(saved);
-            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
-                    "Failed to upload file to storage: " + ex.getMessage());
+        } catch (ServiceException ex) {
+            if (!isReplacement) {
+                repository.delete(saved);
+            }
+            throw ex;
         }
 
         return toResponse(saved);
@@ -184,7 +206,6 @@ public class DocumentService {
                     "Invalid base64 encoding: " + e.getMessage());
         }
 
-        // Use our production-ready InMemoryMultipartFile
         MultipartFile file = new InMemoryMultipartFile(
                 req.getName(),
                 req.getName(),
@@ -203,61 +224,6 @@ public class DocumentService {
     }
 
     @Transactional
-    public DocumentResponse replace(UUID uuid, MultipartFile file, DocumentUploadMetadata metadata) {
-        DocumentEntity existing = repository.findByUuid(uuid)
-                .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST,
-                        "Document not found with UUID: " + uuid));
-
-        checkDocumentAccess(existing);
-
-        boolean shouldReplace = metadata != null && metadata.getConfirmReplace() != null && metadata.getConfirmReplace();
-        if (!shouldReplace) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST,
-                    "Replace must be explicitly confirmed");
-        }
-
-        if (file == null || file.isEmpty()) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "File cannot be empty");
-        }
-
-        validateFileSize(file.getSize());
-
-        String checksum;
-        byte[] fileContent;
-        try {
-            fileContent = file.getBytes();
-            checksum = calculateChecksum(new java.io.ByteArrayInputStream(fileContent));
-        } catch (IOException e) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
-                    "Failed to read file content: " + e.getMessage());
-        }
-
-        try {
-            storage.upload(existing.getBucket(), existing.getObjectKey(),
-                    new java.io.ByteArrayInputStream(fileContent), file.getSize(), file.getContentType());
-        } catch (Exception ex) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
-                    "Failed to upload replacement file to storage: " + ex.getMessage());
-        }
-
-        existing.setName(file.getOriginalFilename());
-        existing.setOriginalFilename(file.getOriginalFilename());
-        existing.setSize(file.getSize());
-        existing.setContentType(file.getContentType());
-        existing.setChecksum(checksum);
-
-        if (metadata != null && metadata.getDescription() != null) {
-            existing.setDescription(metadata.getDescription());
-        }
-        if (metadata != null && metadata.getTags() != null) {
-            existing.setTags(normalizeTags(metadata.getTags()));
-        }
-
-        DocumentEntity saved = repository.save(existing);
-        return toResponse(saved);
-    }
-
-    @Transactional
     public SuccessfulResponse delete(UUID uuid, Boolean permanent) {
         DocumentEntity existing = repository.findByUuid(uuid)
                 .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST,
@@ -268,6 +234,11 @@ public class DocumentService {
         UserPrincipal principal = SecurityUtils.getUserPrincipal();
 
         if (Boolean.TRUE.equals(permanent)) {
+            if (SecurityUtils.hasRole(CoreMsRoles.SUPER_ADMIN)) {
+                throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
+                        "Only system administrators can perform permanent deletions");
+            }
+
             try {
                 storage.delete(existing.getBucket(), existing.getObjectKey());
             } catch (Exception e) {
@@ -403,9 +374,7 @@ public class DocumentService {
             Optional<Boolean> includeDeleted) {
 
         UserPrincipal principal = SecurityUtils.getUserPrincipal();
-        boolean isAdmin = principal.getAuthorities() != null &&
-                          principal.getAuthorities().stream()
-                                  .anyMatch(a -> a.getAuthority().equals(CoreMsRoles.DOCUMENT_MS_ADMIN.name()));
+        boolean isAdmin = SecurityUtils.hasRole(CoreMsRoles.DOCUMENT_MS_ADMIN);
 
         if (sort.isEmpty()) {
             sort = Optional.of("createdAt:desc");
@@ -529,7 +498,6 @@ public class DocumentService {
 
     private DocumentResponse toResponse(DocumentEntity e) {
         DocumentResponse r = new DocumentResponse();
-        r.setId(e.getId() == null ? null : e.getId().intValue());
         r.setUuid(e.getUuid());
         r.setName(e.getName());
         r.setOriginalFilename(e.getOriginalFilename());
@@ -538,15 +506,23 @@ public class DocumentService {
         r.setContentType(e.getContentType());
         r.setBucket(e.getBucket());
         r.setObjectKey(e.getObjectKey());
-        r.setVisibility(com.corems.documentms.api.model.Visibility.valueOf(e.getVisibility().name()));
+        r.setVisibility(Visibility.valueOf(e.getVisibility().name()));
         r.setUploadedById(e.getUploadedById());
-        r.setUploadedByType(com.corems.documentms.api.model.UploadedByType.valueOf(e.getUploadedByType().name()));
+        r.setUploadedByType(UploadedByType.valueOf(e.getUploadedByType().name()));
         r.setCreatedAt(e.getCreatedAt() == null ? null : OffsetDateTime.ofInstant(e.getCreatedAt(), ZoneOffset.UTC));
         r.setUpdatedAt(e.getUpdatedAt() == null ? null : OffsetDateTime.ofInstant(e.getUpdatedAt(), ZoneOffset.UTC));
         r.setChecksum(e.getChecksum());
         r.setDescription(e.getDescription());
         r.setTags(new ArrayList<>(e.getTags()));
+
+        if (e.getDeleted() != null && e.getDeleted()) {
+            r.setDeleted(true);
+            r.setDeletedBy(e.getDeletedBy());
+            r.setDeletedAt(e.getDeletedAt() == null ? null : OffsetDateTime.ofInstant(e.getDeletedAt(), ZoneOffset.UTC));
+        }
+
         return r;
     }
+
 
 }

@@ -59,7 +59,6 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
             Claims claims = parsed.getPayload();
 
-            // Safely extract roles from claims without unchecked casts
             Object rolesObj = claims.get(TokenProvider.CLAIM_ROLES);
             List<String> roles;
             if (rolesObj instanceof List) {
@@ -90,8 +89,6 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Token not found");
         }
 
         filterChain.doFilter(request, response);

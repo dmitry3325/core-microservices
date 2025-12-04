@@ -4,6 +4,8 @@ import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.common.security.service.TokenProvider;
 import com.corems.documentms.api.model.DocumentResponse;
+import com.corems.documentms.api.model.UploadedByType;
+import com.corems.documentms.api.model.Visibility;
 import com.corems.documentms.app.config.StorageConfig;
 import com.corems.documentms.app.entity.DocumentAccessToken;
 import com.corems.documentms.app.entity.DocumentEntity;
@@ -142,7 +144,6 @@ public class PublicDocumentService {
 
     private DocumentResponse toResponse(DocumentEntity e) {
         DocumentResponse r = new DocumentResponse();
-        r.setId(e.getId() == null ? null : e.getId().intValue());
         r.setUuid(e.getUuid());
         r.setName(e.getName());
         r.setOriginalFilename(e.getOriginalFilename());
@@ -151,9 +152,9 @@ public class PublicDocumentService {
         r.setContentType(e.getContentType());
         r.setBucket(e.getBucket());
         r.setObjectKey(e.getObjectKey());
-        r.setVisibility(com.corems.documentms.api.model.Visibility.valueOf(e.getVisibility().name()));
+        r.setVisibility(Visibility.valueOf(e.getVisibility().name()));
         r.setUploadedById(e.getUploadedById());
-        r.setUploadedByType(com.corems.documentms.api.model.UploadedByType.valueOf(e.getUploadedByType().name()));
+        r.setUploadedByType(UploadedByType.valueOf(e.getUploadedByType().name()));
         r.setCreatedAt(e.getCreatedAt() == null ? null : OffsetDateTime.ofInstant(e.getCreatedAt(), ZoneOffset.UTC));
         r.setUpdatedAt(e.getUpdatedAt() == null ? null : OffsetDateTime.ofInstant(e.getUpdatedAt(), ZoneOffset.UTC));
         r.setChecksum(e.getChecksum());

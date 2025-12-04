@@ -19,7 +19,7 @@ mail:
   port: ${MAIL_PORT}
   username: ${MAIL_USERNAME}
   password: ${MAIL_PASSWORD}
-  protocol: ${MAIL_PROTOCOL:smtp}
+  protocol: ${MAIL_PROTOCOL:SMTPS} # SMTPS (recommended) or SMTP
   properties:
     mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
     mail.smtp.starttls.enable: ${MAIL_STARTTLS:true}

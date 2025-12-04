@@ -12,9 +12,21 @@
     <artifactId>document-service</artifactId>
 
     <dependencies>
+        <!-- Generated API models and interfaces from document-api module -->
+        <dependency>
+            <groupId>com.corems.documentms</groupId>
+            <artifactId>document-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -45,22 +57,14 @@
             <artifactId>db-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- Generated API models and interfaces from document-api module -->
-        <dependency>
-            <groupId>com.corems.documentms</groupId>
-            <artifactId>document-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!-- Add DB driver and MinIO/S3 SDK as runtime dependencies -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.4</version>
-        </dependency>
+        <!-- Important! Since the S3 API has become a de facto standard,
+        many other providers, notably Google Cloud Storage and MinIO,
+        offer an S3-compatible API, for Azure Object Storage might need another SDK  -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>

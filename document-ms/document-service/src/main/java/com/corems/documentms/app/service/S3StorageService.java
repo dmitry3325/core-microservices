@@ -38,7 +38,8 @@ public class S3StorageService {
 
         if (endpoint != null && !endpoint.isBlank()) {
             URI endpointUri = URI.create(endpoint);
-            clientBuilder.endpointOverride(endpointUri);
+            clientBuilder.endpointOverride(endpointUri)
+                    .forcePathStyle(true);
             presignerBuilder.endpointOverride(endpointUri);
         }
 

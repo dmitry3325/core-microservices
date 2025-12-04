@@ -288,11 +288,11 @@ components:
   schemas:
     Visibility:
       type: string
-      enum: [PUBLIC, PRIVATE, BY_LINK]
+      enum: [public, private, by_link]
 
     UploadedByType:
       type: string
-      enum: [USER, SYSTEM]
+      enum: [user, system]
 
     DocumentUploadMetadata:
       type: object
@@ -319,8 +319,6 @@ components:
     DocumentResponse:
       type: object
       properties:
-        id:
-          type: integer
         uuid:
           type: string
           format: uuid
@@ -359,6 +357,15 @@ components:
           type: array
           items:
             type: string
+        deleted:
+          type: boolean
+        deletedAt:
+          type: string
+          format: date-time
+        deletedBy:
+          type: string
+          format: uuid
+
     UploadBase64Request:
       allOf:
         - $ref: '#/components/schemas/DocumentUploadMetadata'

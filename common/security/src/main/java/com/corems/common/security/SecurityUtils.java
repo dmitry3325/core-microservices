@@ -28,4 +28,21 @@ public final class SecurityUtils {
     public static UserPrincipal getUserPrincipal() {
         return getUserPrincipalOptional().orElseThrow(() -> AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED));
     }
+
+    /**
+     * Check if the current user has the specified role OR is SYSTEM or SUPER_ADMIN.
+     * @param role the role to check
+     * @return true if user has the role, or is SYSTEM, or is SUPER_ADMIN
+     */
+    public static boolean hasRole(CoreMsRoles role) {
+        return getUserPrincipalOptional()
+                .map(up -> up.getAuthorities().stream()
+                        .anyMatch(grantedAuthority -> {
+                            String authority = grantedAuthority.getAuthority();
+                            return authority.equals(role.name())
+                                || authority.equals(CoreMsRoles.SYSTEM.name())
+                                || authority.equals(CoreMsRoles.SUPER_ADMIN.name());
+                        }))
+                .orElse(false);
+    }
 }

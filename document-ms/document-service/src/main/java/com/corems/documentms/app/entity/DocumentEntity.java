@@ -14,15 +14,38 @@ import java.util.LinkedHashSet;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "documents")
+@Table(name = "document")
 public class DocumentEntity {
 
     public enum Visibility {
-        PUBLIC, PRIVATE, BY_LINK
+        PUBLIC("public"),
+        PRIVATE("private"),
+        BY_LINK("by_link");
+
+        private final String value;
+
+        Visibility(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
     public enum UploadedByType {
-        USER, SYSTEM
+        USER("user"),
+        SYSTEM("system");
+
+        private final String value;
+
+        UploadedByType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
     @Id
@@ -33,7 +56,7 @@ public class DocumentEntity {
     @Column(nullable = false, unique = true)
     private UUID uuid;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private UUID userId;
 
     @Column(nullable = false)
@@ -51,12 +74,10 @@ public class DocumentEntity {
 
     private String objectKey;
 
-    @Enumerated(EnumType.STRING)
     private Visibility visibility;
 
     private UUID uploadedById;
 
-    @Enumerated(EnumType.STRING)
     private UploadedByType uploadedByType;
 
     private Instant createdAt;

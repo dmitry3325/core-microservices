@@ -1,5 +1,5 @@
 server:
-  port: ${DOCUMENT-SERVICE-PORT:3001}
+  port: ${DOCUMENT-SERVICE-PORT:3003}
 
 spring:
   application:
@@ -10,14 +10,16 @@ spring:
     default-property-inclusion: non_null
   config:
     import: classpath:db-config.yaml
+  security:
+    white-list-urls: /actuator/health,/api/public/**
 
 storage:
-  default-bucket: ${S3_DEFAULT_BUCKET:documents}
+  defaultBucket: ${S3_DEFAULT_BUCKET:documents}
   s3:
     endpoint: ${S3_ENDPOINT:http://localhost:9000}
-    region: ${S3_REGION:us-east-1}
-    accessKey: ${S3_ACCESS_KEY:minioadmin}
-    secretKey: ${S3_SECRET_KEY:minioadmin}
+    region: ${S3_REGION:eu-west-1}
+    accessKey: ${S3_ACCESS_KEY}
+    secretKey: ${S3_SECRET_KEY}
 
 # Application specific configuration
 app:

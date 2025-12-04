@@ -11,11 +11,6 @@ import java.util.UUID;
  * Tokens are JWT-based and stored here for validation and revocation.
  */
 @Entity
-@Table(name = "document_access_tokens", indexes = {
-        @Index(name = "idx_token_hash", columnList = "token_hash"),
-        @Index(name = "idx_token_document_uuid", columnList = "document_uuid"),
-        @Index(name = "idx_token_expires_at", columnList = "expires_at")
-})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -48,6 +43,7 @@ public class DocumentAccessToken {
     private Instant expiresAt;
 
     @Column(name = "revoked")
+    @Builder.Default
     private Boolean revoked = false;
 
     @Column(name = "revoked_by")
@@ -57,6 +53,7 @@ public class DocumentAccessToken {
     private Instant revokedAt;
 
     @Column(name = "access_count")
+    @Builder.Default
     private Integer accessCount = 0;
 
     @Column(name = "last_accessed_at")
