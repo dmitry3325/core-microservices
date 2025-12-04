@@ -55,6 +55,8 @@ If you want to start fast, scale safely, and keep your architecture clean, Core 
 
 Also will try to publish YouTube walking through videos.
 
+[Postman Collection](https://www.postman.com/coremicroservices/workspace/core-microservices/request/10025909-1950661d-a6d0-4982-971e-0011e4c37b3c?action=share&creator=10025909) 
+
 ## Setup
 
 Backend
