@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 
@@ -29,18 +30,21 @@ public final class PaginatedQueryExecutor {
         List<String> repoSearchFields = List.of();
         List<String> repoFilterAllowed = List.of();
         List<String> repoSortAllowed = List.of();
+        List<String> repoCollectionFields = List.of();
         Map<String, String> aliases = Map.of();
 
         if (specRepo instanceof SearchableRepository<?, ?> sr) {
             repoSearchFields = sr.getSearchFields();
             repoFilterAllowed = sr.getAllowedFilterFields();
             repoSortAllowed = sr.getAllowedSortFields();
+            repoCollectionFields = sr.getCollectionFields();
             aliases = sr.getFieldAliases();
         }
 
         // make effectively-final copies for use inside lambdas
         final List<String> finalSearchFields = List.copyOf(repoSearchFields);
         final List<String> finalFilterAllowed = List.copyOf(repoFilterAllowed);
+        final List<String> finalCollectionFields = List.copyOf(repoCollectionFields);
         final Map<String, String> finalAliases = Map.copyOf(aliases);
 
         // build pageable — PaginationUtil still expects allowed sort fields; pass repoSortAllowed
@@ -52,8 +56,8 @@ public final class PaginatedQueryExecutor {
                 params.filters().orElse(List.of()),
                 finalFilterAllowed, finalAliases);
 
-        // build specification from filters
-        Specification<T> spec = SpecificationBuilder.build(resolvedFilters);
+        // build specification from filters (pass collection fields for JOIN support)
+        Specification<T> spec = SpecificationBuilder.build(resolvedFilters, finalCollectionFields);
 
         // validate and resolve search specification if applicable
         String searchValue = PaginationUtil.sanitizeSearch(params.search());
@@ -66,10 +70,39 @@ public final class PaginatedQueryExecutor {
                 Predicate[] preds = resolvedSearchFields.stream()
                         .filter(Objects::nonNull)
                         .map(field -> {
-                            Path<?> path = root;
-                            for (String part : field.split("\\.")) {
-                                path = path.get(part);
+                            Path<?> path;
+
+                            // Check if field contains dot notation (e.g., "categories.name")
+                            if (field.contains(".")) {
+                                String[] parts = field.split("\\.");
+                                String basePath = parts[0];
+
+                                // Check if base path is a collection field
+                                if (finalCollectionFields.contains(basePath)) {
+                                    // LEFT Join the collection to include entities without collection values
+                                    path = root.join(basePath, JoinType.LEFT);
+                                    // Navigate to nested fields
+                                    for (int i = 1; i < parts.length; i++) {
+                                        path = path.get(parts[i]);
+                                    }
+                                } else {
+                                    // Regular nested path navigation
+                                    path = root;
+                                    for (String part : parts) {
+                                        path = path.get(part);
+                                    }
+                                }
+                            } else if (finalCollectionFields.contains(field)) {
+                                // Simple collection field (no nesting) - use LEFT JOIN
+                                path = root.join(field, JoinType.LEFT);
+                            } else {
+                                // Regular field
+                                path = root;
+                                for (String part : field.split("\\.")) {
+                                    path = path.get(part);
+                                }
                             }
+
                             // build per-field OR of variants (contains, startsWith, endsWith)
                             Predicate[] variants = LikePredicateBuilder.buildLikeVariants(cb, path, searchValue);
                             return cb.or(variants);

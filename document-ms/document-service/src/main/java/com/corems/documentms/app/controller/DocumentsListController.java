@@ -29,7 +29,7 @@ public class DocumentsListController implements DocumentsListApi {
                                                                     UUID ownerUserId,
                                                                     Visibility visibility,
                                                                     String description,
-                                                                    List<String> tags,
+                                                                    String tags,
                                                                     Boolean confirmReplace) {
         DocumentUploadMetadata metadata = new DocumentUploadMetadata();
         metadata.setOwnerUserId(ownerUserId);

@@ -23,12 +23,12 @@ public interface DocumentRepository extends SearchableRepository<DocumentEntity,
 
     @Override
     default List<String> getSearchFields() {
-        return List.of("name", "originalFilename", "description");
+        return List.of("name", "originalFilename", "description", "tags");
     }
 
     @Override
     default List<String> getAllowedFilterFields() {
-        return List.of("visibility", "extension", "uploadedById", "tags", "deleted");
+        return List.of("userId", "visibility", "extension", "uploadedById", "tags", "deleted");
     }
 
     @Override
@@ -45,6 +45,11 @@ public interface DocumentRepository extends SearchableRepository<DocumentEntity,
                 "updated_at", "updatedAt",
                 "file_name", "name"
         );
+    }
+
+    @Override
+    default List<String> getCollectionFields() {
+        return List.of("tags");
     }
 
 }

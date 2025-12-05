@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -21,9 +22,15 @@ import java.util.UUID;
 
 public class GenericSpecification<T> implements Specification<T> {
     private final FilterRequest criteria;
+    private final List<String> collectionFields;
 
     public GenericSpecification(FilterRequest criteria) {
+        this(criteria, List.of());
+    }
+
+    public GenericSpecification(FilterRequest criteria, List<String> collectionFields) {
         this.criteria = criteria;
+        this.collectionFields = collectionFields != null ? collectionFields : List.of();
     }
 
     @Override
@@ -152,6 +159,41 @@ public class GenericSpecification<T> implements Specification<T> {
 
     private Path<?> resolvePath(Path<?> root, String field) {
         if (field == null || field.isBlank()) return root;
+
+        // Check if field contains dot notation (e.g., "categories.name")
+        if (field.contains(".")) {
+            String[] parts = field.split("\\.");
+            String basePath = parts[0];
+
+            // Check if base path is a collection field
+            if (collectionFields.contains(basePath)) {
+                if (root instanceof Root) {
+                    // LEFT Join the collection to include entities without collection values
+                    Path<?> path = ((Root<?>) root).join(basePath, JoinType.LEFT);
+                    // Navigate to nested fields
+                    for (int i = 1; i < parts.length; i++) {
+                        path = path.get(parts[i]);
+                    }
+                    return path;
+                }
+            }
+            // Regular nested path - navigate normally
+            Path<?> path = root;
+            for (String part : parts) {
+                path = path.get(part);
+            }
+            return path;
+        }
+
+        // Simple field - check if it's a collection
+        if (collectionFields.contains(field)) {
+            if (root instanceof Root) {
+                // Use LEFT JOIN for collection fields
+                return ((Root<?>) root).join(field, JoinType.LEFT);
+            }
+        }
+
+        // Regular field - navigate normally
         return Arrays.stream(field.split("\\."))
                 .reduce(root, Path::get, (p1, p2) -> p1);
     }

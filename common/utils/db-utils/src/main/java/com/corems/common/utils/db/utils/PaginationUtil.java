@@ -28,7 +28,13 @@ public class PaginationUtil {
 
         List<Sort.Order> orders = new ArrayList<>();
         for (String part : sortParam.split(",")) {
+            if (part.isBlank()) {
+                continue;
+            }
             String[] fieldDir = part.split(":");
+            if (fieldDir.length == 0 || fieldDir[0].isBlank()) {
+                continue;
+            }
             String field = fieldDir[0].trim();
             String direction = fieldDir.length > 1 ? fieldDir[1].trim().toLowerCase() : "desc";
             if (allowedFields.contains(field)) {

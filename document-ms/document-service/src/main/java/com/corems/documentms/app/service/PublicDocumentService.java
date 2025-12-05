@@ -76,7 +76,7 @@ public class PublicDocumentService {
                 .stream(stream)
                 .contentType(entity.getContentType())
                 .size(entity.getSize())
-                .filename(entity.getName())
+                .filename(entity.getOriginalFilename())
                 .build();
     }
 
@@ -159,8 +159,11 @@ public class PublicDocumentService {
         r.setUpdatedAt(e.getUpdatedAt() == null ? null : OffsetDateTime.ofInstant(e.getUpdatedAt(), ZoneOffset.UTC));
         r.setChecksum(e.getChecksum());
         r.setDescription(e.getDescription());
-        r.setTags(new ArrayList<>(e.getTags()));
+        if (e.getTags() == null || e.getTags().isEmpty()) {
+            r.setTags(null);
+        } else {
+            r.setTags(String.join(",", e.getTags()));
+        }
         return r;
     }
 }
-

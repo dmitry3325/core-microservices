@@ -10,6 +10,7 @@ import com.corems.documentms.app.model.DocumentStreamResult;
 import com.corems.documentms.app.service.DocumentService;
 import com.corems.documentms.app.util.BufferedStreamingResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,9 @@ public class DocumentController implements DocumentApi {
         headers.setContentType(MediaType.parseMediaType(
                 streamResult.getContentType() != null ? streamResult.getContentType() : "application/octet-stream"));
         headers.setContentLength(streamResult.getSize() != null ? streamResult.getSize() : -1);
-        headers.setContentDispositionFormData("attachment", streamResult.getFilename());
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename(streamResult.getFilename())
+                .build());
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.setPragma("no-cache");
         headers.setExpires(0);

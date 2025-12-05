@@ -308,10 +308,9 @@ components:
           type: string
           maxLength: 1000
         tags:
-          type: array
-          items:
-            type: string
-          maxItems: 50
+          type: string
+          description: Comma-separated list of tags (e.g. "tag1,tag2"). Tags will be normalized (trimmed, lower-cased) by the service. Maximum of 50 tags supported after splitting.
+          example: "passport,id-card,verified"
         confirmReplace:
           type: boolean
           description: If true, replace existing document with same name/checksum
@@ -320,6 +319,9 @@ components:
       type: object
       properties:
         uuid:
+          type: string
+          format: uuid
+        userId:
           type: string
           format: uuid
         name:
@@ -354,9 +356,9 @@ components:
         description:
           type: string
         tags:
-          type: array
-          items:
-            type: string
+          type: string
+          description: Comma-separated list of tags returned by the service (e.g. "passport,id-card"). Clients may split this value if they require an array.
+          example: "passport,id-card,verified"
         deleted:
           type: boolean
         deletedAt:

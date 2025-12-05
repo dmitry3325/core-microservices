@@ -45,6 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.UUID;
 import java.util.Base64;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Service
 public class DocumentService {
@@ -131,7 +132,7 @@ public class DocumentService {
             if (metadata.getDescription() != null) {
                 entity.setDescription(metadata.getDescription());
             }
-            if (metadata.getTags() != null) {
+            if (metadata.getTags() != null && !metadata.getTags().isEmpty()) {
                 entity.setTags(normalizeTags(metadata.getTags()));
             }
 
@@ -173,7 +174,7 @@ public class DocumentService {
                     ? DocumentEntity.Visibility.valueOf(metadata.getVisibility().name())
                     : DocumentEntity.Visibility.PRIVATE);
             entity.setDescription(metadata != null ? metadata.getDescription() : null);
-            entity.setTags(normalizeTags(metadata != null ? metadata.getTags() : null));
+            entity.setTags(normalizeTags(metadata.getTags()));
 
             if (ownerId != null) {
                 entity.setUploadedById(ownerId);
@@ -295,7 +296,7 @@ public class DocumentService {
                 .stream(stream)
                 .contentType(entity.getContentType())
                 .size(entity.getSize())
-                .filename(entity.getName())
+                .filename(entity.getOriginalFilename())
                 .build();
     }
 
@@ -433,12 +434,12 @@ public class DocumentService {
         }
     }
 
-    private Set<String> normalizeTags(List<String> tags) {
+    private Set<String> normalizeTags(String tags) {
         if (tags == null || tags.isEmpty()) {
             return new LinkedHashSet<>();
         }
-        return tags.stream()
-                .filter(tag -> tag != null && !tag.isBlank())
+        return Arrays.stream(tags.split(","))
+                .filter(tag -> !tag.isBlank())
                 .map(String::trim)
                 .map(String::toLowerCase)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -506,6 +507,7 @@ public class DocumentService {
     private DocumentResponse toResponse(DocumentEntity e) {
         DocumentResponse r = new DocumentResponse();
         r.setUuid(e.getUuid());
+        r.setUserId(e.getUserId());
         r.setName(e.getName());
         r.setOriginalFilename(e.getOriginalFilename());
         r.setSize(e.getSize() == null ? null : e.getSize().intValue());
@@ -520,7 +522,12 @@ public class DocumentService {
         r.setUpdatedAt(e.getUpdatedAt() == null ? null : OffsetDateTime.ofInstant(e.getUpdatedAt(), ZoneOffset.UTC));
         r.setChecksum(e.getChecksum());
         r.setDescription(e.getDescription());
-        r.setTags(new ArrayList<>(e.getTags()));
+        // API expects tags as a comma-separated string; join normalized tag set preserving insertion order
+        if (e.getTags() == null || e.getTags().isEmpty()) {
+            r.setTags(null);
+        } else {
+            r.setTags(String.join(",", e.getTags()));
+        }
 
         if (e.getDeleted() != null && e.getDeleted()) {
             r.setDeleted(true);
