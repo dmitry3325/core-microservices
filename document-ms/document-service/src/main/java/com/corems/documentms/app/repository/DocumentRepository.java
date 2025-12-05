@@ -2,8 +2,6 @@ package com.corems.documentms.app.repository;
 
 import com.corems.documentms.app.entity.DocumentEntity;
 import com.corems.common.utils.db.repo.SearchableRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,25 +18,8 @@ public interface DocumentRepository extends SearchableRepository<DocumentEntity,
 
     Optional<DocumentEntity> findByName(String name);
 
-    // Find by UUID excluding deleted documents
-    @Query("SELECT d FROM DocumentEntity d WHERE d.uuid = :uuid AND d.deleted = false")
-    Optional<DocumentEntity> findByUuidExcludingDeleted(@Param("uuid") UUID uuid);
-
-    // Find by UUID for a specific user (ownership check)
-    @Query("SELECT d FROM DocumentEntity d WHERE d.uuid = :uuid AND d.uploadedById = :userId AND d.deleted = false")
-    Optional<DocumentEntity> findByUuidAndUserId(@Param("uuid") UUID uuid, @Param("userId") UUID userId);
-
-    // Find public or by-link documents (no auth required)
-    @Query("SELECT d FROM DocumentEntity d WHERE d.uuid = :uuid AND d.visibility IN ('PUBLIC', 'BY_LINK') AND d.deleted = false")
+    @Query("SELECT d FROM DocumentEntity d WHERE d.uuid = :uuid AND d.visibility IN (com.corems.documentms.app.entity.DocumentEntity.Visibility.PUBLIC, com.corems.documentms.app.entity.DocumentEntity.Visibility.BY_LINK) AND d.deleted = false")
     Optional<DocumentEntity> findPublicOrByLinkDocument(@Param("uuid") UUID uuid);
-
-    // Find user's documents
-    @Query("SELECT d FROM DocumentEntity d WHERE d.uploadedById = :userId AND d.deleted = false")
-    Page<DocumentEntity> findByUserId(@Param("userId") UUID userId, Pageable pageable);
-
-    // Find user's documents including deleted (admin view)
-    @Query("SELECT d FROM DocumentEntity d WHERE d.uploadedById = :userId")
-    Page<DocumentEntity> findByUserIdIncludingDeleted(@Param("userId") UUID userId, Pageable pageable);
 
     @Override
     default List<String> getSearchFields() {

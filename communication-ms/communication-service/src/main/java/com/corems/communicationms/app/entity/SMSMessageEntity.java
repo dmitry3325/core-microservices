@@ -26,7 +26,5 @@ public class SMSMessageEntity extends MessageEntity {
     @Column(nullable = false)
     private String message;
 
-    @Column
     private String sid;
-
 }

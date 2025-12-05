@@ -86,7 +86,7 @@ OpenAPI checklist (must follow)
 - Add validation constraints in the schema (pattern, minLength/maxLength) for fields that require them.
 - After creating/updating the API spec run codegen + compile before implementing service logic.
 
-Microservice generation phases (MANDATORY pauses)
+Any feature generation phases (MANDATORY pauses)
 
 - Phase 1 — API & app skeleton (STOP after this phase for human review):
 
@@ -111,7 +111,7 @@ Microservice generation phases (MANDATORY pauses)
   - Add unit/integration tests and run full module build with tests.
 
 Entities & Lombok rules
-
+- Call entity classes `XxxEntity` to distinguish from generated DTOs, use a singular noun (e.g., CustomerEntity instead of CustomersEntity).
 - Use Lombok: `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@EqualsAndHashCode(onlyExplicitlyIncluded=true)` with id included. Avoid `@Data` on JPA entities.
 - Map DTO -> entity types explicitly as needed.
 

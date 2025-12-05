@@ -17,6 +17,7 @@ import lombok.Setter;
 import lombok.ToString;
 import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,25 +31,20 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "app_user")
-public class User {
+public class UserEntity {
 
-    public User() {
+    public UserEntity() {
         this.uuid = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
     }
 
-    public static UserBuilder builder() {
+    public static UserEntityBuilder builder() {
         return new CustomUserBuilder();
     }
 
-    private static class CustomUserBuilder extends UserBuilder {
+    private static class CustomUserBuilder extends UserEntityBuilder {
         @Override
-        public User build() {
+        public UserEntity build() {
             this.uuid(UUID.randomUUID());
-            this.createdAt(Instant.now());
-            this.updatedAt(Instant.now());
-            this.lastLoginAt(Instant.now());
             return super.build();
         }
     }
@@ -61,10 +57,10 @@ public class User {
     private UUID uuid;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private Collection<LoginToken> tokens = new ArrayList<>();
+    private Collection<LoginTokenEntity> tokens = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private Collection<Role> roles = new ArrayList<>();
+    private Collection<RoleEntity> roles = new ArrayList<>();
 
     @NotNull
     private String provider;
@@ -93,9 +89,8 @@ public class User {
     private Instant createdAt;
 
     @NotNull
-    @CreationTimestamp
+    @UpdateTimestamp
     private Instant updatedAt;
 
-    @CreationTimestamp
     private Instant lastLoginAt;
 }

@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -24,12 +25,11 @@ import java.time.Instant;
 @ToString
 @Entity
 @Table(name = "app_user_role")
-public class Role {
+public class RoleEntity {
 
-    public Role(CoreMsRoles role, User user) {
+    public RoleEntity(CoreMsRoles role, UserEntity user) {
         this.name = role.name();
         this.user = user;
-        this.updatedAt = Instant.now();
     }
 
     @Id
@@ -38,7 +38,7 @@ public class Role {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private UserEntity user;
 
     @Column(nullable = false, length = 36)
     private String name;
@@ -46,9 +46,7 @@ public class Role {
     private Integer updatedBy;
 
     @NotNull
-    @CreationTimestamp
+    @UpdateTimestamp
     @Column(updatable = false)
     private Instant updatedAt;
-
-
 }

@@ -288,11 +288,11 @@ components:
   schemas:
     Visibility:
       type: string
-      enum: [public, private, by_link]
+      enum: [PUBLIC, PRIVATE, BY_LINK]
 
     UploadedByType:
       type: string
-      enum: [user, system]
+      enum: [USER, SYSTEM]
 
     DocumentUploadMetadata:
       type: object

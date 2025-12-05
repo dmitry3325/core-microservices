@@ -1,7 +1,7 @@
 package com.corems.userms.app.security;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.userms.app.entity.User;
+import com.corems.userms.app.entity.UserEntity;
 import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.app.repository.UserRepository;
@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserPrincipal loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository
+        UserEntity user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
 
@@ -36,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     public UserPrincipal loadUserById(UUID userId, UUID tokenId) {
-        User user = userRepository
+        UserEntity user = userRepository
                 .findByUuid(userId)
                 .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with ID: %s.", userId)));
 

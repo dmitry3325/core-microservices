@@ -1,8 +1,8 @@
 package com.corems.userms.app.security.oauth2;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.userms.app.entity.Role;
-import com.corems.userms.app.entity.User;
+import com.corems.userms.app.entity.RoleEntity;
+import com.corems.userms.app.entity.UserEntity;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.app.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.app.model.exception.AuthServiceException;
@@ -61,9 +61,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         AuthProvider authProvider = AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId());
         log.info("Login from provider: {}. Email: {}", authProvider, oAuth2UserInfo.getEmail());
 
-        Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
+        Optional<UserEntity> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
 
-        User user;
+        UserEntity user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if(!user.getProvider().contains(authProvider.name())) {
@@ -74,13 +74,13 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
             log.info("User found id: {}", user.getId());
         } else {
-            User newUser = new User();
+            UserEntity newUser = new UserEntity();
             newUser.setEmail(oAuth2UserInfo.getEmail());
             newUser.setFirstName(oAuth2UserInfo.getFirstName());
             newUser.setLastName(oAuth2UserInfo.getLastName());
             newUser.setProvider(authProvider.name());
             newUser.setImageUrl(oAuth2UserInfo.getImageUrl());
-            newUser.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, newUser)));
+            newUser.setRoles(List.of(new RoleEntity(CoreMsRoles.USER_MS_USER, newUser)));
 
             user = userRepository.save(newUser);
 

@@ -3,7 +3,7 @@ package com.corems.userms.app.security.oauth2;
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.service.TokenProvider;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
-import com.corems.userms.app.entity.LoginToken;
+import com.corems.userms.app.entity.LoginTokenEntity;
 import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.repository.LoginTokenRepository;
 import com.corems.userms.app.repository.UserRepository;
@@ -64,7 +64,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 TokenProvider.CLAIM_ROLES, userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
         ));
 
-        LoginToken loginToken = new LoginToken();
+        LoginTokenEntity loginToken = new LoginTokenEntity();
         loginToken.setUuid(tokenId);
         loginToken.setUser(userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> UserServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, String.format("User not found with ID: %s.", userPrincipal.getUserId()))));

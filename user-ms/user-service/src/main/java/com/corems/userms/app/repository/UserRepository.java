@@ -1,6 +1,6 @@
 package com.corems.userms.app.repository;
 
-import com.corems.userms.app.entity.User;
+import com.corems.userms.app.entity.UserEntity;
 import com.corems.common.utils.db.repo.SearchableRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends SearchableRepository<User, String> {
-    Optional<User> findByEmail(String username);
-    Optional<User> findByUuid(UUID id);
+public interface UserRepository extends SearchableRepository<UserEntity, String> {
+    Optional<UserEntity> findByEmail(String username);
+    Optional<UserEntity> findByUuid(UUID id);
 
     @Override
     default List<String> getSearchFields() {

@@ -15,7 +15,7 @@ import com.corems.documentms.api.model.UploadedByType;
 import com.corems.documentms.api.model.Visibility;
 import com.corems.documentms.app.config.DocumentConfig;
 import com.corems.documentms.app.config.StorageConfig;
-import com.corems.documentms.app.entity.DocumentAccessToken;
+import com.corems.documentms.app.entity.DocumentAccessTokenEntity;
 import com.corems.documentms.app.entity.DocumentEntity;
 import com.corems.documentms.app.model.DocumentStreamResult;
 import com.corems.documentms.app.repository.DocumentAccessTokenRepository;
@@ -36,7 +36,14 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.UUID;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
 @Service
@@ -327,7 +334,7 @@ public class DocumentService {
         String tokenHash = hashToken(jwtToken);
 
         // Store token record in database for validation and revocation
-        DocumentAccessToken tokenRecord = DocumentAccessToken.builder()
+        DocumentAccessTokenEntity tokenRecord = DocumentAccessTokenEntity.builder()
                 .documentUuid(entity.getUuid())
                 .tokenHash(tokenHash)
                 .createdBy(principal.getUserId())

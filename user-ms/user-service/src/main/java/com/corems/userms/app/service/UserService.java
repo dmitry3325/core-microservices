@@ -1,7 +1,7 @@
 package com.corems.userms.app.service;
 
-import com.corems.userms.app.entity.User;
-import com.corems.userms.app.entity.Role;
+import com.corems.userms.app.entity.UserEntity;
+import com.corems.userms.app.entity.RoleEntity;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
@@ -38,14 +38,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserInfo getUserById(UUID userId) {
-        User user = userRepository.findByUuid(userId)
+        UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
         return mapToUserInfo(user);
     }
 
     public SuccessfulResponse updateUserById(UUID userId, UserInfo userInfo) {
-        User user = userRepository.findByUuid(userId)
+        UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
         if (userInfo.getFirstName() != null) user.setFirstName(userInfo.getFirstName());
@@ -68,7 +68,7 @@ public class UserService {
             throw UserServiceException.of(UserServiceExceptionReasonCodes.USER_EXISTS, "User with this email already exists");
         }
 
-        User.UserBuilder userBuilder = User.builder()
+        UserEntity.UserEntityBuilder userBuilder = UserEntity.builder()
                 .email(createUserRequest.getEmail())
                 .firstName(createUserRequest.getFirstName())
                 .lastName(createUserRequest.getLastName())
@@ -79,7 +79,7 @@ public class UserService {
             userBuilder.phoneNumber(createUserRequest.getPhoneNumber());
         }
 
-        User user = userBuilder.build();
+        UserEntity user = userBuilder.build();
 
         List<String> desired = createUserRequest.getRoles() == null ? List.of("USER") : new ArrayList<>(createUserRequest.getRoles());
         assignRoles(user, desired);
@@ -90,7 +90,7 @@ public class UserService {
     }
 
     public SuccessfulResponse deleteUserById(UUID userId) {
-        User user = userRepository.findByUuid(userId)
+        UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
         userRepository.delete(user);
@@ -106,7 +106,7 @@ public class UserService {
     }
 
     public SuccessfulResponse adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
-        User user = userRepository.findByUuid(userId)
+        UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
         if (adminSetPasswordRequest.getNewPassword() == null || adminSetPasswordRequest.getConfirmPassword() == null ||
@@ -120,7 +120,7 @@ public class UserService {
     }
 
     public SuccessfulResponse adminChangeUserEmail(UUID userId, ChangeEmailRequest changeEmailRequest) {
-        User user = userRepository.findByUuid(userId)
+        UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
 
         user.setEmail(changeEmailRequest.getNewEmail());
@@ -138,7 +138,7 @@ public class UserService {
             sort = Optional.of("createdAt:desc");
         }
         QueryParams params = new QueryParams(page, pageSize, search, sort, filters);
-        Page<User> userPage = userRepository.findAllByQueryParams(params);
+        Page<UserEntity> userPage = userRepository.findAllByQueryParams(params);
         List<UserInfo> items = userPage.getContent().stream()
                 .map(this::mapToUserInfo)
                 .collect(Collectors.toList());
@@ -150,7 +150,7 @@ public class UserService {
         return response;
     }
 
-    private UserInfo mapToUserInfo(User user) {
+    private UserInfo mapToUserInfo(UserEntity user) {
         return new UserInfo()
                 .userId(user.getUuid())
                 .provider(user.getProvider())
@@ -159,13 +159,13 @@ public class UserService {
                 .lastName(user.getLastName())
                 .imageUrl(user.getImageUrl())
                 .phoneNumber(user.getPhoneNumber())
-                .roles(user.getRoles().stream().map(Role::getName).toList())
+                .roles(user.getRoles().stream().map(RoleEntity::getName).toList())
                 .lastLoginAt((user.getLastLoginAt() != null) ? user.getLastLoginAt().atOffset(ZoneOffset.UTC) : null)
                 .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    private void assignRoles(User user, List<String> desiredRoles) {
+    private void assignRoles(UserEntity user, List<String> desiredRoles) {
         List<String> normalized = desiredRoles.stream().map(String::trim).map(String::toUpperCase).toList();
 
         for (String rn : normalized) {
@@ -181,7 +181,7 @@ public class UserService {
 
         for (String rn : normalized) {
             CoreMsRoles roleEnum = CoreMsRoles.valueOf(rn);
-            user.getRoles().add(new Role(roleEnum, user));
+            user.getRoles().add(new RoleEntity(roleEnum, user));
         }
     }
 }

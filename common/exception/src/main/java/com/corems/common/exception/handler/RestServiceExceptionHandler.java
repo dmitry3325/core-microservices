@@ -21,6 +21,10 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @ControllerAdvice
 @Slf4j
 @RequiredArgsConstructor
@@ -80,6 +84,11 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ResponseEntity<Object> enumResponse = handleEnumTypeMismatch(ex, request);
+        if (enumResponse != null) {
+            return enumResponse;
+        }
+
         Error error = errorConverter.getErrorFromTypeMismatchException(ex, request);
 
         if (error != null) {
@@ -88,6 +97,25 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
             log.error("Unhandled TypeMismatch exception", ex);
             return handleExceptionInternal(ex, null, headers, status, request);
         }
+    }
+
+    private ResponseEntity<Object> handleEnumTypeMismatch(TypeMismatchException ex, WebRequest request) {
+        Class<?> requiredType = ex.getRequiredType();
+        Object rejectedValue = ex.getValue();
+
+        if (requiredType == null || !requiredType.isEnum() || !(rejectedValue instanceof String rejected)) {
+            return null;
+        }
+
+        List<String> allowed = Arrays.stream(requiredType.getEnumConstants())
+                .map(Object::toString)
+                .collect(Collectors.toList());
+
+        String message = String.format("Failed to convert value '%s' to enum %s.", rejected, requiredType.getSimpleName());
+        String details = String.format("Allowed values: %s", String.join(", ", allowed));
+
+        Error error = Error.of("TYPE_MISMATCH", message, details);
+        return handleExceptionInternal(ex, ErrorResponse.of(error), errorConverter.buildHttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
     @Override

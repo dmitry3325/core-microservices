@@ -1,7 +1,19 @@
 package com.corems.documentms.app.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,63 +29,43 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class DocumentAccessToken {
+@Table(name = "document_access_token")
+public class DocumentAccessTokenEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "uuid", unique = true, nullable = false, updatable = false)
+    @Column(unique = true, nullable = false, updatable = false)
     private UUID uuid;
 
-    @Column(name = "document_uuid", nullable = false)
+    @Column(nullable = false)
     private UUID documentUuid;
 
-    @Column(name = "token_hash", unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String tokenHash;
 
-    @Column(name = "created_by")
     private UUID createdBy;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(nullable = false)
     private Instant expiresAt;
 
-    @Column(name = "revoked")
     @Builder.Default
     private Boolean revoked = false;
 
-    @Column(name = "revoked_by")
     private UUID revokedBy;
 
-    @Column(name = "revoked_at")
     private Instant revokedAt;
 
-    @Column(name = "access_count")
     @Builder.Default
     private Integer accessCount = 0;
 
-    @Column(name = "last_accessed_at")
     private Instant lastAccessedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID();
-        }
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
-        if (revoked == null) {
-            revoked = false;
-        }
-        if (accessCount == null) {
-            accessCount = 0;
-        }
-    }
 
     public boolean isExpired() {
         return Instant.now().isAfter(expiresAt);

@@ -12,7 +12,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
@@ -28,7 +30,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Translation {
+public class TranslationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,16 +40,16 @@ public class Translation {
     @Column(nullable = false)
     private String realm;
 
-    @Column(name = "lang", nullable = false)
+    @Column(nullable = false)
     private String lang;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "data", columnDefinition = "jsonb", nullable = false)
+    @Column(columnDefinition = "jsonb", nullable = false)
     private Map<String, String> data;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
 
-    @Column(name = "updated_by")
     private UUID updatedBy;
 }

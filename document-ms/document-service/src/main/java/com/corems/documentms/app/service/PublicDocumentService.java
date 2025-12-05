@@ -7,7 +7,7 @@ import com.corems.documentms.api.model.DocumentResponse;
 import com.corems.documentms.api.model.UploadedByType;
 import com.corems.documentms.api.model.Visibility;
 import com.corems.documentms.app.config.StorageConfig;
-import com.corems.documentms.app.entity.DocumentAccessToken;
+import com.corems.documentms.app.entity.DocumentAccessTokenEntity;
 import com.corems.documentms.app.entity.DocumentEntity;
 import com.corems.documentms.app.model.DocumentStreamResult;
 import com.corems.documentms.app.repository.DocumentAccessTokenRepository;
@@ -109,7 +109,7 @@ public class PublicDocumentService {
         String tokenHash = hashToken(token);
 
         // Verify token exists in database and is valid
-        DocumentAccessToken tokenRecord = tokenRepository.findValidTokenByHash(tokenHash, Instant.now())
+        DocumentAccessTokenEntity tokenRecord = tokenRepository.findValidTokenByHash(tokenHash, Instant.now())
                 .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED,
                         "Token not found, expired, or has been revoked"));
 

@@ -1,4 +1,4 @@
-package com.corems.documentms.app.controller;
+ package com.corems.documentms.app.controller;
 
 import com.corems.documentms.api.PublicDocumentsApi;
 import com.corems.documentms.api.model.DocumentResponse;

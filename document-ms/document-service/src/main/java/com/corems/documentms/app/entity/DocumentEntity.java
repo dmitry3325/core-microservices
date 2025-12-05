@@ -1,7 +1,25 @@
 package com.corems.documentms.app.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -10,42 +28,22 @@ import java.util.LinkedHashSet;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "document")
 public class DocumentEntity {
 
     public enum Visibility {
-        PUBLIC("public"),
-        PRIVATE("private"),
-        BY_LINK("by_link");
-
-        private final String value;
-
-        Visibility(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
+        PUBLIC,
+        PRIVATE,
+        BY_LINK
     }
 
     public enum UploadedByType {
-        USER("user"),
-        SYSTEM("system");
-
-        private final String value;
-
-        UploadedByType(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
+        USER,
+        SYSTEM
     }
 
     @Id
@@ -74,14 +72,18 @@ public class DocumentEntity {
 
     private String objectKey;
 
+    @Enumerated(EnumType.STRING)
     private Visibility visibility;
 
     private UUID uploadedById;
 
+    @Enumerated(EnumType.STRING)
     private UploadedByType uploadedByType;
 
+    @CreationTimestamp
     private Instant createdAt;
 
+    @UpdateTimestamp
     private Instant updatedAt;
 
     private String checksum;
@@ -96,27 +98,10 @@ public class DocumentEntity {
 
     private Boolean deleted = false;
 
-    @Column(name = "deleted_by")
     private UUID deletedBy;
 
-    @Column(name = "deleted_at")
     private Instant deletedAt;
 
     @Version
     private Long version;
-
-    @PrePersist
-    protected void onCreate() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID();
-        }
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = Instant.now();
-    }
 }

@@ -1,7 +1,7 @@
 package com.corems.translationms.app.repository;
 
 import com.corems.common.utils.db.repo.SearchableRepository;
-import com.corems.translationms.app.entity.Translation;
+import com.corems.translationms.app.entity.TranslationEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TranslationRepository extends SearchableRepository<Translation, Long> {
+public interface TranslationRepository extends SearchableRepository<TranslationEntity, Long> {
 
-    Optional<Translation> findByRealmAndLang(String realm, String lang);
+    Optional<TranslationEntity> findByRealmAndLang(String realm, String lang);
 
-    @Query("select distinct t.lang from Translation t where t.realm = :realm")
+    @Query("select distinct t.lang from TranslationEntity t where t.realm = :realm")
     List<String> findDistinctLanguagesByRealm(@Param("realm") String realm);
 
     @Override

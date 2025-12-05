@@ -29,13 +29,10 @@ public class EmailMessageEntity extends MessageEntity {
     @Column(nullable = false)
     private String sender;
 
-    @Column
     private String senderName;
 
-    @Column
     private String cc;
 
-    @Column
     private String bcc;
 
     @Column(nullable = false)

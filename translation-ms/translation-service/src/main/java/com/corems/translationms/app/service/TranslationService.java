@@ -4,7 +4,7 @@ import com.corems.common.security.SecurityUtils;
 import com.corems.translationms.api.model.RealmsPagedResponse;
 import com.corems.translationms.api.model.SuccessfulResponse;
 import com.corems.translationms.api.model.TranslationAdminView;
-import com.corems.translationms.app.entity.Translation;
+import com.corems.translationms.app.entity.TranslationEntity;
 import com.corems.translationms.app.repository.TranslationRepository;
 import com.corems.translationms.api.model.LanguageInfo;
 import com.corems.translationms.api.model.RealmLanguages;
@@ -35,7 +35,7 @@ public class TranslationService {
     @Transactional(readOnly = true)
     public Map<String, String> getTranslations(String realm, String lang) {
         return repository.findByRealmAndLang(realm, lang)
-                .map(Translation::getData)
+                .map(TranslationEntity::getData)
                 .orElseGet(Collections::emptyMap);
     }
 
@@ -55,10 +55,10 @@ public class TranslationService {
                                                        Optional<String> sort) {
         if (sort.isEmpty()) sort = Optional.of("realm:asc");
         QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.empty());
-        Page<Translation> result = repository.findAllByQueryParams(params);
+        Page<TranslationEntity> result = repository.findAllByQueryParams(params);
 
         List<RealmLanguages> realms =  result.stream()
-                .collect(Collectors.groupingBy(Translation::getRealm))
+                .collect(Collectors.groupingBy(TranslationEntity::getRealm))
                 .entrySet().stream()
                 .map(e -> {
                     RealmLanguages rl = new RealmLanguages(e.getKey(), null);
@@ -81,9 +81,9 @@ public class TranslationService {
 
     @Transactional
     public SuccessfulResponse updateTranslations(String realm, String lang, Map<String, String> translations) {
-        Optional<Translation> existing = repository.findByRealmAndLang(realm, lang);
-        Translation t = existing.orElseGet(() -> {
-            Translation n = new Translation();
+        Optional<TranslationEntity> existing = repository.findByRealmAndLang(realm, lang);
+        TranslationEntity t = existing.orElseGet(() -> {
+            TranslationEntity n = new TranslationEntity();
             n.setRealm(realm);
             n.setLang(lang);
             return n;
@@ -109,7 +109,7 @@ public class TranslationService {
 
     @Transactional
     public SuccessfulResponse deleteTranslation(String realm, String lang) {
-        Optional<Translation> existing = repository.findByRealmAndLang(realm, lang);
+        Optional<TranslationEntity> existing = repository.findByRealmAndLang(realm, lang);
         existing.ifPresent(repository::delete);
         return new SuccessfulResponse().result(true);
     }

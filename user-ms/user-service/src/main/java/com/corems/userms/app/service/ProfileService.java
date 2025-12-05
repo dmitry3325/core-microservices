@@ -2,8 +2,8 @@ package com.corems.userms.app.service;
 
 import com.corems.common.security.SecurityUtils;
 import com.corems.common.security.UserPrincipal;
-import com.corems.userms.app.entity.Role;
-import com.corems.userms.app.entity.User;
+import com.corems.userms.app.entity.RoleEntity;
+import com.corems.userms.app.entity.UserEntity;
 import com.corems.userms.api.model.ChangePasswordRequest;
 import com.corems.userms.api.model.SuccessfulResponse;
 import com.corems.userms.api.model.UserInfo;
@@ -29,7 +29,7 @@ public class ProfileService {
     public UserInfo getCurrentUserInfo() {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
-        User user = userRepository.findByUuid(userPrincipal.getUserId())
+        UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
 
         return new UserInfo()
@@ -40,7 +40,7 @@ public class ProfileService {
                 .lastName(user.getLastName())
                 .imageUrl(user.getImageUrl())
                 .phoneNumber(user.getPhoneNumber())
-                .roles(user.getRoles().stream().map(Role::getName).toList())
+                .roles(user.getRoles().stream().map(RoleEntity::getName).toList())
                 .lastLoginAt(user.getLastLoginAt().atOffset(ZoneOffset.UTC))
                 .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
@@ -48,7 +48,7 @@ public class ProfileService {
 
     public UserInfo updateCurrentUserProfile(UserProfileUpdateRequest userProfileUpdateRequest) {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
-        User user = userRepository.findByUuid(userPrincipal.getUserId())
+        UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
         if (userProfileUpdateRequest.getFirstName() != null) user.setFirstName(userProfileUpdateRequest.getFirstName());
         if (userProfileUpdateRequest.getLastName() != null) user.setLastName(userProfileUpdateRequest.getLastName());
@@ -65,7 +65,7 @@ public class ProfileService {
 
     public SuccessfulResponse changeOwnPassword(ChangePasswordRequest changePasswordRequest) {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
-        User user = userRepository.findByUuid(userPrincipal.getUserId())
+        UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
 
         if (user.getPassword() != null && !passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {

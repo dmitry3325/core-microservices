@@ -4,9 +4,9 @@ import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.service.TokenProvider;
 import com.corems.communicationms.api.model.EmailNotificationRequest;
 import com.corems.communicationms.client.NotificationsApi;
-import com.corems.userms.app.entity.LoginToken;
-import com.corems.userms.app.entity.Role;
-import com.corems.userms.app.entity.User;
+import com.corems.userms.app.entity.LoginTokenEntity;
+import com.corems.userms.app.entity.RoleEntity;
+import com.corems.userms.app.entity.UserEntity;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
@@ -46,7 +46,7 @@ public class AuthService {
     private final NotificationsApi notificationsApi;
 
     public TokenResponse signIn(SignInRequest signRequest) {
-        User user = userRepository
+        UserEntity user = userRepository
                 .findByEmail(signRequest.getEmail())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong username or password."));
 
@@ -93,11 +93,11 @@ public class AuthService {
         return new AccessTokenResponse().accessToken(token);
     }
 
-    public String createRefreshToken(User user) {
+    public String createRefreshToken(UserEntity user) {
         UUID tokenId = UUID.randomUUID();
         String refreshToken = tokenProvider.createRefreshToken(tokenId.toString(), getClaims(user));
 
-        LoginToken loginToken = new LoginToken();
+        LoginTokenEntity loginToken = new LoginTokenEntity();
         loginToken.setUuid(tokenId);
         loginToken.setUser(user);
         loginToken.setToken(refreshToken);
@@ -107,7 +107,7 @@ public class AuthService {
     }
 
     private void validateRefreshToken(UserPrincipal userPrincipal) {
-        LoginToken refreshToken = loginTokenRepository
+        LoginTokenEntity refreshToken = loginTokenRepository
                 .findByUuid(userPrincipal.getTokenId())
                 .orElseThrow(() ->  UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId())));
 
@@ -116,13 +116,13 @@ public class AuthService {
         }
     }
 
-    private Map<String, Object> getClaims(User user) {
+    private Map<String, Object> getClaims(UserEntity user) {
         return Map.of(
                 TokenProvider.CLAIM_USER_ID, user.getUuid(),
                 TokenProvider.CLAIM_EMAIL, user.getEmail(),
                 TokenProvider.CLAIM_FIRST_NAME, user.getFirstName(),
                 TokenProvider.CLAIM_LAST_NAME, user.getLastName(),
-                TokenProvider.CLAIM_ROLES, user.getRoles().stream().map(Role::getName).toList()
+                TokenProvider.CLAIM_ROLES, user.getRoles().stream().map(RoleEntity::getName).toList()
         );
     }
 
@@ -136,7 +136,7 @@ public class AuthService {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_EXISTS, "User found in the system");
         }
 
-        User.UserBuilder userBuilder = User.builder()
+        UserEntity.UserEntityBuilder userBuilder = UserEntity.builder()
                 .email(signUpRequest.getEmail())
                 .firstName(signUpRequest.getFirstName())
                 .lastName(signUpRequest.getLastName())
@@ -148,8 +148,8 @@ public class AuthService {
             userBuilder.imageUrl(signUpRequest.getImageUrl());
         }
 
-        User user = userBuilder.build();
-        user.setRoles(List.of(new Role(CoreMsRoles.USER_MS_USER, user)));
+        UserEntity user = userBuilder.build();
+        user.setRoles(List.of(new RoleEntity(CoreMsRoles.USER_MS_USER, user)));
 
         var savedUser = userRepository.save(user);
 
@@ -159,7 +159,7 @@ public class AuthService {
     }
 
     @Async
-    public void sendWelcomeEmail(User user) {
+    public void sendWelcomeEmail(UserEntity user) {
         try {
             var res = notificationsApi.sendEmailNotification(new EmailNotificationRequest(
                     "Welcome to CoreMS",

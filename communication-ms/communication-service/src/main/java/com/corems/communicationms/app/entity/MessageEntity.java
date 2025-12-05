@@ -17,6 +17,7 @@ import jakarta.persistence.InheritanceType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,14 +42,15 @@ public abstract class MessageEntity implements Serializable {
     @Column(name = "type", insertable = false, updatable = false)
     private MessageType type;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private UUID userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(nullable = false)
     private MessageStatus status;
 
     @Column(nullable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column
@@ -58,7 +60,7 @@ public abstract class MessageEntity implements Serializable {
     @Column
     private MessageSenderType sentByType;
 
-    @Column(name = "sent_by_id", length = 36)
+    @Column(length = 36)
     private UUID sentById;
 
     public MessageEntity() {
