@@ -6,7 +6,6 @@ import com.corems.common.security.service.TokenProvider;
 import com.corems.documentms.api.model.DocumentResponse;
 import com.corems.documentms.api.model.UploadedByType;
 import com.corems.documentms.api.model.Visibility;
-import com.corems.documentms.app.config.StorageConfig;
 import com.corems.documentms.app.entity.DocumentAccessTokenEntity;
 import com.corems.documentms.app.entity.DocumentEntity;
 import com.corems.documentms.app.model.DocumentStreamResult;
@@ -21,7 +20,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -34,18 +32,15 @@ public class PublicDocumentService {
     private final DocumentRepository repository;
     private final DocumentAccessTokenRepository tokenRepository;
     private final S3StorageService storage;
-    private final StorageConfig storageConfig;
     private final TokenProvider tokenProvider;
 
     public PublicDocumentService(DocumentRepository repository,
                                  DocumentAccessTokenRepository tokenRepository,
                                  S3StorageService storage,
-                                 StorageConfig storageConfig,
                                  TokenProvider tokenProvider) {
         this.repository = repository;
         this.tokenRepository = tokenRepository;
         this.storage = storage;
-        this.storageConfig = storageConfig;
         this.tokenProvider = tokenProvider;
     }
 
@@ -80,15 +75,17 @@ public class PublicDocumentService {
                 .build();
     }
 
+    /**
+     * Validate the token and prepare a stream result for the referenced document.
+     * This is used by the public link endpoint which should stream binary content.
+     */
     @Transactional
-    public DocumentResponse getDocumentByToken(String token) {
-        // Validate JWT token
+    public DocumentStreamResult prepareStreamByToken(String token) {
         if (!tokenProvider.isTokenValid(token)) {
             throw ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED,
                     "Invalid or expired token");
         }
 
-        // Extract document UUID from token claims
         String documentUuidStr = tokenProvider.getClaim(token, claims ->
                 claims.get("documentUuid", String.class));
 
@@ -113,6 +110,11 @@ public class PublicDocumentService {
                 .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED,
                         "Token not found, expired, or has been revoked"));
 
+        if (tokenRecord.getDocumentUuid() == null || !tokenRecord.getDocumentUuid().equals(documentUuid)) {
+            throw ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED,
+                    "Token does not match the requested document");
+        }
+
         // Track token usage
         tokenRecord.setAccessCount(tokenRecord.getAccessCount() + 1);
         tokenRecord.setLastAccessedAt(Instant.now());
@@ -123,7 +125,20 @@ public class PublicDocumentService {
                 .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST,
                         "Document not found or not accessible"));
 
-        return toResponse(entity);
+        InputStream stream;
+        try {
+            stream = storage.download(entity.getBucket(), entity.getObjectKey());
+        } catch (Exception e) {
+            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
+                    "Failed to download document from storage: " + e.getMessage());
+        }
+
+        return DocumentStreamResult.builder()
+                .stream(stream)
+                .contentType(entity.getContentType())
+                .size(entity.getSize())
+                .filename(entity.getOriginalFilename())
+                .build();
     }
 
     private String hashToken(String token) {

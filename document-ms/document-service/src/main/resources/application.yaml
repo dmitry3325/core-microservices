@@ -27,3 +27,4 @@ app:
   allowedExtensions: ${ALLOWED_EXTENSIONS:pdf,docx,doc,txt,jpg,jpeg,png,gif,xlsx,xls,csv,zip}
   stream:
     buffer-size: ${STREAM_BUFFER_SIZE:8192}  # 8KB default
+  base-url: ${DOCUMENT_BASE_URL:http://localhost:${DOCUMENT-SERVICE-PORT:3003}}

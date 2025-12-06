@@ -1,4 +1,4 @@
- package com.corems.documentms.app.controller;
+package com.corems.documentms.app.controller;
 
 import com.corems.documentms.api.PublicDocumentsApi;
 import com.corems.documentms.api.model.DocumentResponse;
@@ -35,12 +35,21 @@ public class PublicDocumentsController implements PublicDocumentsApi {
     @Override
     public ResponseEntity<Resource> downloadPublicDocument(UUID uuid) {
         DocumentStreamResult streamResult = service.preparePublicDocumentStream(uuid);
+        return streamResponse(streamResult, "attachment");
+    }
 
+    @Override
+    public ResponseEntity<Resource> accessDocumentByToken(String token) {
+        DocumentStreamResult streamResult = service.prepareStreamByToken(token);
+        return streamResponse(streamResult, "inline");
+    }
+
+    private ResponseEntity<Resource> streamResponse(DocumentStreamResult streamResult, String dispositionType) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(
                 streamResult.getContentType() != null ? streamResult.getContentType() : "application/octet-stream"));
         headers.setContentLength(streamResult.getSize() != null ? streamResult.getSize() : -1);
-        headers.setContentDisposition(ContentDisposition.builder("attachment")
+        headers.setContentDisposition(ContentDisposition.builder(dispositionType)
                 .filename(streamResult.getFilename(), StandardCharsets.UTF_8)
                 .build());
         headers.setCacheControl("no-cache, no-store, must-revalidate");
@@ -55,10 +64,4 @@ public class PublicDocumentsController implements PublicDocumentsApi {
                 .headers(headers)
                 .body(resource);
     }
-
-    @Override
-    public ResponseEntity<DocumentResponse> accessDocumentByToken(String token) {
-        return ResponseEntity.ok(service.getDocumentByToken(token));
-    }
 }
-

@@ -299,11 +299,12 @@ paths:
             type: string
       responses:
         '200':
-          description: Document metadata
+          description: Binary stream of the document content
           content:
-            application/json:
+            application/octet-stream:
               schema:
-                $ref: '#/components/schemas/DocumentResponse'
+                type: string
+                format: binary
         '404':
           $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
         '403':
@@ -415,8 +416,11 @@ components:
     GenerateLinkRequest:
       type: object
       properties:
-        expiresInSeconds:
+        expiresInHours:
           type: integer
+          description: Expiration time in hours for the generated access link. If omitted, defaults to 24 hours.
+          minimum: 1
+          example: 24
 
     LinkResponse:
       type: object

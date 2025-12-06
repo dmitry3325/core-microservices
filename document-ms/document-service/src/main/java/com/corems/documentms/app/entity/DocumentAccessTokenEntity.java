@@ -5,7 +5,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,9 +35,6 @@ public class DocumentAccessTokenEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
-
-    @Column(unique = true, nullable = false, updatable = false)
-    private UUID uuid;
 
     @Column(nullable = false)
     private UUID documentUuid;
@@ -74,5 +70,6 @@ public class DocumentAccessTokenEntity {
     public boolean isValid() {
         return !revoked && !isExpired();
     }
-}
 
+    // kept for possible future use; currently validated through repository query
+}

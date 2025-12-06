@@ -14,13 +14,10 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.time.Duration;
 
 @Service
 public class S3StorageService {
@@ -122,31 +119,6 @@ public class S3StorageService {
         } catch (Exception e) {
             throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
                     "Failed to delete from S3: " + e.getMessage());
-        }
-    }
-
-    public String generatePresignedUrl(String bucket, String objectKey, int expiresInSeconds) {
-        if (bucket == null || bucket.isBlank()) bucket = storageConfig.getDefaultBucket();
-
-        try {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(objectKey)
-                    .build();
-
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofSeconds(expiresInSeconds))
-                    .getObjectRequest(getObjectRequest)
-                    .build();
-
-            PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
-            return presignedRequest.url().toString();
-        } catch (S3Exception e) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
-                    "Failed to generate presigned URL: " + e.awsErrorDetails().errorMessage());
-        } catch (Exception e) {
-            throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR,
-                    "Failed to generate presigned URL: " + e.getMessage());
         }
     }
 }

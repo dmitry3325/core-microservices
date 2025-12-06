@@ -35,6 +35,13 @@ public class DocumentConfig {
     private StreamConfig stream = new StreamConfig();
 
     /**
+     * Base URL for the document service when building externally-facing links.
+     * Example: https://files.corems.com or https://api.corems.com
+     * If empty, generated links will be relative ("/api/public/...").
+     */
+    private String baseUrl = "";
+
+    /**
      * Get allowed extensions as a Set
      */
     public Set<String> getAllowedExtensionsSet() {
@@ -44,10 +51,13 @@ public class DocumentConfig {
                 .collect(Collectors.toSet());
     }
 
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
     @Getter
     @Setter
     public static class StreamConfig {
         private int bufferSize = 8192;
     }
 }
-

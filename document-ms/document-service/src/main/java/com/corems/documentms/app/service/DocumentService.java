@@ -174,7 +174,7 @@ public class DocumentService {
                     ? DocumentEntity.Visibility.valueOf(metadata.getVisibility().name())
                     : DocumentEntity.Visibility.PRIVATE);
             entity.setDescription(metadata != null ? metadata.getDescription() : null);
-            entity.setTags(normalizeTags(metadata.getTags()));
+            entity.setTags(normalizeTags(metadata == null ? null : metadata.getTags()));
 
             if (ownerId != null) {
                 entity.setUploadedById(ownerId);
@@ -314,11 +314,16 @@ public class DocumentService {
         checkDocumentAccess(entity);
 
         UserPrincipal principal = SecurityUtils.getUserPrincipal();
-        int expirySeconds = request != null && request.getExpiresInSeconds() != null
-                ? request.getExpiresInSeconds()
-                : 3600;
 
-        Instant expiresAt = Instant.now().plusSeconds(expirySeconds);
+        int expiryHours = (request != null && request.getExpiresInHours() != null)
+                ? request.getExpiresInHours()
+                : 24;
+
+        if (expiryHours <= 0) {
+            throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "expiresInHours must be >= 1");
+        }
+
+        Instant expiresAt = Instant.now().plusSeconds((long) expiryHours * 3600L);
 
         // Generate JWT token with document UUID as subject
         String jwtToken = tokenProvider.createAccessToken(
@@ -327,7 +332,7 @@ public class DocumentService {
                         "type", "document_access",
                         "documentUuid", entity.getUuid().toString(),
                         "visibility", entity.getVisibility().name(),
-                        "expiresIn", expirySeconds
+                        "expiresInHours", expiryHours
                 )
         );
 
@@ -368,8 +373,13 @@ public class DocumentService {
     }
 
     private String buildDocumentAccessUrl(String token) {
-        // In production, this should use the actual base URL from configuration
-        return "/api/public/documents/link/" + token;
+        String base = documentConfig.getBaseUrl();
+        String path = "/api/public/documents/link/" + token;
+        if (base == null || base.isBlank()) {
+            return path;
+        }
+        String normalizedBase = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
+        return normalizedBase + path;
     }
 
     public PaginatedDocumentList getDocumentList(
@@ -395,7 +405,7 @@ public class DocumentService {
 
         // Regular users (DOCUMENTMS_USER) can only see their own documents
         if (!isAdmin && principal.getUserId() != null) {
-            filterList.add("uploadedById:" + principal.getUserId().toString());
+            filterList.add("uploadedById:" + principal.getUserId());
         }
 
         QueryParams params = new QueryParams(page, pageSize, search, sort, Optional.of(filterList));
