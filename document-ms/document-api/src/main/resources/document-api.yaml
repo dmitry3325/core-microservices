@@ -175,6 +175,32 @@ paths:
         '404':
           $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
         <<: *common-error-responses
+    patch:
+      tags: [Document]
+      summary: Update document metadata (name, tags, description, visibility)
+      operationId: updateDocumentMetadata
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentUpdateRequest'
+      responses:
+        '200':
+          description: Updated document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          $ref: './.gen/common-api.yaml#/components/responses/NotFoundError'
+        <<: *common-error-responses
 
   /api/documents/{uuid}/generate-link:
     post:
@@ -399,9 +425,23 @@ components:
           type: string
         url:
           type: string
-        expiresAt:
+
+    DocumentUpdateRequest:
+      type: object
+      description: Fields to update on an existing document. Any null field will be ignored (left unchanged).
+      properties:
+        name:
           type: string
-          format: date-time
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        tags:
+          type: string
+          description: Comma-separated list of tags (e.g. "tag1,tag2"). Passing null leaves tags unchanged; passing empty string clears tags.
+        visibility:
+          $ref: '#/components/schemas/Visibility'
 
     PaginatedDocumentList:
       allOf:

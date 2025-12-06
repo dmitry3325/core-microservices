@@ -1,9 +1,7 @@
 package com.corems.userms.app.security.oauth2;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.userms.app.entity.RoleEntity;
 import com.corems.userms.app.entity.UserEntity;
-import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.app.model.exception.AuthExceptionReasonCodes;
 import com.corems.userms.app.model.exception.AuthServiceException;
 import com.corems.userms.app.model.enums.AuthProvider;
@@ -13,6 +11,7 @@ import com.corems.userms.app.security.oauth2.provider.OAuth2UserInfoFactory;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.corems.userms.app.service.RoleService;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,7 +22,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -32,6 +30,7 @@ import java.util.Optional;
 public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final RoleService roleService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -80,7 +79,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             newUser.setLastName(oAuth2UserInfo.getLastName());
             newUser.setProvider(authProvider.name());
             newUser.setImageUrl(oAuth2UserInfo.getImageUrl());
-            newUser.setRoles(List.of(new RoleEntity(CoreMsRoles.USER_MS_USER, newUser)));
+            // Assign default roles using centralized RoleService (validates against CoreMsRoles)
+            roleService.assignRoles(newUser, null);
 
             user = userRepository.save(newUser);
 

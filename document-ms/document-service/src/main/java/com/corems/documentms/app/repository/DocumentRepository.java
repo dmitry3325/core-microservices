@@ -16,7 +16,7 @@ public interface DocumentRepository extends SearchableRepository<DocumentEntity,
 
     Optional<DocumentEntity> findByUuid(UUID uuid);
 
-    Optional<DocumentEntity> findByName(String name);
+    Optional<DocumentEntity> findByUserIdAndName(UUID userId, String name);
 
     @Query("SELECT d FROM DocumentEntity d WHERE d.uuid = :uuid AND d.visibility IN (com.corems.documentms.app.entity.DocumentEntity.Visibility.PUBLIC, com.corems.documentms.app.entity.DocumentEntity.Visibility.BY_LINK) AND d.deleted = false")
     Optional<DocumentEntity> findPublicOrByLinkDocument(@Param("uuid") UUID uuid);

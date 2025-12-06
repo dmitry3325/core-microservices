@@ -10,3 +10,6 @@ spring:
     default-property-inclusion: non_null
   config:
     import: classpath:db-config.yaml, security-config.yaml
+
+users:
+  default-roles:

@@ -5,6 +5,7 @@ import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.common.utils.db.utils.QueryParams;
 import com.corems.documentms.api.model.DocumentResponse;
+import com.corems.documentms.api.model.DocumentUpdateRequest;
 import com.corems.documentms.api.model.DocumentUploadMetadata;
 import com.corems.documentms.api.model.GenerateLinkRequest;
 import com.corems.documentms.api.model.LinkResponse;
@@ -77,6 +78,11 @@ public class DocumentService {
             throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "File cannot be empty");
         }
 
+        UserPrincipal principal = SecurityUtils.getUserPrincipal();
+        UUID ownerId = (metadata != null && metadata.getOwnerUserId() != null)
+                ? metadata.getOwnerUserId()
+                : principal.getUserId();
+
         validateFileSize(file.getSize());
 
         String name = file.getOriginalFilename() == null ? file.getName() : file.getOriginalFilename();
@@ -87,15 +93,13 @@ public class DocumentService {
 
         validateExtension(extension);
 
-        Optional<DocumentEntity> existingDoc = repository.findByName(name);
+        Optional<DocumentEntity> existingDoc = repository.findByUserIdAndName(ownerId, name);
         boolean shouldReplace = metadata != null && metadata.getConfirmReplace() != null && metadata.getConfirmReplace();
 
         if (existingDoc.isPresent() && !shouldReplace) {
             throw ServiceException.of(DefaultExceptionReasonCodes.CONFLICT,
                     String.format("Document with name '%s' already exists", name));
         }
-
-        UserPrincipal principal = SecurityUtils.getUserPrincipal();
 
         String checksum;
         byte[] fileContent;
@@ -152,10 +156,6 @@ public class DocumentService {
             entity.setChecksum(checksum);
 
             UUID documentUuid = UUID.randomUUID();
-            UUID ownerId = (metadata != null && metadata.getOwnerUserId() != null)
-                    ? metadata.getOwnerUserId()
-                    : principal.getUserId();
-
             if (metadata != null && metadata.getOwnerUserId() != null) {
                 if (!SecurityUtils.hasRole(CoreMsRoles.DOCUMENT_MS_ADMIN)) {
                     throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
@@ -347,7 +347,6 @@ public class DocumentService {
         LinkResponse response = new LinkResponse();
         response.setUrl(buildDocumentAccessUrl(jwtToken));
         response.setToken(jwtToken);
-        response.setExpiresAt(OffsetDateTime.ofInstant(expiresAt, ZoneOffset.UTC));
 
         return response;
     }
@@ -411,6 +410,33 @@ public class DocumentService {
         pl.setTotalPages(pageResult.getTotalPages());
 
         return pl;
+    }
+
+    @Transactional
+    public DocumentResponse updateMetadata(UUID uuid, DocumentUpdateRequest req) {
+        DocumentEntity entity = repository.findByUuid(uuid)
+                .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST,
+                        "Document not found with UUID: " + uuid));
+
+        if (req != null) {
+            if (req.getName() != null) {
+                entity.setName(req.getName());
+            }
+            if (req.getDescription() != null) {
+                entity.setDescription(req.getDescription());
+            }
+            if (req.getTags() != null) {
+                entity.setTags(normalizeTags(req.getTags()));
+            }
+            if (req.getVisibility() != null) {
+                entity.setVisibility(DocumentEntity.Visibility.valueOf(req.getVisibility().name()));
+            }
+        }
+
+        entity.setUpdatedAt(Instant.now());
+
+        DocumentEntity saved = repository.save(entity);
+        return toResponse(saved);
     }
 
     private String calculateChecksum(InputStream inputStream) throws IOException {
@@ -488,7 +514,7 @@ public class DocumentService {
                 throw ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED,
                         "Authentication required to access private documents");
             }
-            if (!document.getUploadedById().equals(principal.getUserId())) {
+            if (!document.getUserId().equals(principal.getUserId())) {
                 throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
                         "You don't have permission to access this document");
             }
@@ -537,6 +563,4 @@ public class DocumentService {
 
         return r;
     }
-
-
 }

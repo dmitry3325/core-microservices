@@ -12,23 +12,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.util.Map;
 import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
+@RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
 public class TranslationAdminController implements TranslationAdminApi {
 
     private final TranslationService service;
 
     @Override
-    @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<TranslationAdminView> getTranslationAdminByRealmAndLang(String realm, String lang) {
         return ResponseEntity.of(service.getTranslationAdminView(realm, lang));
     }
 
     @Override
-    @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<RealmsPagedResponse> realmsList(
             Optional<Integer> page,
             Optional<Integer> pageSize,
@@ -38,7 +36,6 @@ public class TranslationAdminController implements TranslationAdminApi {
     }
 
     @Override
-    @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> updateTranslationAdminByRealmAndLang(String realm,
                                                                                    String lang,
                                                                                    TranslationUpdateRequest translationUpdateRequest) {
@@ -46,7 +43,6 @@ public class TranslationAdminController implements TranslationAdminApi {
     }
 
     @Override
-    @RequireRoles(CoreMsRoles.TRANSLATION_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> deleteTranslationAdminByRealmAndLang(String realm, String lang) {
         return ResponseEntity.ok(service.deleteTranslation(realm, lang));
     }

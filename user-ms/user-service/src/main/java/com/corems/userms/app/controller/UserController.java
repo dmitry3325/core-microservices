@@ -24,7 +24,6 @@ import com.corems.common.security.CoreMsRoles;
 @Log4j2
 @RestController
 @RequiredArgsConstructor
-@RequireRoles(CoreMsRoles.USER_MS_ADMIN)
 public class UserController implements UserApi {
 
     private final UserService userService;
@@ -35,6 +34,7 @@ public class UserController implements UserApi {
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> updateUserById(UUID userId, UserInfo userInfo) {
         return ResponseEntity.ok(userService.updateUserById(userId, userInfo));
     }
@@ -50,26 +50,31 @@ public class UserController implements UserApi {
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> createUser(CreateUserRequest createUserRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(createUserRequest));
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> deleteUserById(UUID userId) {
         return ResponseEntity.ok(userService.deleteUserById(userId));
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> triggerUserResetPassword(UUID userId) {
         return ResponseEntity.ok(userService.triggerUserResetPassword(userId));
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         return ResponseEntity.ok(userService.adminChangeUserPassword(userId, adminSetPasswordRequest));
     }
 
     @Override
+    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> adminChangeUserEmail(UUID userId, ChangeEmailRequest changeEmailRequest) {
         return ResponseEntity.ok(userService.adminChangeUserEmail(userId, changeEmailRequest));
     }

@@ -1,7 +1,10 @@
 package com.corems.documentms.app.controller;
 
+import com.corems.common.security.CoreMsRoles;
+import com.corems.common.security.RequireRoles;
 import com.corems.documentms.api.DocumentApi;
 import com.corems.documentms.api.model.DocumentResponse;
+import com.corems.documentms.api.model.DocumentUpdateRequest;
 import com.corems.documentms.api.model.GenerateLinkRequest;
 import com.corems.documentms.api.model.LinkResponse;
 import com.corems.documentms.api.model.SuccessfulResponse;
@@ -31,11 +34,6 @@ public class DocumentController implements DocumentApi {
     }
 
     @Override
-    public ResponseEntity<SuccessfulResponse> deleteDocument(UUID uuid, Optional<Boolean> permanent) {
-        return ResponseEntity.ok(service.delete(uuid, permanent.orElse(false)));
-    }
-
-    @Override
     public ResponseEntity<LinkResponse> generateDocumentAccessLink(UUID uuid, GenerateLinkRequest generateLinkRequest) {
         return ResponseEntity.ok(service.generateAccessLink(uuid, generateLinkRequest));
     }
@@ -43,6 +41,18 @@ public class DocumentController implements DocumentApi {
     @Override
     public ResponseEntity<DocumentResponse> getDocumentMetadata(UUID uuid) {
         return ResponseEntity.ok(service.getByUuid(uuid));
+    }
+
+    @Override
+    @RequireRoles(CoreMsRoles.DOCUMENT_MS_ADMIN)
+    public ResponseEntity<DocumentResponse> updateDocumentMetadata(UUID uuid, DocumentUpdateRequest documentUpdateRequest) {
+        return ResponseEntity.ok(service.updateMetadata(uuid, documentUpdateRequest));
+    }
+
+    @Override
+    @RequireRoles(CoreMsRoles.DOCUMENT_MS_ADMIN)
+    public ResponseEntity<SuccessfulResponse> deleteDocument(UUID uuid, Optional<Boolean> permanent) {
+        return ResponseEntity.ok(service.delete(uuid, permanent.orElse(false)));
     }
 
     @Override
@@ -69,5 +79,3 @@ public class DocumentController implements DocumentApi {
                 .body(resource);
     }
 }
-
-
