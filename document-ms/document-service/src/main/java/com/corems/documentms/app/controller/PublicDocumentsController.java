@@ -35,7 +35,7 @@ public class PublicDocumentsController implements PublicDocumentsApi {
     @Override
     public ResponseEntity<Resource> downloadPublicDocument(UUID uuid) {
         DocumentStreamResult streamResult = service.preparePublicDocumentStream(uuid);
-        return streamResponse(streamResult, "attachment");
+        return streamResponse(streamResult, "inline");
     }
 
     @Override
