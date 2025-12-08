@@ -88,6 +88,11 @@ public class EmailService {
     public NotificationResponse sendNotification(EmailNotificationRequest emailRequest) {
         try {
             EmailPayload payload = getPayload(emailRequest);
+
+            if (payload.getDocumentUuids() != null) {
+                validateAttachments(payload.getDocumentUuids());
+            }
+
             MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, UUID.randomUUID(), payload);
 
             NotificationResponse response = new NotificationResponse();

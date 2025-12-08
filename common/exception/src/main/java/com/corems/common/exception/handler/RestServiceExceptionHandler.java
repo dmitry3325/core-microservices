@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +56,25 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
         return handleExceptionInternal(ex,
                 ErrorResponse.of(errorConverter.getErrorsFromConstraintViolationException(ex, request)),
                 errorConverter.buildHttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    protected ResponseEntity<Object> handleMultipartException(MultipartException ex, WebRequest request) {
+
+        Error error = Error.of(DefaultExceptionReasonCodes.INVALID_REQUEST.getErrorCode(), "Invalid multipart request");
+
+        return handleExceptionInternal(ex,
+                ErrorResponse.of(error),
+                errorConverter.buildHttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Error error = Error.of(DefaultExceptionReasonCodes.INVALID_REQUEST.getErrorCode(), "Maximum upload size exceeded");
+
+        return handleExceptionInternal(ex,
+                ErrorResponse.of(error),
+                errorConverter.buildHttpHeaders(), HttpStatus.PAYLOAD_TOO_LARGE, request);
     }
 
     @Override
