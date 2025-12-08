@@ -4,10 +4,14 @@ import com.corems.communicationms.app.model.MessageType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Entity(name = "email")
 @DiscriminatorValue("email")
@@ -40,4 +44,7 @@ public class EmailMessageEntity extends MessageEntity {
 
     @Column(nullable = false)
     private String body;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "emailMessage", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private Collection<EmailAttachmentEntity> attachments = new ArrayList<>();
 }

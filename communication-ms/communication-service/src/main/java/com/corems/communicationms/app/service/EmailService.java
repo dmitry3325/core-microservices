@@ -10,23 +10,28 @@ import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.NotificationResponse;
 import com.corems.communicationms.api.model.SendStatus;
 import com.corems.communicationms.app.config.MailConfig;
+import com.corems.communicationms.app.entity.EmailAttachmentEntity;
 import com.corems.communicationms.app.entity.EmailMessageEntity;
 import com.corems.communicationms.app.model.MessageStatus;
 import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.EmailServiceProvider;
 import com.corems.common.security.UserPrincipal;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.corems.documentms.api.model.DocumentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.corems.communicationms.api.model.MessageResponse.SentByTypeEnum;
+import com.corems.documentms.client.DocumentApi;
+import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Slf4j
 @Component
@@ -36,10 +41,22 @@ public class EmailService {
     private final MessageRepository messageRepository;
     private final EmailServiceProvider emailServiceProvider;
     private final MessageDispatcher messageDispatcher;
+    private final DocumentApi documentApi;
 
     public MessageResponse sendMessage(EmailMessageRequest emailRequest) {
         EmailMessageEntity emailEntity = createEntity(emailRequest);
         EmailPayload payload = getPayload(emailRequest);
+
+        if (payload.getDocumentUuids() != null) {
+            validateAttachments(payload.getDocumentUuids()).forEach(documentResponse -> {
+                EmailAttachmentEntity att = new EmailAttachmentEntity();
+                att.setEmailMessage(emailEntity);
+                att.setDocumentUuid(documentResponse.getUuid());
+                att.setChecksum(documentResponse.getChecksum());
+                emailEntity.getAttachments().add(att);
+            });
+        }
+
         try {
             MessageStatus status = messageDispatcher.dispatchMessage(emailServiceProvider, emailEntity.getUuid(), payload);
             emailEntity.setStatus(status);
@@ -91,6 +108,7 @@ public class EmailService {
         payload.setSenderName(emailRequest.getSenderName());
         payload.setCc(emailRequest.getCc());
         payload.setBcc(emailRequest.getBcc());
+        payload.setDocumentUuids(emailRequest.getDocumentUuids());
         return payload;
     }
 
@@ -101,6 +119,7 @@ public class EmailService {
         payload.setSenderName(emailRequest.getSenderName());
         payload.setCc(emailRequest.getCc());
         payload.setBcc(emailRequest.getBcc());
+        payload.setDocumentUuids(emailRequest.getDocumentUuids());
         return payload;
     }
 
@@ -133,5 +152,35 @@ public class EmailService {
 
         messageRepository.save(emailEntity);
         return emailEntity;
+    }
+
+    private List<DocumentResponse> validateAttachments(List<UUID> documentUuids) {
+        if (documentUuids == null || documentUuids.isEmpty()) return List.of();
+
+        long uniqueCount = documentUuids.stream().distinct().count();
+        if (uniqueCount != documentUuids.size()) {
+            throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "Duplicate document UUIDs found in attachment list.");
+        }
+
+        List<DocumentResponse> documents = new ArrayList<>();
+        for (UUID uuid : documentUuids) {
+            try {
+                var meta = documentApi.getDocumentMetadata(uuid).block();
+                if (meta == null) {
+                    throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "Invalid or missing document: " + uuid);
+                }
+                documents.add(meta);
+            } catch (WebClientResponseException wex) {
+                log.error("Document validation failed for {}: {}", uuid, wex.getMessage());
+                throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "Invalid or missing document: " + uuid);
+            } catch (ServiceException se) {
+                log.error("Document validation failed for {}: {}", uuid, se.getMessage());
+                throw se;
+            } catch (Exception ex) {
+                throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Document validation failed: " + uuid);
+            }
+        }
+
+        return documents;
     }
 }

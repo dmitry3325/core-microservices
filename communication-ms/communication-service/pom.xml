@@ -115,5 +115,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <!-- document client to call Document MS -->
+        <dependency>
+            <groupId>com.corems.documentms</groupId>
+            <artifactId>document-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

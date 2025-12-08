@@ -513,8 +513,7 @@ public class DocumentService {
         }
 
         // Admin can access everything
-        if (principal != null && principal.getAuthorities() != null &&
-            principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(CoreMsRoles.DOCUMENT_MS_ADMIN.name()))) {
+        if (SecurityUtils.hasRole(CoreMsRoles.DOCUMENT_MS_ADMIN)) {
             return;
         }
 
@@ -533,11 +532,13 @@ public class DocumentService {
         // BY_LINK documents - need valid token (handled elsewhere) or ownership
         if (document.getVisibility() == DocumentEntity.Visibility.BY_LINK) {
             if (principal != null && principal.getUserId() != null &&
-                document.getUploadedById().equals(principal.getUserId())) {
-                return; // Owner can access
+                document.getUserId().equals(principal.getUserId())) {
+                return;
             }
-            // Otherwise, access must be through token (public endpoint)
         }
+
+        throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN,
+                "You don't have permission to access this document");
     }
 
     private DocumentResponse toResponse(DocumentEntity e) {

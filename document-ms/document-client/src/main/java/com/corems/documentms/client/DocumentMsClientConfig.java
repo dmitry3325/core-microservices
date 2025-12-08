@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @AutoConfiguration
 public class DocumentMsClientConfig {
 
-    @Value("${documentms.base-url:http://localhost:3002}")
+    @Value("${documentms.base-url:http://localhost:3003}")
     private String documentMsBaseUrl;
 
     @Bean(name = "documentWebClient")

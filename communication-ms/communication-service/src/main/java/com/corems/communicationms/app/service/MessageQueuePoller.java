@@ -1,6 +1,5 @@
 package com.corems.communicationms.app.service;
 
-import com.corems.common.exception.ServiceException;
 import com.corems.common.queue.QueueProvider;
 import com.corems.common.queue.poller.GenericQueuePoller;
 import com.corems.common.queue.poller.MessageHandler;

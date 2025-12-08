@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -62,7 +63,9 @@ public class InboundClientAutoConfiguration {
                 claims.put(TokenProvider.CLAIM_FIRST_NAME, principal.getFirstName());
                 claims.put(TokenProvider.CLAIM_LAST_NAME, principal.getLastName());
                 claims.put(TokenProvider.CLAIM_USER_ID, principal.getUserId().toString());
-                claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));
+                claims.put(TokenProvider.CLAIM_ROLES, principal.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList());
 
                 token = tokenProvider.createAccessToken(principal.getTokenId().toString(), claims);
             } else {

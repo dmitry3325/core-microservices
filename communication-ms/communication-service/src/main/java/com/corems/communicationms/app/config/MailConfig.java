@@ -18,4 +18,5 @@ public class MailConfig {
     private String password;
     private String protocol;
     private Properties properties = new Properties();
+    private Integer attachmentMaxInMemoryBytes = 5 * 1024 * 1024;
 }

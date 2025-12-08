@@ -4,7 +4,6 @@ import com.corems.communicationms.app.entity.MessageEntity;
 import org.springframework.stereotype.Repository;
 import com.corems.common.utils.db.repo.SearchableRepository;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
