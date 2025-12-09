@@ -2,11 +2,10 @@ package com.corems.communicationms.client;
 
 import com.corems.communicationms.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 @AutoConfiguration
 public class CommunicationMsClientConfig {
@@ -14,18 +13,18 @@ public class CommunicationMsClientConfig {
     @Value("${communicationms.base-url:http://localhost:3001}")
     private String communicationBaseUrl;
 
-    @Bean(name = "communicationWebClient")
-    @ConditionalOnMissingBean(name = "communicationWebClient")
-    public WebClient communicationWebClient(WebClient.Builder inboundWebClientBuilder) {
-        return inboundWebClientBuilder
+    @Bean(name = "communicationRestClient")
+    @ConditionalOnMissingBean(name = "communicationRestClient")
+    public RestClient communicationRestClient(RestClient.Builder inboundRestClientBuilder) {
+        return inboundRestClientBuilder
                 .baseUrl(communicationBaseUrl)
                 .build();
     }
 
     @Bean(name = "communicationApiClient")
     @ConditionalOnMissingBean(name = "communicationApiClient")
-    public ApiClient communicationApiClient(@Qualifier("communicationWebClient") WebClient webClient) {
-        ApiClient apiClient = new ApiClient(webClient);
+    public ApiClient communicationApiClient(RestClient communicationRestClient) {
+        ApiClient apiClient = new ApiClient(communicationRestClient);
         apiClient.setBasePath(communicationBaseUrl);
         return apiClient;
     }

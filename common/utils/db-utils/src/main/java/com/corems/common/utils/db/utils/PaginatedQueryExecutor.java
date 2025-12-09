@@ -27,19 +27,17 @@ public final class PaginatedQueryExecutor {
         Objects.requireNonNull(specRepo);
         Objects.requireNonNull(params);
 
-        List<String> repoSearchFields = List.of();
-        List<String> repoFilterAllowed = List.of();
-        List<String> repoSortAllowed = List.of();
-        List<String> repoCollectionFields = List.of();
-        Map<String, String> aliases = Map.of();
-
-        if (specRepo instanceof SearchableRepository<?, ?> sr) {
-            repoSearchFields = sr.getSearchFields();
-            repoFilterAllowed = sr.getAllowedFilterFields();
-            repoSortAllowed = sr.getAllowedSortFields();
-            repoCollectionFields = sr.getCollectionFields();
-            aliases = sr.getFieldAliases();
+        // Ensure we have access to JpaRepository methods
+        if (!(specRepo instanceof SearchableRepository<?, ?>)) {
+            throw new IllegalArgumentException("Repository must implement SearchableRepository");
         }
+
+        SearchableRepository<T, ?> searchableRepo = (SearchableRepository<T, ?>) specRepo;
+        List<String> repoSearchFields = searchableRepo.getSearchFields();
+        List<String> repoFilterAllowed = searchableRepo.getAllowedFilterFields();
+        List<String> repoSortAllowed = searchableRepo.getAllowedSortFields();
+        List<String> repoCollectionFields = searchableRepo.getCollectionFields();
+        Map<String, String> aliases = searchableRepo.getFieldAliases();
 
         // make effectively-final copies for use inside lambdas
         final List<String> finalSearchFields = List.copyOf(repoSearchFields);
@@ -112,7 +110,11 @@ public final class PaginatedQueryExecutor {
             };
             spec = (spec == null) ? searchSpec : spec.and(searchSpec);
         }
+        
+        if (spec == null) {
+            return searchableRepo.findAll(pageable);
+        }
 
-        return specRepo.findAll(spec, pageable);
+        return searchableRepo.findAll(spec, pageable);
     }
 }

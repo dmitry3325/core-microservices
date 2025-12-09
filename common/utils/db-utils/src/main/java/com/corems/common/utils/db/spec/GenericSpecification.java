@@ -96,12 +96,10 @@ public class GenericSpecification<T> implements Specification<T> {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
             // use the path directly as a Number expression to avoid casting the column to varchar
-            @SuppressWarnings("unchecked")
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
             return cb.gt(numExpr, ((Number) casted));
         }
         if (casted instanceof Comparable) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
             return cb.greaterThan(cmpExpr, (Comparable) casted);
         }
@@ -113,12 +111,10 @@ public class GenericSpecification<T> implements Specification<T> {
     private Predicate buildGreaterThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
             return cb.ge(numExpr, ((Number) casted));
         }
         if (casted instanceof Comparable) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
             return cb.greaterThanOrEqualTo(cmpExpr, (Comparable) casted);
         }
@@ -129,12 +125,10 @@ public class GenericSpecification<T> implements Specification<T> {
     private Predicate buildLessThan(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
             return cb.lt(numExpr, ((Number) casted));
         }
         if (casted instanceof Comparable) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
             return cb.lessThan(cmpExpr, (Comparable) casted);
         }
@@ -145,12 +139,10 @@ public class GenericSpecification<T> implements Specification<T> {
     private Predicate buildLessThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
         if (casted instanceof Number) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
             return cb.le(numExpr, ((Number) casted));
         }
         if (casted instanceof Comparable) {
-            @SuppressWarnings("unchecked")
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
             return cb.lessThanOrEqualTo(cmpExpr, (Comparable) casted);
         }

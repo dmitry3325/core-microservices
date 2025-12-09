@@ -43,6 +43,7 @@ public class CoreMsSecurityConfig {
     public SecurityFilterChain configure(HttpSecurity httpSecurity,
                                          ObjectProvider<ServiceAuthenticationFilter> serviceAuthenticationFilterProvider) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        httpSecurity.cors(cors -> {});
         httpSecurity.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.formLogin(AbstractHttpConfigurer::disable);
         httpSecurity.logout(AbstractHttpConfigurer::disable);

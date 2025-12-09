@@ -170,7 +170,7 @@ public class EmailService {
         List<DocumentResponse> documents = new ArrayList<>();
         for (UUID uuid : documentUuids) {
             try {
-                var meta = documentApi.getDocumentMetadata(uuid).block();
+                var meta = documentApi.getDocumentMetadata(uuid);
                 if (meta == null) {
                     throw ServiceException.of(DefaultExceptionReasonCodes.INVALID_REQUEST, "Invalid or missing document: " + uuid);
                 }
@@ -182,7 +182,8 @@ public class EmailService {
                 log.error("Document validation failed for {}: {}", uuid, se.getMessage());
                 throw se;
             } catch (Exception ex) {
-                throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Document validation failed: " + uuid);
+                log.error("Unexpected error during document validation for {}: {}", uuid, ex.getMessage(), ex);
+                throw ServiceException.of(DefaultExceptionReasonCodes.SERVER_ERROR, "Document validation failed: " + uuid + " - " + ex.getMessage());
             }
         }
 

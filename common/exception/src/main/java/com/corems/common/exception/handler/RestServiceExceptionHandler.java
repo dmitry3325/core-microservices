@@ -74,7 +74,7 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
 
         return handleExceptionInternal(ex,
                 ErrorResponse.of(error),
-                errorConverter.buildHttpHeaders(), HttpStatus.PAYLOAD_TOO_LARGE, request);
+                errorConverter.buildHttpHeaders(), HttpStatus.CONTENT_TOO_LARGE, request);
     }
 
     @Override

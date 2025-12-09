@@ -3,7 +3,7 @@ package com.corems.common.queue.config;
 import com.corems.common.queue.QueueProvider;
 import com.corems.common.queue.clients.RabbitMqClient;
 import com.corems.common.queue.SupportedQueueProvider;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +16,12 @@ import org.springframework.context.annotation.Configuration;
 public class CoreMsQueueAutoConfiguration {
 
     @Bean
-    public Jackson2JsonMessageConverter coremsJacksonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public JacksonJsonMessageConverter coremsJacksonMessageConverter() {
+        return new JacksonJsonMessageConverter();
     }
 
     @Bean
-    public QueueProvider queueProvider(QueueProperties props, Jackson2JsonMessageConverter converter) {
+    public QueueProvider queueProvider(QueueProperties props, JacksonJsonMessageConverter converter) {
         QueueProvider provider = new QueueProvider(props);
 
         QueueProperties.RabbitMqProperties rabbitProps = props.getProviders().getRabbitMq();

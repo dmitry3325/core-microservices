@@ -2,11 +2,11 @@ package com.corems.translationms.client;
 
 import com.corems.translationms.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 @AutoConfiguration
 public class TranslationMsClientConfig {
@@ -14,31 +14,35 @@ public class TranslationMsClientConfig {
     @Value("${translation.ms.base-url:http://localhost:3003}")
     private String translationMsBaseUrl;
 
-    @Bean(name = "translationMsWebClient")
-    @ConditionalOnMissingBean(name = "translationMsWebClient")
-    public WebClient translationMsWebClient(WebClient.Builder inboundWebClientBuilder) {
-        return inboundWebClientBuilder
+    @Bean(name = "translationRestClient")
+    @ConditionalOnMissingBean(name = "translationRestClient")
+    public RestClient translationRestClient(RestClient.Builder inboundRestClientBuilder) {
+        return inboundRestClientBuilder
                 .baseUrl(translationMsBaseUrl)
                 .build();
     }
 
     @Bean(name = "translationMsApiClient")
     @ConditionalOnMissingBean(name = "translationMsApiClient")
-    public ApiClient translationMsApiClient(@Qualifier("translationMsWebClient") WebClient webClient) {
-        ApiClient apiClient = new ApiClient(webClient);
+    public ApiClient translationMsApiClient(RestClient translationRestClient) {
+        ApiClient apiClient = new ApiClient(translationRestClient);
         apiClient.setBasePath(translationMsBaseUrl);
         return apiClient;
     }
 
     @Bean
-    @ConditionalOnMissingBean(TranslationApi.class)
-    public TranslationApi translationApi(ApiClient translationMsApiClient) {
-        return new TranslationApi(translationMsApiClient);
+    @ConditionalOnClass(name = "com.corems.translationms.client.TranslationApi")
+    @ConditionalOnMissingBean(name = "translationApi")
+    public Object translationApi(ApiClient translationMsApiClient) throws Exception {
+        Class<?> apiClass = Class.forName("com.corems.translationms.client.TranslationApi");
+        return apiClass.getConstructor(ApiClient.class).newInstance(translationMsApiClient);
     }
 
     @Bean
-    @ConditionalOnMissingBean(TranslationAdminApi.class)
-    public TranslationAdminApi translationAdminApi(ApiClient translationMsApiClient) {
-        return new TranslationAdminApi(translationMsApiClient);
+    @ConditionalOnClass(name = "com.corems.translationms.client.TranslationAdminApi")
+    @ConditionalOnMissingBean(name = "translationAdminApi")
+    public Object translationAdminApi(ApiClient translationMsApiClient) throws Exception {
+        Class<?> apiClass = Class.forName("com.corems.translationms.client.TranslationAdminApi");
+        return apiClass.getConstructor(ApiClient.class).newInstance(translationMsApiClient);
     }
 }

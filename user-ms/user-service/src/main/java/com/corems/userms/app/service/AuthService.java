@@ -167,7 +167,7 @@ public class AuthService {
                     "Dear " + user.getFirstName() + ",\n\n" +
                             "Welcome to CoreMS! We're excited to have you on board.\n\n" +
                             "Best regards,\n" +
-                            "The CoreMS Team")).block();
+                            "The CoreMS Team"));
 
             log.info("Welcome email sent to user: {}, result: {}", user.getUuid(), res);
         } catch (Exception e) {

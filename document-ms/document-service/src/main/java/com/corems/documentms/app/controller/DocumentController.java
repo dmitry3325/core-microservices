@@ -31,8 +31,8 @@ public class DocumentController implements DocumentApi {
     }
 
     @Override
-    public ResponseEntity<LinkResponse> generateDocumentAccessLink(UUID uuid, GenerateLinkRequest generateLinkRequest) {
-        return ResponseEntity.ok(service.generateAccessLink(uuid, generateLinkRequest));
+    public ResponseEntity<LinkResponse> generateDocumentAccessLink(UUID uuid, Optional<GenerateLinkRequest> generateLinkRequest) {
+        return ResponseEntity.ok(service.generateAccessLink(uuid, generateLinkRequest.orElse(null)));
     }
 
     @Override
@@ -42,8 +42,8 @@ public class DocumentController implements DocumentApi {
 
     @Override
     @RequireRoles(CoreMsRoles.DOCUMENT_MS_ADMIN)
-    public ResponseEntity<DocumentResponse> updateDocumentMetadata(UUID uuid, DocumentUpdateRequest documentUpdateRequest) {
-        return ResponseEntity.ok(service.updateMetadata(uuid, documentUpdateRequest));
+    public ResponseEntity<DocumentResponse> updateDocumentMetadata(UUID uuid, Optional<DocumentUpdateRequest> documentUpdateRequest) {
+        return ResponseEntity.ok(service.updateMetadata(uuid, documentUpdateRequest.orElse(null)));
     }
 
     @Override

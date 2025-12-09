@@ -7,11 +7,10 @@ import com.corems.common.utils.db.utils.QueryParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -19,12 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-@DataJpaTest
+@SpringBootTest(classes = SearchableRepositoryTest.TestConfig.class)
+@Transactional
 public class SearchableRepositoryTest {
 
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @EntityScan(basePackageClasses = TestEntity.class)
+    @SpringBootApplication(scanBasePackageClasses = TestEntity.class)
     @EnableJpaRepositories(basePackageClasses = TestEntityRepository.class)
     static class TestConfig {}
 

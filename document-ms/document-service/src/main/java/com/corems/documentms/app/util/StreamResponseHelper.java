@@ -32,7 +32,7 @@ public final class StreamResponseHelper {
         public Thread newThread(Runnable r) {
             Thread t = defaultFactory.newThread(r);
             t.setDaemon(true);
-            t.setName("stream-copy-" + t.getId());
+            t.setName("stream-copy-" + t.threadId());
             return t;
         }
     });

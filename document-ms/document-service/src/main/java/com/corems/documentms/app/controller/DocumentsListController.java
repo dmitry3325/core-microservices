@@ -26,25 +26,25 @@ public class DocumentsListController implements DocumentsListApi {
 
     @Override
     public ResponseEntity<DocumentResponse> uploadDocumentMultipart(MultipartFile file,
-                                                                    UUID ownerUserId,
-                                                                    Visibility visibility,
-                                                                    String description,
-                                                                    String tags,
-                                                                    Boolean confirmReplace) {
+                                                                    Optional<UUID> ownerUserId,
+                                                                    Optional<Visibility> visibility,
+                                                                    Optional<String> description,
+                                                                    Optional<String> tags,
+                                                                    Optional<Boolean> confirmReplace) {
         DocumentUploadMetadata metadata = new DocumentUploadMetadata();
-        metadata.setOwnerUserId(ownerUserId);
-        metadata.setVisibility(visibility);
-        metadata.setDescription(description);
-        metadata.setTags(tags);
-        metadata.setConfirmReplace(confirmReplace);
+        metadata.setOwnerUserId(ownerUserId.orElse(null));
+        metadata.setVisibility(visibility.orElse(null));
+        metadata.setDescription(description.orElse(null));
+        metadata.setTags(tags.orElse(null));
+        metadata.setConfirmReplace(confirmReplace.orElse(null));
 
         DocumentResponse response = service.uploadMultipart(file, metadata);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
-    public ResponseEntity<DocumentResponse> uploadDocumentBase64(UploadBase64Request uploadBase64Request) {
-        DocumentResponse response = service.uploadBase64(uploadBase64Request);
+    public ResponseEntity<DocumentResponse> uploadDocumentBase64(Optional<UploadBase64Request> uploadBase64Request) {
+        DocumentResponse response = service.uploadBase64(uploadBase64Request.orElse(null));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

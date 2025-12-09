@@ -2,11 +2,11 @@ package com.corems.userms.client;
 
 import com.corems.userms.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 @AutoConfiguration
 public class UserMsClientConfig {
@@ -14,40 +14,44 @@ public class UserMsClientConfig {
     @Value("${userms.base-url:http://localhost:3000}")
     private String userMsBaseUrl;
 
-
-    @Bean(name = "userWebClient")
-    @ConditionalOnMissingBean(name = "userWebClient")
-    public WebClient userWebClient(WebClient.Builder inboundWebClientBuilder) {
-        return inboundWebClientBuilder
+    @Bean(name = "userRestClient")
+    @ConditionalOnMissingBean(name = "userRestClient")
+    public RestClient userRestClient(RestClient.Builder inboundRestClientBuilder) {
+        return inboundRestClientBuilder
                 .baseUrl(userMsBaseUrl)
                 .build();
     }
 
     @Bean(name = "userApiClient")
     @ConditionalOnMissingBean(name = "userApiClient")
-    public ApiClient userApiClient(@Qualifier("userWebClient") WebClient webClient) {
-        ApiClient apiClient = new ApiClient(webClient);
+    public ApiClient userApiClient(RestClient userRestClient) {
+        ApiClient apiClient = new ApiClient(userRestClient);
         apiClient.setBasePath(userMsBaseUrl);
         return apiClient;
     }
 
-    // Beans for generated API interfaces
     @Bean
-    @ConditionalOnMissingBean(UserApi.class)
-    public UserApi userApi(ApiClient userApiClient) {
-        return new UserApi(userApiClient);
+    @ConditionalOnClass(name = "com.corems.userms.client.UserApi")
+    @ConditionalOnMissingBean(name = "userApi")
+    public Object userApi(ApiClient userApiClient) throws Exception {
+        Class<?> apiClass = Class.forName("com.corems.userms.client.UserApi");
+        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
     }
 
     @Bean
-    @ConditionalOnMissingBean(ProfileApi.class)
-    public ProfileApi profileApi(ApiClient userApiClient) {
-        return new ProfileApi(userApiClient);
+    @ConditionalOnClass(name = "com.corems.userms.client.ProfileApi")
+    @ConditionalOnMissingBean(name = "profileApi")
+    public Object profileApi(ApiClient userApiClient) throws Exception {
+        Class<?> apiClass = Class.forName("com.corems.userms.client.ProfileApi");
+        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
     }
 
     @Bean
-    @ConditionalOnMissingBean(AuthenticationApi.class)
-    public AuthenticationApi authenticationApi(ApiClient userApiClient) {
-        return new AuthenticationApi(userApiClient);
+    @ConditionalOnClass(name = "com.corems.userms.client.AuthenticationApi")
+    @ConditionalOnMissingBean(name = "authenticationApi")
+    public Object authenticationApi(ApiClient userApiClient) throws Exception {
+        Class<?> apiClass = Class.forName("com.corems.userms.client.AuthenticationApi");
+        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
     }
 
 }

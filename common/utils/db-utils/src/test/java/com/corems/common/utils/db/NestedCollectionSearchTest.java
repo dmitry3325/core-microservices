@@ -7,12 +7,11 @@ import com.corems.common.utils.db.utils.QueryParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,12 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for nested collection path support in SearchableRepository.
  * Tests searching and filtering on nested entity fields like categories.name.
  */
-@DataJpaTest
+@SpringBootTest(classes = NestedCollectionSearchTest.TestConfig.class)
+@Transactional
 public class NestedCollectionSearchTest {
 
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @EntityScan(basePackageClasses = {TestProductEntity.class, TestCategoryEntity.class})
+    @SpringBootApplication(scanBasePackageClasses = {TestProductEntity.class, TestCategoryEntity.class})
     @EnableJpaRepositories(basePackageClasses = TestProductRepository.class)
     static class TestConfig {}
 

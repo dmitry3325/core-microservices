@@ -22,9 +22,9 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String MDC_CORRELATION_ID = "correlationId";
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         String correlationId = request.getHeader(HEADER_X_CORRELATION_ID);
         if (correlationId == null || correlationId.isBlank()) {
             correlationId = request.getHeader(HEADER_X_REQUEST_ID);

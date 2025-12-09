@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -64,7 +64,7 @@
                             <generatorName>java</generatorName>
                             <generateApiTests>false</generateApiTests>
                             <configOptions>
-                                <library>webclient</library>
+                                <library>restclient</library>
                                 <useJakartaEe>true</useJakartaEe>
                                 <!-- Keep api package consistent with app -->
                                 <apiPackage>${project.groupId}.client</apiPackage>

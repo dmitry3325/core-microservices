@@ -32,7 +32,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -62,7 +62,7 @@
                             <generateApiTests>false</generateApiTests>
                             <output>${project.build.directory}/generated-sources/openapi</output>
                             <configOptions>
-                                <library>webclient</library>
+                                <library>restclient</library>
                                 <useJakartaEe>true</useJakartaEe>
                                 <apiPackage>${project.groupId}.client</apiPackage>
                                 <modelPackage>${project.groupId}.api.model</modelPackage>

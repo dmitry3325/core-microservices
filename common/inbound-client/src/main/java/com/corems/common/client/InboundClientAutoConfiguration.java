@@ -10,8 +10,10 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -99,5 +101,45 @@ public class InboundClientAutoConfiguration {
                 .clientConnector(connector)
                 .filter(correlationIdFilter)
                 .filter(bearerTokenFilter);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "inboundRestClientBuilder")
+    public RestClient.Builder inboundRestClientBuilder(TokenProvider tokenProvider) {
+        return RestClient.builder()
+                .requestInterceptor((request, body, execution) -> {
+                    // Add correlation ID
+                    String correlationId = MDC.get(CorrelationIdFilter.MDC_CORRELATION_ID);
+                    if (correlationId == null || correlationId.isBlank()) {
+                        correlationId = UUID.randomUUID().toString();
+                    }
+                    request.getHeaders().add(CorrelationIdFilter.HEADER_X_CORRELATION_ID, correlationId);
+
+                    // Add bearer token
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    String token;
+                    if (authentication != null && authentication.isAuthenticated()
+                            && authentication.getPrincipal() instanceof UserPrincipal principal) {
+
+                        Map<String, Object> claims = new HashMap<>();
+                        claims.put(TokenProvider.CLAIM_EMAIL, principal.getEmail());
+                        claims.put(TokenProvider.CLAIM_FIRST_NAME, principal.getFirstName());
+                        claims.put(TokenProvider.CLAIM_LAST_NAME, principal.getLastName());
+                        claims.put(TokenProvider.CLAIM_USER_ID, principal.getUserId().toString());
+                        claims.put(TokenProvider.CLAIM_ROLES, principal.getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList());
+
+                        token = tokenProvider.createAccessToken(principal.getTokenId().toString(), claims);
+                    } else {
+                        Map<String, Object> claims = new HashMap<>();
+                        claims.put(TokenProvider.CLAIM_ROLES, List.of(CoreMsRoles.SYSTEM));
+
+                        token = tokenProvider.createAccessToken(null, claims);
+                    }
+
+                    request.getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                    return execution.execute(request, body);
+                });
     }
 }

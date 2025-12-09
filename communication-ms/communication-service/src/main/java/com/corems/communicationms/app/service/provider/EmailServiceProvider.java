@@ -74,7 +74,7 @@ public class EmailServiceProvider implements ChannelProvider<EmailPayload> {
 
         for (UUID uuid : payload.getDocumentUuids()) {
             try {
-                var meta = documentApi.getDocumentMetadata(uuid).block();
+                var meta = documentApi.getDocumentMetadata(uuid);
                 if (meta == null) throw new ServiceException(DefaultExceptionReasonCodes.INVALID_REQUEST, "Document not found: " + uuid);
 
                 // Use DocumentStreamSource which returns a fresh InputStream per call (required by JavaMail)
