@@ -23,7 +23,6 @@ import java.net.URI;
 public class S3StorageService {
 
     private final S3Client s3;
-    private final S3Presigner presigner;
     private final StorageConfig storageConfig;
 
     public S3StorageService(StorageConfig storageConfig) {
@@ -55,7 +54,6 @@ public class S3StorageService {
         }
 
         this.s3 = clientBuilder.build();
-        this.presigner = presignerBuilder.build();
     }
 
     public String upload(String bucket, String objectKey, InputStream data, long length, String contentType) {

@@ -1,10 +1,7 @@
 package com.corems.communicationms.app.service;
 
-import com.corems.common.security.SecurityUtils;
-import com.corems.common.security.UserPrincipal;
 import com.corems.communicationms.api.model.ChannelType;
 import com.corems.communicationms.api.model.EmailPayload;
-import com.corems.communicationms.api.model.MessageResponsePayload;
 import com.corems.communicationms.api.model.SendStatus;
 import com.corems.communicationms.api.model.SmsPayload;
 import com.corems.communicationms.app.entity.EmailMessageEntity;
@@ -12,7 +9,6 @@ import com.corems.communicationms.app.entity.MessageEntity;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.MessageListResponse;
 import com.corems.communicationms.app.entity.SMSMessageEntity;
-import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +74,6 @@ public class MessagingService {
             mr.setSentByType(MessageResponse.SentByTypeEnum.fromValue(entity.getSentByType().name()));
         }
 
-        MessageResponsePayload payload = null;
         if (entity.getType() == null) {
             log.error("Message entity has null type for uuid={}", entity.getUuid());
             return mr;

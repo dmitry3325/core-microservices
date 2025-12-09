@@ -1,9 +1,6 @@
 package com.corems.userms.client;
 
 import com.corems.userms.ApiClient;
-import com.corems.userms.client.AuthenticationApi;
-import com.corems.userms.client.ProfileApi;
-import com.corems.userms.client.UserApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

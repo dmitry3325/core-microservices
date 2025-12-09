@@ -1,8 +1,6 @@
 package com.corems.common.utils.db.entity;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "test_category")

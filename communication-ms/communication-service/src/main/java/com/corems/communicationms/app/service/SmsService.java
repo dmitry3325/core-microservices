@@ -15,8 +15,6 @@ import com.corems.communicationms.app.model.MessageSenderType;
 import com.corems.communicationms.app.repository.MessageRepository;
 import com.corems.communicationms.app.service.provider.SmsServiceProvider;
 import com.corems.common.security.UserPrincipal;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

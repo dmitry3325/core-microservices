@@ -6,7 +6,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Entity
 public class TestEntity {

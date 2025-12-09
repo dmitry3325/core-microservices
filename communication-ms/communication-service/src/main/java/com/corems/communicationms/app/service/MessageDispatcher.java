@@ -1,15 +1,11 @@
 package com.corems.communicationms.app.service;
 
 import com.corems.common.exception.ServiceException;
-import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.common.queue.QueueClient;
 import com.corems.common.queue.QueueMessage;
 import com.corems.common.queue.QueueProvider;
 import com.corems.communicationms.app.model.MessageStatus;
-import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.service.provider.ChannelProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

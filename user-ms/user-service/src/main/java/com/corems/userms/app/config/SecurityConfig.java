@@ -1,7 +1,6 @@
 package com.corems.userms.app.config;
 
 import com.corems.common.security.RequireRolesAspect;
-import com.corems.common.security.config.CoreMsSecurityConfig;
 import com.corems.common.security.config.WebMvcConfig;
 import com.corems.common.security.filter.MdcUserFilter;
 import com.corems.userms.app.security.TokenAuthenticationFilter;

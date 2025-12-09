@@ -2,15 +2,12 @@ package com.corems.communicationms.app.service;
 
 import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
-import com.corems.communicationms.api.model.ChannelType;
 import com.corems.communicationms.api.model.SlackNotificationRequest;
 import com.corems.communicationms.api.model.SlackPayload;
 import com.corems.communicationms.api.model.MessageResponse;
 import com.corems.communicationms.api.model.NotificationResponse;
 import com.corems.communicationms.api.model.SendStatus;
-import com.corems.communicationms.app.config.SlackConfig;
 import com.corems.communicationms.app.model.MessageStatus;
-import com.corems.communicationms.app.model.MessageType;
 import com.corems.communicationms.app.service.provider.SlackServiceProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

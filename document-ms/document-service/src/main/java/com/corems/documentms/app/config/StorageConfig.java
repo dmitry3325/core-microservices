@@ -5,10 +5,6 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * Configuration properties for document storage and upload settings.
  * Binds to properties prefixed with 'storage' and 'app' in application configuration.
