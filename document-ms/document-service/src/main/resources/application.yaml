@@ -1,5 +1,5 @@
 server:
-  port: ${DOCUMENT-SERVICE-PORT:3003}
+  port: ${DOCUMENT-SERVICE-PORT:3002}
 
 spring:
   application:

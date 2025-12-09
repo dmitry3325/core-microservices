@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  communication-service:
+    build:
+      context: ../..
+      dockerfile: communication-ms/Dockerfile
+    container_name: corems-communication-service
+    restart: unless-stopped
+    ports:
+      - "${COMMUNICATION_SERVICE_PORT:-3001}:3001"
+    environment:
+      - COMMUNICATION-SERVICE-PORT=3001
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/${DATABASE_DB}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SCHEMA=communication_ms
+      - AUTH_TOKEN_SECRET=${AUTH_TOKEN_SECRET}
+      # RabbitMQ
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+      - RABBIT_USER=${RABBIT_USER}
+      - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+      - RABBIT_DEFAULT_QUEUE=${RABBIT_DEFAULT_QUEUE}
+      # Queue
+      - QUEUE_ENABLED=${QUEUE_ENABLED}
+      # Email
+      - MAIL_ENABLED=${MAIL_ENABLED}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      # SMS (Twilio)
+      - SMS_ENABLED=${SMS_ENABLED}
+      - SMS_ACCOUNT_SID=${SMS_ACCOUNT_SID}
+      - SMS_AUTH_TOKEN=${SMS_AUTH_TOKEN}
+      - SMS_FROM_NUMBER=${SMS_FROM_NUMBER}
+      # Slack
+      - SLACK_ENABLED=${SLACK_ENABLED}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      # Service URLs
+      - documentms.base-url=http://corems-document-service:3002
+    env_file:
+      - ../.env
+    networks:
+      - corems-network
+
+networks:
+  corems-network:
+    external: true
+    name: corems-network

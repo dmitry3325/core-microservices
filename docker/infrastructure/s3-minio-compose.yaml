@@ -16,3 +16,10 @@ services:
     volumes:
       - ~/minio/data:/data
     command: server /data --console-address ":9001"
+    networks:
+      - corems-network
+
+networks:
+  corems-network:
+    external: true
+    name: corems-network

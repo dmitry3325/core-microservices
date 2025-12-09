@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  translation-service:
+    build:
+      context: ../..
+      dockerfile: translation-ms/Dockerfile
+    container_name: corems-translation-service
+    restart: unless-stopped
+    ports:
+      - "${TRANSLATION_SERVICE_PORT:-3003}:3003"
+    environment:
+      - TRANSLATION-SERVICE-PORT=3003
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/${DATABASE_DB}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SCHEMA=translation_ms
+      - AUTH_TOKEN_SECRET=${AUTH_TOKEN_SECRET}
+      - userms.base-url=http://corems-user-service:3000
+    env_file:
+      - ../.env
+    networks:
+      - corems-network
+
+networks:
+  corems-network:
+    external: true
+    name: corems-network

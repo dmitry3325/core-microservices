@@ -21,5 +21,6 @@
         <module>utils</module>
         <module>queue</module>
         <module>inbound-client</module>
+        <module>observability</module>
     </modules>
 </project>

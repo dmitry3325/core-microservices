@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  user-service:
+    build:
+      context: ../..
+      dockerfile: user-ms/Dockerfile
+    container_name: corems-user-service
+    restart: unless-stopped
+    ports:
+      - "${USER_SERVICE_PORT:-3000}:3000"
+    environment:
+      - USER-SERVICE-PORT=3000
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/${DATABASE_DB}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SCHEMA=user_ms
+      - AUTH_TOKEN_SECRET=${AUTH_TOKEN_SECRET}
+    env_file:
+      - ../.env
+    networks:
+      - corems-network
+
+networks:
+  corems-network:
+    external: true
+    name: corems-network

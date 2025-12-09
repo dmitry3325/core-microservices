@@ -1,5 +1,5 @@
 server:
-  port: ${TRANSLATION-SERVICE-PORT:3002}
+  port: ${TRANSLATION-SERVICE-PORT:3003}
 
 spring:
   application:

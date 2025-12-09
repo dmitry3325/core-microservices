@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnProperty(prefix = "corems.logging", name = "enabled", havingValue = "true", matchIfMissing = true)
-public class CoreMsLoggingAutoConfiguration {
+public class LoggingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean

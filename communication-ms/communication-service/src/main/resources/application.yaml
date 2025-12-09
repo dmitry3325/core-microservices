@@ -10,6 +10,17 @@ spring:
     default-property-inclusion: non_null
   config:
     import: classpath:db-config.yaml, queue-config.yaml
+  # for health check
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+
+management:
+  health:
+    rabbit:
+      enabled: ${QUEUE_ENABLED:false}
 
 
 mail:

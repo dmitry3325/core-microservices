@@ -2,6 +2,7 @@ version: '3.9'
 services:
   postgres:
     image: postgres:14-alpine
+    container_name: postgres
     restart: always
     ports:
       - "5432:5432"
@@ -11,3 +12,10 @@ services:
       - POSTGRES_DB=${DATABASE_DB}
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - corems-network
+
+networks:
+  corems-network:
+    external: true
+    name: corems-network

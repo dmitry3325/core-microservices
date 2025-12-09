@@ -1,0 +1,19 @@
+docker/
+├── .env                         # Environment variables (gitignored)
+├── .env-example                 # Example configuration
+├── manage.sh                    # Main management script
+├── docker-test.sh               # Test all builds
+├── README.md                    # Documentation
+│
+├── infrastructure/              # Database, queue, storage
+│   ├── postgres-compose.yaml
+│   ├── rabbitmq-compose.yaml
+│   ├── s3-minio-compose.yaml
+│   ├── postgres-data/          # Postgres data (gitignored)
+│   └── rabbitmq-data/          # RabbitMQ data (gitignored)
+│
+└── services/                    # Microservices
+    ├── user-service-compose.yaml
+    ├── communication-service-compose.yaml
+    ├── document-service-compose.yaml
+    └── translation-service-compose.yaml

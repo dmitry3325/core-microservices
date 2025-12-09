@@ -99,8 +99,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>com.corems.common</groupId>
+            <artifactId>observability</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>
