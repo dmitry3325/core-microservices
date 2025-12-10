@@ -40,5 +40,11 @@ public class DocumentMsClientConfig {
     public DocumentsListApi documentsListApi(ApiClient documentApiClient) {
         return new DocumentsListApi(documentApiClient);
     }
+
+    @Bean
+    @ConditionalOnMissingBean(PublicDocumentsApi.class)
+    public PublicDocumentsApi publicDocumentsApi(ApiClient documentApiClient) {
+        return new PublicDocumentsApi(documentApiClient);
+    }
 }
 

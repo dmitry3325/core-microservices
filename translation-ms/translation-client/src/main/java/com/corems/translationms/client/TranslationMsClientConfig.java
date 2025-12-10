@@ -3,7 +3,6 @@ package com.corems.translationms.client;
 import com.corems.translationms.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestClient;
@@ -31,18 +30,14 @@ public class TranslationMsClientConfig {
     }
 
     @Bean
-    @ConditionalOnClass(name = "com.corems.translationms.client.TranslationApi")
     @ConditionalOnMissingBean(name = "translationApi")
-    public Object translationApi(ApiClient translationMsApiClient) throws Exception {
-        Class<?> apiClass = Class.forName("com.corems.translationms.client.TranslationApi");
-        return apiClass.getConstructor(ApiClient.class).newInstance(translationMsApiClient);
+    public TranslationApi translationApi(ApiClient translationMsApiClient) throws Exception {
+        return new TranslationApi(translationMsApiClient);
     }
 
     @Bean
-    @ConditionalOnClass(name = "com.corems.translationms.client.TranslationAdminApi")
     @ConditionalOnMissingBean(name = "translationAdminApi")
-    public Object translationAdminApi(ApiClient translationMsApiClient) throws Exception {
-        Class<?> apiClass = Class.forName("com.corems.translationms.client.TranslationAdminApi");
-        return apiClass.getConstructor(ApiClient.class).newInstance(translationMsApiClient);
+    public TranslationAdminApi translationAdminApi(ApiClient translationMsApiClient) throws Exception {
+        return new TranslationAdminApi(translationMsApiClient);
     }
 }

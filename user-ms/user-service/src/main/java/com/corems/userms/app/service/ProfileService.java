@@ -1,5 +1,6 @@
 package com.corems.userms.app.service;
 
+import com.corems.common.security.CoreMsRoles;
 import com.corems.common.security.SecurityUtils;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.app.entity.RoleEntity;
@@ -30,50 +31,43 @@ public class ProfileService {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
 
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
+                        String.format("User id: %s not found", userPrincipal.getUserId())));
 
-        return new UserInfo()
-                .userId(user.getUuid())
-                .provider(user.getProvider())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .imageUrl(user.getImageUrl())
-                .phoneNumber(user.getPhoneNumber())
-                .roles(user.getRoles().stream().map(RoleEntity::getName).toList())
-                .lastLoginAt(user.getLastLoginAt().atOffset(ZoneOffset.UTC))
-                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        return mapToUserInfo(user);
     }
 
     public UserInfo updateCurrentUserProfile(UserProfileUpdateRequest userProfileUpdateRequest) {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
-        if (userProfileUpdateRequest.getFirstName() != null) user.setFirstName(userProfileUpdateRequest.getFirstName());
-        if (userProfileUpdateRequest.getLastName() != null) user.setLastName(userProfileUpdateRequest.getLastName());
-        if (userProfileUpdateRequest.getImageUrl() != null) user.setImageUrl(userProfileUpdateRequest.getImageUrl());
-        if (userProfileUpdateRequest.getPhoneNumber() != null) user.setPhoneNumber(userProfileUpdateRequest.getPhoneNumber());
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
+                        String.format("User id: %s not found", userPrincipal.getUserId())));
+        if (userProfileUpdateRequest.getFirstName() != null)
+            user.setFirstName(userProfileUpdateRequest.getFirstName());
+        if (userProfileUpdateRequest.getLastName() != null)
+            user.setLastName(userProfileUpdateRequest.getLastName());
+        if (userProfileUpdateRequest.getImageUrl() != null)
+            user.setImageUrl(userProfileUpdateRequest.getImageUrl());
+        if (userProfileUpdateRequest.getPhoneNumber() != null)
+            user.setPhoneNumber(userProfileUpdateRequest.getPhoneNumber());
         userRepository.save(user);
-        return new UserInfo()
-                .userId(user.getUuid())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .imageUrl(user.getImageUrl());
+        return mapToUserInfo(user);
     }
 
     public SuccessfulResponse changeOwnPassword(ChangePasswordRequest changePasswordRequest) {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userPrincipal.getUserId())));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
+                        String.format("User id: %s not found", userPrincipal.getUserId())));
 
-        if (user.getPassword() != null && !passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+        if (user.getPassword() != null
+                && !passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong password");
         }
         if (changePasswordRequest.getNewPassword() == null || changePasswordRequest.getConfirmPassword() == null ||
-            !changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
-            throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "New password and confirm password do not match");
+                !changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+            throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH,
+                    "New password and confirm password do not match");
         }
 
         if (!user.getProvider().contains(AuthProvider.local.name())) {
@@ -82,5 +76,20 @@ public class ProfileService {
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
         return new SuccessfulResponse().result(true);
+    }
+
+    private UserInfo mapToUserInfo(UserEntity user) {
+       return new UserInfo()
+                .userId(user.getUuid())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .imageUrl(user.getImageUrl())
+                .provider(user.getProvider())
+                .roles(user.getRoles().stream().map(RoleEntity::getName).toList())
+                .lastLoginAt((user.getLastLoginAt() != null) ? user.getLastLoginAt().atOffset(ZoneOffset.UTC) : null)
+                .createdAt(user.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(user.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 }

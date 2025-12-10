@@ -48,18 +48,23 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
             Claims claims = tokenProvider.getAllClaims(jwt);
-            UserDetails userDetails = userDetailsService.loadUserById(
-                    UUID.fromString(claims.get(TokenProvider.CLAIM_USER_ID, String.class)),
-                    UUID.fromString(claims.getSubject())
-            );
+            String userIdStr = claims.get(TokenProvider.CLAIM_USER_ID, String.class);
+            String subjectStr = claims.getSubject();
+            
+            if (StringUtils.hasText(userIdStr) && StringUtils.hasText(subjectStr)) {
+                UserDetails userDetails = userDetailsService.loadUserById(
+                        UUID.fromString(userIdStr),
+                        UUID.fromString(subjectStr)
+                );
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);

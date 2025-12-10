@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: test
+  security:
+    jwt:
+      secretKey: dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LXRoaXMtaXMtYS12ZXJ5LWxvbmctc2VjcmV0LWtleQ==
+      accessExpirationTimeInMS: 900000
+      refreshExpirationTimeInMS: 604800000
+
+logging:
+  level:
+    com.corems: DEBUG

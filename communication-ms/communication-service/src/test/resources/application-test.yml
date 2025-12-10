@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: communication_ms
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+  security:
+    jwt:
+      secretKey: dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LXRoaXMtaXMtYS12ZXJ5LWxvbmctc2VjcmV0LWtleQ==
+      accessExpirationTimeInMS: 900000
+      refreshExpirationTimeInMS: 604800000
+
+# Mail configuration for tests
+mail:
+  host: localhost
+  port: 587
+  username: test@example.com
+  password: testpassword
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+
+logging:
+  level:
+    com.corems: DEBUG

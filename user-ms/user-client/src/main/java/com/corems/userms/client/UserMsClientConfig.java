@@ -3,7 +3,6 @@ package com.corems.userms.client;
 import com.corems.userms.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestClient;
@@ -26,32 +25,25 @@ public class UserMsClientConfig {
     @ConditionalOnMissingBean(name = "userApiClient")
     public ApiClient userApiClient(RestClient userRestClient) {
         ApiClient apiClient = new ApiClient(userRestClient);
-        apiClient.setBasePath(userMsBaseUrl);
         return apiClient;
     }
 
     @Bean
-    @ConditionalOnClass(name = "com.corems.userms.client.UserApi")
     @ConditionalOnMissingBean(name = "userApi")
-    public Object userApi(ApiClient userApiClient) throws Exception {
-        Class<?> apiClass = Class.forName("com.corems.userms.client.UserApi");
-        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
+    public UserApi userApi(ApiClient userApiClient) throws Exception {
+       return new UserApi(userApiClient);
     }
 
     @Bean
-    @ConditionalOnClass(name = "com.corems.userms.client.ProfileApi")
     @ConditionalOnMissingBean(name = "profileApi")
-    public Object profileApi(ApiClient userApiClient) throws Exception {
-        Class<?> apiClass = Class.forName("com.corems.userms.client.ProfileApi");
-        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
+    public ProfileApi profileApi(ApiClient userApiClient) throws Exception {
+        return new ProfileApi(userApiClient);
     }
 
     @Bean
-    @ConditionalOnClass(name = "com.corems.userms.client.AuthenticationApi")
     @ConditionalOnMissingBean(name = "authenticationApi")
-    public Object authenticationApi(ApiClient userApiClient) throws Exception {
-        Class<?> apiClass = Class.forName("com.corems.userms.client.AuthenticationApi");
-        return apiClass.getConstructor(ApiClient.class).newInstance(userApiClient);
+    public AuthenticationApi authenticationApi(ApiClient userApiClient) throws Exception {
+        return new AuthenticationApi(userApiClient);
     }
 
 }
