@@ -60,8 +60,8 @@ Also will try to publish YouTube walking through videos.
 ## Setup
 
 Backend
-- Java 17+ (Spring Boot)
-- Maven
+- Java 25 (Spring Boot 4.0)
+- Maven 3.9+
 - Docker / Docker Compose
 - Flyway migrations
 - PostgreSQL or your preferred database
