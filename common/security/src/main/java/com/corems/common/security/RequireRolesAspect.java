@@ -37,7 +37,7 @@ public class RequireRolesAspect {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw AuthServiceException.of(DefaultExceptionReasonCodes.ACCESS_DENIED);
+            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED);
         }
 
         Set<String> authorities = auth.getAuthorities().stream()
@@ -61,7 +61,7 @@ public class RequireRolesAspect {
             return pjp.proceed();
         }
 
-        throw AuthServiceException.of(DefaultExceptionReasonCodes.ACCESS_DENIED);
+        throw AuthServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN);
     }
 }
 

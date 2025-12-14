@@ -17,8 +17,8 @@
 
     <modules>
         <module>communication-api</module>
-        <module>communication-service</module>
         <module>communication-client</module>
+        <module>communication-service</module>
     </modules>
 
 </project>

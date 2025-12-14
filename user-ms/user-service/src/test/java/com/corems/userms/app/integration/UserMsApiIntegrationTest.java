@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.util.UUID;
@@ -25,14 +25,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class UserMsApiIntegrationTest {
 
     @LocalServerPort
     private int port;
 
+    @Autowired
     private ApiClient apiClient;
+    @Autowired
     private AuthenticationApi authenticationApi;
+    @Autowired
     private ProfileApi profileApi;
+    @Autowired
     private UserApi userApi;
 
     private SignUpRequest signUpRequest;
@@ -40,17 +45,8 @@ class UserMsApiIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        String baseUrl = "http://localhost:" + port;
+        apiClient.setBasePath("http://localhost:" + port);
         
-        // Create ApiClient with the test server URL
-        RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
-        apiClient = new ApiClient(restClient);
-        
-        // Initialize API clients
-        authenticationApi = new AuthenticationApi(apiClient);
-        profileApi = new ProfileApi(apiClient);
-        userApi = new UserApi(apiClient);
-
         // Prepare test data with unique email for each test run
         String uniqueEmail = "testuser" + System.currentTimeMillis() + "@example.com";
         signUpRequest = new SignUpRequest();
@@ -378,7 +374,7 @@ class UserMsApiIntegrationTest {
 
     @Test
     @Order(30)
-    void apiCalls_WhenNotAuthenticated_ShouldThrowUnauthorized() {
+    void apiCalls_WhenNotAuthenticated_ShouldReturn403() {
         // When & Then - try to access protected endpoints without authentication
         assertThatThrownBy(() -> profileApi.currentUserInfo())
             .isInstanceOf(RestClientResponseException.class)

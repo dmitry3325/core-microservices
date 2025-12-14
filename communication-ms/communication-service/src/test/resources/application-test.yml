@@ -1,25 +1,33 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;INIT=CREATE SCHEMA IF NOT EXISTS communication_ms
     driver-class-name: org.h2.Driver
     username: sa
     password: 
+
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
         default_schema: communication_ms
+    defer-datasource-initialization: true
+
   sql:
     init:
-      mode: always
-      schema-locations: classpath:schema-h2.sql
+      mode: never
+
   security:
     jwt:
       secretKey: dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LXRoaXMtaXMtYS12ZXJ5LWxvbmctc2VjcmV0LWtleQ==
       accessExpirationTimeInMS: 900000
       refreshExpirationTimeInMS: 604800000
+
+communicationms:
+  base-url: http://localhost:${server.port:4001}
 
 # Mail configuration for tests
 mail:

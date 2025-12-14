@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;INIT=CREATE SCHEMA IF NOT EXISTS document_ms
     driver-class-name: org.h2.Driver
     username: sa
     password: 
@@ -10,16 +10,16 @@ spring:
     show-sql: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
         default_schema: document_ms
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema-h2.sql
   security:
     jwt:
       secretKey: dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LXRoaXMtaXMtYS12ZXJ5LWxvbmctc2VjcmV0LWtleQ==
       accessExpirationTimeInMS: 900000
       refreshExpirationTimeInMS: 604800000
+
+documentms:
+  base-url: http://localhost:${server.port:4000}
 
 logging:
   level:

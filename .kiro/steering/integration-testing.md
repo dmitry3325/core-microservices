@@ -92,17 +92,30 @@ assertThatThrownBy(() -> authenticationApi.signIn(invalidRequest))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class UserMsApiIntegrationTest {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private ApiClient apiClient;
+    @Autowired
+    private UserApi userApi;
+
+    @BeforeEach
+    void setUp() {
+        // Set the base path to the random port
+        apiClient.setBasePath("http://localhost:" + port);
+    }
     
     @Test
     @Order(1)
-    @DirtiesContext  // Use when test modifies state
     void testMethod() { }
 }
 ```
+
+**Important**: Always use `RANDOM_PORT` to avoid port conflicts when running multiple test classes. Inject `@LocalServerPort` and set the `ApiClient` base path in `@BeforeEach`.
 
 ## Roles
 
@@ -133,6 +146,9 @@ The `ApiClient` class provides:
 ```java
 @BeforeEach
 void setUp() {
+    // Set base path for random port
+    apiClient.setBasePath("http://localhost:" + port);
+    
     // Use unique email per test to avoid conflicts
     String uniqueEmail = "testuser" + System.currentTimeMillis() + "@example.com";
     signUpRequest = new SignUpRequest();

@@ -90,6 +90,7 @@ public class MessagingService {
 
     public EmailPayload mapEmail(EmailMessageEntity emailEntity) {
         EmailPayload ep = new EmailPayload(
+                ChannelType.EMAIL.getValue(),
                 emailEntity.getSubject(),
                 emailEntity.getRecipient(),
                 emailEntity.getBody()
@@ -121,6 +122,6 @@ public class MessagingService {
     }
 
     public SmsPayload mapSms(SMSMessageEntity smsEntity) {
-        return new SmsPayload(smsEntity.getPhoneNumber(), smsEntity.getMessage());
+        return new SmsPayload(ChannelType.SMS.getValue(), smsEntity.getPhoneNumber(), smsEntity.getMessage());
     }
 }

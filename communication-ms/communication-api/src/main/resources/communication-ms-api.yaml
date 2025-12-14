@@ -188,9 +188,14 @@ components:
     SmsPayload:
       type: object
       required:
+        - payloadType
         - phoneNumber
         - message
       properties:
+        payloadType:
+          type: string
+          default: sms
+          description: Discriminator field for payload type
         phoneNumber:
           type: string
           pattern: '^\+\d{1,20}$'
@@ -205,10 +210,15 @@ components:
     EmailPayload:
       type: object
       required:
+        - payloadType
         - recipient
         - subject
         - body
       properties:
+        payloadType:
+          type: string
+          default: email
+          description: Discriminator field for payload type
         emailType:
           type: string
           default: txt
@@ -377,6 +387,11 @@ components:
           oneOf:
             - $ref: '#/components/schemas/SmsPayload'
             - $ref: '#/components/schemas/EmailPayload'
+          discriminator:
+            propertyName: payloadType
+            mapping:
+              sms: '#/components/schemas/SmsPayload'
+              email: '#/components/schemas/EmailPayload'
 
     NotificationResponse:
       type: object

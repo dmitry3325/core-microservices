@@ -78,7 +78,7 @@ public class MessagesController implements MessagesApi {
     }
 
     @Override
-    // @RequireRoles(CoreMsRoles.COMMUNICATION_MS_ADMIN)
+    @RequireRoles(CoreMsRoles.COMMUNICATION_MS_ADMIN)
     public ResponseEntity<MessageResponse> sendEmailMessage(@Valid EmailMessageRequest emailMessageRequest) {
         log.info("Received Email message request: {}", emailMessageRequest);
         MessageResponse response = emailService.sendMessage(emailMessageRequest);

@@ -161,13 +161,15 @@ public class AuthService {
     @Async
     public void sendWelcomeEmail(UserEntity user) {
         try {
-            var res = notificationsApi.sendEmailNotification(new EmailNotificationRequest(
-                    "Welcome to CoreMS",
-                    user.getEmail(),
-                    "Dear " + user.getFirstName() + ",\n\n" +
-                            "Welcome to CoreMS! We're excited to have you on board.\n\n" +
-                            "Best regards,\n" +
-                            "The CoreMS Team"));
+            EmailNotificationRequest request = new EmailNotificationRequest();
+            request.setSubject("Welcome to CoreMS");
+            request.setRecipient(user.getEmail());
+            request.setBody("Dear " + user.getFirstName() + ",\n\n" +
+                    "Welcome to CoreMS! We're excited to have you on board.\n\n" +
+                    "Best regards,\n" +
+                    "The CoreMS Team");
+            
+            var res = notificationsApi.sendEmailNotification(request);
 
             log.info("Welcome email sent to user: {}, result: {}", user.getUuid(), res);
         } catch (Exception e) {

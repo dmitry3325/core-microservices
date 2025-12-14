@@ -32,9 +32,8 @@ spring:
       refreshExpirationTimeInMS: 86400000 # 24 hours
       accessExpirationTimeInMS: 3600000   # 1 hour
 
-# User MS specific configuration
 userms:
-  base-url: http://localhost:${server.port:8080}
+  base-url: http://localhost:${server.port:4000}
 
 # Logging configuration
 logging:

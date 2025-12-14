@@ -107,7 +107,7 @@ public class EmailService {
     }
 
     private EmailPayload getPayload(EmailMessageRequest emailRequest) {
-        EmailPayload payload = new EmailPayload(emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
+        EmailPayload payload = new EmailPayload(ChannelType.EMAIL.getValue(), emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
         payload.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
         payload.setEmailType(EmailPayload.EmailTypeEnum.fromValue(emailRequest.getEmailType().getValue()));
         payload.setSenderName(emailRequest.getSenderName());
@@ -118,7 +118,7 @@ public class EmailService {
     }
 
     private EmailPayload getPayload(EmailNotificationRequest emailRequest) {
-        EmailPayload payload = new EmailPayload(emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
+        EmailPayload payload = new EmailPayload(ChannelType.EMAIL.getValue(), emailRequest.getSubject(), emailRequest.getRecipient(), emailRequest.getBody());
         payload.setSender(emailRequest.getSender() == null ? config.getDefaultFrom() : emailRequest.getSender());
         payload.setEmailType(EmailPayload.EmailTypeEnum.fromValue(emailRequest.getEmailType().getValue()));
         payload.setSenderName(emailRequest.getSenderName());

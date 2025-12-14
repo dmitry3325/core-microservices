@@ -81,11 +81,11 @@ public class SmsService {
     }
 
     private SmsPayload getPayload(SmsMessageRequest smsRequest) {
-        return new SmsPayload(smsRequest.getPhoneNumber(), smsRequest.getMessage());
+        return new SmsPayload(ChannelType.SMS.getValue(), smsRequest.getPhoneNumber(), smsRequest.getMessage());
     }
 
     private SmsPayload getPayload(SmsNotificationRequest smsRequest) {
-        return new SmsPayload(smsRequest.getPhoneNumber(), smsRequest.getMessage());
+        return new SmsPayload(ChannelType.SMS.getValue(), smsRequest.getPhoneNumber(), smsRequest.getMessage());
     }
 
     private SMSMessageEntity createEntity(SmsMessageRequest smsRequest) {
