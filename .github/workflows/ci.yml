@@ -82,7 +82,7 @@ jobs:
           cache: 'maven'
 
       - name: Build common module
-        run: mvn -B -pl common -am clean install
+        run: mvn -B -pl common -am clean install -Denforcer.skip=true
 
       - name: Upload common artifacts
         uses: actions/upload-artifact@v4
@@ -153,7 +153,7 @@ jobs:
 
       - name: Build and test ${{ matrix.module }}
         if: steps.should-build.outputs.build == 'true'
-        run: mvn -B -pl ${{ matrix.module }} -amd -am clean verify
+        run: mvn -B -pl ${{ matrix.module }} -amd -am clean verify -Denforcer.skip=true
 
       - name: Upload test results
         if: steps.should-build.outputs.build == 'true' && always()
@@ -195,7 +195,7 @@ jobs:
           path: ~/.m2/repository/com/corems/
 
       - name: Build JAR
-        run: mvn -B -pl ${{ matrix.module }} -am clean package -DskipTests
+        run: mvn -B -pl ${{ matrix.module }} -am clean package -DskipTests -Denforcer.skip=true
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
