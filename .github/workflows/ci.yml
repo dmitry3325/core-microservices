@@ -153,7 +153,7 @@ jobs:
 
       - name: Build and test ${{ matrix.module }}
         if: steps.should-build.outputs.build == 'true'
-        run: mvn -B -pl ${{ matrix.module }} -am clean verify
+        run: mvn -B -pl ${{ matrix.module }} -amd -am clean verify
 
       - name: Upload test results
         if: steps.should-build.outputs.build == 'true' && always()

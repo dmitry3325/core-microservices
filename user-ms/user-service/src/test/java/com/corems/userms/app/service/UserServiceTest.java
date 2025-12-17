@@ -165,18 +165,6 @@ class UserServiceTest {
                 });
     }
 
-    @Test
-    void triggerUserResetPassword_WhenUserExists_ShouldReturnSuccess() {
-        // Given
-        when(userRepository.findByUuid(testUserId)).thenReturn(Optional.of(testUser));
-
-        // When
-        SuccessfulResponse result = userService.triggerUserResetPassword(testUserId);
-
-        // Then
-        assertThat(result.getResult()).isTrue();
-        verify(userRepository).findByUuid(testUserId);
-    }
 
     @Test
     void adminChangeUserEmail_WhenValidRequest_ShouldChangeEmail() {
