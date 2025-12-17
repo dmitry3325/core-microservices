@@ -7,6 +7,16 @@ on:
     branches: [main, develop]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: 'Build all modules'
+        type: boolean
+        default: true
+      modules:
+        description: 'Specific modules (comma-separated: common,user-ms,communication-ms,translation-ms,document-ms)'
+        type: string
+        required: false
 
 env:
   MAVEN_OPTS: -Xmx1024m
@@ -54,7 +64,10 @@ jobs:
   # Build common module first (dependency for all others)
   build-common:
     needs: detect-changes
-    if: needs.detect-changes.outputs.common == 'true' || github.event_name == 'release'
+    if: |
+      needs.detect-changes.outputs.common == 'true' || 
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.build_all || contains(inputs.modules, 'common')))
     runs-on: ubuntu-latest
     
     steps:
@@ -89,7 +102,8 @@ jobs:
        needs.detect-changes.outputs.communication-ms == 'true' || 
        needs.detect-changes.outputs.translation-ms == 'true' || 
        needs.detect-changes.outputs.document-ms == 'true' ||
-       github.event_name == 'release')
+       github.event_name == 'release' ||
+       github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -110,7 +124,9 @@ jobs:
         run: |
           if [[ "${{ matrix.changed }}" == "true" || \
                 "${{ needs.detect-changes.outputs.common }}" == "true" || \
-                "${{ github.event_name }}" == "release" ]]; then
+                "${{ github.event_name }}" == "release" || \
+                ("${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_all }}" == "true") || \
+                ("${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.modules }}" == *"${{ matrix.module }}"*) ]]; then
             echo "build=true" >> $GITHUB_OUTPUT
           else
             echo "build=false" >> $GITHUB_OUTPUT
