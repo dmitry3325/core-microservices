@@ -9,14 +9,11 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      build_all:
-        description: 'Build all modules'
-        type: boolean
-        default: true
       modules:
-        description: 'Specific modules (comma-separated: common,user-ms,communication-ms,translation-ms,document-ms)'
+        description: 'Modules to build (comma-separated: all, common, user-ms, communication-ms, translation-ms, document-ms)'
         type: string
-        required: false
+        default: 'all'
+        required: true
 
 env:
   MAVEN_OPTS: -Xmx1024m
@@ -24,7 +21,7 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/corems
 
 jobs:
-  # Detect which modules changed
+  # Detect which modules changed (for push/PR)
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -33,7 +30,6 @@ jobs:
       communication-ms: ${{ steps.changes.outputs.communication-ms }}
       translation-ms: ${{ steps.changes.outputs.translation-ms }}
       document-ms: ${{ steps.changes.outputs.document-ms }}
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,15 +57,15 @@ jobs:
               - 'document-ms/**'
               - 'pom.xml'
 
-  # Build common module first (dependency for all others)
+
+  # Build common module (only when needed)
   build-common:
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.common == 'true' || 
+      needs.detect-changes.outputs.common == 'true' ||
       github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.build_all || contains(inputs.modules, 'common')))
+      (github.event_name == 'workflow_dispatch' && (contains(inputs.modules, 'all') || contains(inputs.modules, 'common')))
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,29 +77,22 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build common module
-        run: mvn -B -pl common -am clean install -Denforcer.skip=true
+      - name: Build and test common module
+        run: mvn -B -pl common -amd clean verify -Denforcer.skip=true
 
-      - name: Upload common artifacts
+      - name: Upload common artifacts to cache
         uses: actions/upload-artifact@v4
         with:
           name: common-artifacts
           path: ~/.m2/repository/com/corems/
           retention-days: 1
 
-
-  # Build and test microservices in parallel
+  # Build microservices
   build-microservices:
     needs: [detect-changes, build-common]
     if: |
-      always() && 
-      (needs.build-common.result == 'success' || needs.build-common.result == 'skipped') &&
-      (needs.detect-changes.outputs.user-ms == 'true' || 
-       needs.detect-changes.outputs.communication-ms == 'true' || 
-       needs.detect-changes.outputs.translation-ms == 'true' || 
-       needs.detect-changes.outputs.document-ms == 'true' ||
-       github.event_name == 'release' ||
-       github.event_name == 'workflow_dispatch')
+      always() &&
+      (needs.build-common.result == 'success' || needs.build-common.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -117,20 +106,39 @@ jobs:
             changed: ${{ needs.detect-changes.outputs.translation-ms }}
           - module: document-ms
             changed: ${{ needs.detect-changes.outputs.document-ms }}
-    
     steps:
       - name: Check if should build
         id: should-build
         run: |
-          if [[ "${{ matrix.changed }}" == "true" || \
-                "${{ needs.detect-changes.outputs.common }}" == "true" || \
-                "${{ github.event_name }}" == "release" || \
-                ("${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_all }}" == "true") || \
-                ("${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.modules }}" == *"${{ matrix.module }}"*) ]]; then
-            echo "build=true" >> $GITHUB_OUTPUT
-          else
-            echo "build=false" >> $GITHUB_OUTPUT
+          MODULE="${{ matrix.module }}"
+          CHANGED="${{ matrix.changed }}"
+          COMMON_CHANGED="${{ needs.detect-changes.outputs.common }}"
+          EVENT="${{ github.event_name }}"
+          MODULES_INPUT="${{ inputs.modules }}"
+          
+          SHOULD_BUILD="false"
+          
+          # Push/PR: build if module or common changed
+          if [[ "$EVENT" == "push" || "$EVENT" == "pull_request" ]]; then
+            if [[ "$CHANGED" == "true" || "$COMMON_CHANGED" == "true" ]]; then
+              SHOULD_BUILD="true"
+            fi
           fi
+          
+          # Release: always build all
+          if [[ "$EVENT" == "release" ]]; then
+            SHOULD_BUILD="true"
+          fi
+          
+          # Manual: check if module is in the list
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            if [[ "$MODULES_INPUT" == *"all"* || "$MODULES_INPUT" == *"$MODULE"* ]]; then
+              SHOULD_BUILD="true"
+            fi
+          fi
+          
+          echo "build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          echo "Building $MODULE: $SHOULD_BUILD"
 
       - name: Checkout code
         if: steps.should-build.outputs.build == 'true'
@@ -151,9 +159,13 @@ jobs:
           name: common-artifacts
           path: ~/.m2/repository/com/corems/
 
+      - name: Build common if not cached
+        if: steps.should-build.outputs.build == 'true' && needs.build-common.result == 'skipped'
+        run: mvn -B -pl common -amd clean install -Denforcer.skip=true
+
       - name: Build and test ${{ matrix.module }}
         if: steps.should-build.outputs.build == 'true'
-        run: mvn -B -pl ${{ matrix.module }} -amd -am clean verify -Denforcer.skip=true
+        run: mvn -B -pl ${{ matrix.module }} -amd clean verify -Denforcer.skip=true
 
       - name: Upload test results
         if: steps.should-build.outputs.build == 'true' && always()
@@ -163,6 +175,14 @@ jobs:
           path: ${{ matrix.module }}/**/target/surefire-reports/
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: Upload module artifacts
+        if: steps.should-build.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-artifacts
+          path: ~/.m2/repository/com/corems/
+          retention-days: 7
 
   # Build and push Docker images on release
   docker:
@@ -176,7 +196,6 @@ jobs:
       fail-fast: false
       matrix:
         module: [user-ms, communication-ms, translation-ms, document-ms]
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -195,7 +214,7 @@ jobs:
           path: ~/.m2/repository/com/corems/
 
       - name: Build JAR
-        run: mvn -B -pl ${{ matrix.module }} -am clean package -DskipTests -Denforcer.skip=true
+        run: mvn -B -pl ${{ matrix.module }} -amd clean package -DskipTests -Denforcer.skip=true
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
