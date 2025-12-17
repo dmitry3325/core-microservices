@@ -287,28 +287,6 @@ paths:
                 $ref: '#/components/schemas/SuccessfulResponse'
         <<: *common-error-responses
 
-  /api/users/{userId}/reset-password:
-    post:
-      tags:
-        - User
-      summary: Trigger password reset flow for a user (admin)
-      operationId: triggerUserResetPassword
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Password reset triggered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessfulResponse'
-        <<: *common-error-responses
-
   /api/users/{userId}/change-password:
     post:
       tags:

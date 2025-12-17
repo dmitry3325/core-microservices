@@ -36,6 +36,14 @@ You can choose what services you need and integrate them into your application w
 PLS NOTE: This project is still under development and not ready for production use.
 Contact me if you want to contribute or have any suggestions. 
 
+## High level design
+
+![CoreMS High Level Architecture](design.png)
+
+*Modular microservices architecture with shared infrastructure*
+
+
+
 ## Who is this for?
 
 - Startup founders

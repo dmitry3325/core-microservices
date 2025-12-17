@@ -96,14 +96,6 @@ public class UserService {
         return new SuccessfulResponse().result(true);
     }
 
-    public SuccessfulResponse triggerUserResetPassword(UUID userId) {
-        // TODO for now simply verify user exists and return success (real implementation would send email)
-        userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
-
-        return new SuccessfulResponse().result(true);
-    }
-
     public SuccessfulResponse adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         UserEntity user = userRepository.findByUuid(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));

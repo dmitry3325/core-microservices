@@ -63,12 +63,6 @@ public class UserController implements UserApi {
 
     @Override
     @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
-    public ResponseEntity<SuccessfulResponse> triggerUserResetPassword(UUID userId) {
-        return ResponseEntity.ok(userService.triggerUserResetPassword(userId));
-    }
-
-    @Override
-    @RequireRoles(CoreMsRoles.USER_MS_ADMIN)
     public ResponseEntity<SuccessfulResponse> adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         return ResponseEntity.ok(userService.adminChangeUserPassword(userId, adminSetPasswordRequest));
     }
