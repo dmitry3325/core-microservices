@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.corems.common.security.exception.AuthServiceException;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 
 public final class SecurityUtils {
@@ -26,7 +26,7 @@ public final class SecurityUtils {
      * Return current authenticated UserPrincipal or throw an AuthServiceException(UNAUTHORIZED).
      */
     public static UserPrincipal getUserPrincipal() {
-        return getUserPrincipalOptional().orElseThrow(() -> AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED));
+        return getUserPrincipalOptional().orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED));
     }
 
     /**

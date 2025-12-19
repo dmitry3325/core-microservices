@@ -2,9 +2,9 @@ package com.corems.userms.app.security.oauth2;
 
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.service.TokenProvider;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import com.corems.userms.app.entity.LoginTokenEntity;
-import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.repository.LoginTokenRepository;
 import com.corems.userms.app.repository.UserRepository;
 import com.corems.userms.app.util.CookieUtils;
@@ -46,6 +46,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
+    @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         Optional<String> redirectUri = CookieUtils
                 .getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
@@ -67,7 +68,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         LoginTokenEntity loginToken = new LoginTokenEntity();
         loginToken.setUuid(tokenId);
         loginToken.setUser(userRepository.findByUuid(userPrincipal.getUserId())
-                .orElseThrow(() -> UserServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, String.format("User not found with ID: %s.", userPrincipal.getUserId()))));
+                .orElseThrow(() -> ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, String.format("User not found with ID: %s.", userPrincipal.getUserId()))));
         loginToken.setToken(token);
 
         loginTokenRepository.save(loginToken);

@@ -22,7 +22,7 @@ public class SmsServiceProvider implements ChannelProvider<SmsPayload> {
     @Autowired
     public SmsServiceProvider(SmsConfig config) {
         this.config = config;
-        if (config.enabled()) {
+        if (Boolean.TRUE.equals(config.enabled())) {
             Twilio.init(config.accountSid(), config.authToken());
         }
     }
@@ -39,7 +39,7 @@ public class SmsServiceProvider implements ChannelProvider<SmsPayload> {
 
     @Override
     public void send(SmsPayload payload) {
-        if (!config.enabled()) {
+        if (Boolean.FALSE.equals(config.enabled())) {
             log.info("SMS sending disabled@! Simulating send to {}: {}", payload.getPhoneNumber(), payload.getMessage());
             return;
         }

@@ -65,8 +65,8 @@
 
     <modules>
         <module>common</module>
-        <module>user-ms</module>
         <module>communication-ms</module>
+        <module>user-ms</module>
         <module>translation-ms</module>
         <module>document-ms</module>
     </modules>
@@ -135,7 +135,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.4.0</version>
+                <configuration>
+                    <retryOnError>true</retryOnError>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

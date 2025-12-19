@@ -8,5 +8,5 @@ import com.corems.common.queue.QueueMessage;
  */
 @FunctionalInterface
 public interface MessageHandler {
-    void handle(QueueMessage message) throws Exception;
+    void handle(QueueMessage message);
 }

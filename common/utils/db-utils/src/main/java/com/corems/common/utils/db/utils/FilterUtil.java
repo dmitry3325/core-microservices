@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Utility for parsing and validating filter strings.
@@ -59,7 +58,7 @@ public final class FilterUtil {
                     validate(apiField, resolved, finalAllowed);
                     return new FilterRequest(resolved, fr.op(), fr.value());
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static void validate(String apiField, String resolvedPath, List<String> allowed) {

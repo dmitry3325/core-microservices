@@ -1,6 +1,6 @@
 package com.corems.common.security;
 
-import com.corems.common.security.exception.AuthServiceException;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -37,7 +37,7 @@ public class RequireRolesAspect {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED);
+            throw ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED);
         }
 
         Set<String> authorities = auth.getAuthorities().stream()
@@ -61,7 +61,7 @@ public class RequireRolesAspect {
             return pjp.proceed();
         }
 
-        throw AuthServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN);
+        throw ServiceException.of(DefaultExceptionReasonCodes.FORBIDDEN);
     }
 }
 

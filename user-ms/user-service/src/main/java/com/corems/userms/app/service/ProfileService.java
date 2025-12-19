@@ -1,6 +1,5 @@
 package com.corems.userms.app.service;
 
-import com.corems.common.security.CoreMsRoles;
 import com.corems.common.security.SecurityUtils;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.app.entity.RoleEntity;
@@ -24,6 +23,8 @@ import java.time.ZoneOffset;
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
+    private static final String USER_NOT_FOUND_MSG = "User id: %s not found";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -32,7 +33,7 @@ public class ProfileService {
 
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
-                        String.format("User id: %s not found", userPrincipal.getUserId())));
+                        String.format(USER_NOT_FOUND_MSG, userPrincipal.getUserId())));
 
         return mapToUserInfo(user);
     }
@@ -41,7 +42,7 @@ public class ProfileService {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
-                        String.format("User id: %s not found", userPrincipal.getUserId())));
+                        String.format(USER_NOT_FOUND_MSG, userPrincipal.getUserId())));
         if (userProfileUpdateRequest.getFirstName() != null)
             user.setFirstName(userProfileUpdateRequest.getFirstName());
         if (userProfileUpdateRequest.getLastName() != null)
@@ -58,14 +59,13 @@ public class ProfileService {
         UserPrincipal userPrincipal = SecurityUtils.getUserPrincipal();
         UserEntity user = userRepository.findByUuid(userPrincipal.getUserId())
                 .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND,
-                        String.format("User id: %s not found", userPrincipal.getUserId())));
+                        String.format(USER_NOT_FOUND_MSG, userPrincipal.getUserId())));
 
         if (user.getPassword() != null
                 && !passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "Wrong password");
         }
-        if (changePasswordRequest.getNewPassword() == null || changePasswordRequest.getConfirmPassword() == null ||
-                !changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+        if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH,
                     "New password and confirm password do not match");
         }

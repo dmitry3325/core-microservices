@@ -127,7 +127,7 @@ public class DefaultErrorConverter implements ErrorConverter {
                 Error.of(DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getErrorCode(),
                         DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getDescription(),
                         fieldError.getField() + " - " + fieldError.getDefaultMessage())
-        ).sorted(this.errorComparator).collect(Collectors.toList());
+        ).sorted(this.errorComparator).toList();
     }
 
     @Override
@@ -156,6 +156,6 @@ public class DefaultErrorConverter implements ErrorConverter {
             }
 
             return Error.of(DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getErrorCode(), DefaultExceptionReasonCodes.PROVIDED_VALUE_INVALID.getDescription(), details + " " + message);
-        }).sorted(this.errorComparator).collect(Collectors.toList());
+        }).sorted(this.errorComparator).toList();
     }
 }

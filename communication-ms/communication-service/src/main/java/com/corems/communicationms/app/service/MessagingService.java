@@ -20,7 +20,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,7 +51,7 @@ public class MessagingService {
 
         List<MessageResponse> items = result.getContent().stream()
                 .map(this::mapToMessageResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         MessageListResponse response = new MessageListResponse(result.getNumber() + 1, result.getSize());
         response.setItems(items);
@@ -108,14 +107,14 @@ public class MessagingService {
             List<String> cc = java.util.Arrays.stream(emailEntity.getCc().split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
+                    .toList();
             ep.setCc(cc);
         }
         if (emailEntity.getBcc() != null && !emailEntity.getBcc().isBlank()) {
             List<String> bcc = java.util.Arrays.stream(emailEntity.getBcc().split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
+                    .toList();
             ep.setBcc(bcc);
         }
         return ep;

@@ -15,7 +15,7 @@ import java.util.List;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    private final long MAX_AGE_SECS = 3600;
+    private final static long MAX_AGE_SECS = 3600;
 
     @Value("${spring.security.cors.allowedOrigins:http://localhost:8080}")
     private String[] allowedOrigins;

@@ -14,7 +14,6 @@ import jakarta.persistence.criteria.Root;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.Instant;
@@ -47,7 +46,7 @@ public class GenericSpecification<T> implements Specification<T> {
                 List<Object> values = Arrays.stream(raw.split(","))
                         .map(String::trim)
                         .map(v -> castValue(path, v))
-                        .collect(Collectors.toList());
+                        .toList();
                 yield path.in(values);
             }
             case CONTAINS -> {
@@ -94,14 +93,13 @@ public class GenericSpecification<T> implements Specification<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildGreaterThan(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
-        if (casted instanceof Number) {
-            // use the path directly as a Number expression to avoid casting the column to varchar
+        if (casted instanceof Number number) {
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
-            return cb.gt(numExpr, ((Number) casted));
+            return cb.gt(numExpr, number);
         }
-        if (casted instanceof Comparable) {
+        if (casted instanceof Comparable comparable) {
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
-            return cb.greaterThan(cmpExpr, (Comparable) casted);
+            return cb.greaterThan(cmpExpr, comparable);
         }
         // fallback to string compare
         return cb.greaterThan(path.as(String.class), casted.toString());
@@ -110,13 +108,13 @@ public class GenericSpecification<T> implements Specification<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildGreaterThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
-        if (casted instanceof Number) {
+        if (casted instanceof Number number) {
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
-            return cb.ge(numExpr, ((Number) casted));
+            return cb.ge(numExpr, number);
         }
-        if (casted instanceof Comparable) {
+        if (casted instanceof Comparable comparable) {
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
-            return cb.greaterThanOrEqualTo(cmpExpr, (Comparable) casted);
+            return cb.greaterThanOrEqualTo(cmpExpr, comparable);
         }
         return cb.greaterThanOrEqualTo(path.as(String.class), casted.toString());
     }
@@ -124,13 +122,13 @@ public class GenericSpecification<T> implements Specification<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildLessThan(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
-        if (casted instanceof Number) {
+        if (casted instanceof Number number) {
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
-            return cb.lt(numExpr, ((Number) casted));
+            return cb.lt(numExpr, number);
         }
-        if (casted instanceof Comparable) {
+        if (casted instanceof Comparable comparable) {
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
-            return cb.lessThan(cmpExpr, (Comparable) casted);
+            return cb.lessThan(cmpExpr, comparable);
         }
         return cb.lessThan(path.as(String.class), casted.toString());
     }
@@ -138,13 +136,13 @@ public class GenericSpecification<T> implements Specification<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Predicate buildLessThanOrEqual(CriteriaBuilder cb, Path<?> path, Object casted, Class<?> targetType) {
         if (casted == null) return cb.conjunction();
-        if (casted instanceof Number) {
+        if (casted instanceof Number number) {
             Expression<? extends Number> numExpr = (Expression<? extends Number>) path;
-            return cb.le(numExpr, ((Number) casted));
+            return cb.le(numExpr, number);
         }
-        if (casted instanceof Comparable) {
+        if (casted instanceof Comparable comparable) {
             Expression<? extends Comparable> cmpExpr = (Expression<? extends Comparable>) path;
-            return cb.lessThanOrEqualTo(cmpExpr, (Comparable) casted);
+            return cb.lessThanOrEqualTo(cmpExpr, comparable);
         }
         return cb.lessThanOrEqualTo(path.as(String.class), casted.toString());
     }
@@ -159,9 +157,9 @@ public class GenericSpecification<T> implements Specification<T> {
 
             // Check if base path is a collection field
             if (collectionFields.contains(basePath)) {
-                if (root instanceof Root) {
+                if (root instanceof Root<?> rootPath) {
                     // LEFT Join the collection to include entities without collection values
-                    Path<?> path = ((Root<?>) root).join(basePath, JoinType.LEFT);
+                    Path<?> path = rootPath.join(basePath, JoinType.LEFT);
                     // Navigate to nested fields
                     for (int i = 1; i < parts.length; i++) {
                         path = path.get(parts[i]);
@@ -179,9 +177,9 @@ public class GenericSpecification<T> implements Specification<T> {
 
         // Simple field - check if it's a collection
         if (collectionFields.contains(field)) {
-            if (root instanceof Root) {
+            if (root instanceof Root<?> rootPath) {
                 // Use LEFT JOIN for collection fields
-                return ((Root<?>) root).join(field, JoinType.LEFT);
+                return rootPath.join(field, JoinType.LEFT);
             }
         }
 

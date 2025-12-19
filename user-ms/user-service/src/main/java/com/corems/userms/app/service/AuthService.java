@@ -2,13 +2,12 @@ package com.corems.userms.app.service;
 
 import com.corems.common.security.UserPrincipal;
 import com.corems.common.security.service.TokenProvider;
-import com.corems.communicationms.api.model.EmailNotificationRequest;
-import com.corems.communicationms.client.NotificationsApi;
+
 import com.corems.userms.app.entity.LoginTokenEntity;
 import com.corems.userms.app.entity.RoleEntity;
 import com.corems.userms.app.entity.UserEntity;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.security.CoreMsRoles;
-import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.api.model.AccessTokenResponse;
 import com.corems.userms.api.model.SignInRequest;
@@ -23,7 +22,6 @@ import com.corems.userms.app.repository.LoginTokenRepository;
 import com.corems.userms.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.GrantedAuthority;
 import com.corems.common.security.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +41,7 @@ public class AuthService {
     private final LoginTokenRepository loginTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
-    private final NotificationsApi notificationsApi;
+    private final NotificationService notificationService;
 
     public TokenResponse signIn(SignInRequest signRequest) {
         UserEntity user = userRepository
@@ -109,10 +107,10 @@ public class AuthService {
     private void validateRefreshToken(UserPrincipal userPrincipal) {
         LoginTokenEntity refreshToken = loginTokenRepository
                 .findByUuid(userPrincipal.getTokenId())
-                .orElseThrow(() ->  UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId())));
+                .orElseThrow(() ->  ServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId())));
 
         if (!Objects.equals(userPrincipal.getUserId(), refreshToken.getUser().getUuid())) {
-            throw UserServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId()));
+            throw ServiceException.of(UserServiceExceptionReasonCodes.TOKEN_NOT_FOUND, String.format("Token not found with ID: %s.", userPrincipal.getTokenId()));
         }
     }
 
@@ -153,27 +151,8 @@ public class AuthService {
 
         var savedUser = userRepository.save(user);
 
-        sendWelcomeEmail(savedUser);
+        notificationService.sendWelcomeEmail(savedUser);
 
         return new SuccessfulResponse().result(true);
-    }
-
-    @Async
-    public void sendWelcomeEmail(UserEntity user) {
-        try {
-            EmailNotificationRequest request = new EmailNotificationRequest();
-            request.setSubject("Welcome to CoreMS");
-            request.setRecipient(user.getEmail());
-            request.setBody("Dear " + user.getFirstName() + ",\n\n" +
-                    "Welcome to CoreMS! We're excited to have you on board.\n\n" +
-                    "Best regards,\n" +
-                    "The CoreMS Team");
-            
-            var res = notificationsApi.sendEmailNotification(request);
-
-            log.info("Welcome email sent to user: {}, result: {}", user.getUuid(), res);
-        } catch (Exception e) {
-            log.error("Failed to send welcome email to user: {}", user.getEmail(), e);
-        }
     }
 }

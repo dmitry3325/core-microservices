@@ -1,4 +1,9 @@
 spring:
+  # Only import db-config for tests (skip queue-config.yaml)
+  config:
+    import:
+      - optional:classpath:db-config.yaml
+
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;INIT=CREATE SCHEMA IF NOT EXISTS communication_ms
     driver-class-name: org.h2.Driver
@@ -41,6 +46,16 @@ mail:
         auth: true
         starttls:
           enable: true
+
+# Disable queue for tests
+queue:
+  enabled: false
+
+# Disable RabbitMQ health check
+management:
+  health:
+    rabbit:
+      enabled: false
 
 logging:
   level:

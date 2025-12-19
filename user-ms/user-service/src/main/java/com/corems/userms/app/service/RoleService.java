@@ -1,10 +1,10 @@
 package com.corems.userms.app.service;
 
+import com.corems.common.exception.ServiceException;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.userms.app.config.UserServiceProperties;
 import com.corems.userms.app.entity.RoleEntity;
 import com.corems.userms.app.entity.UserEntity;
-import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +35,8 @@ public class RoleService {
         for (String rn : normalized) {
             try {
                 resolved.add(resolveRole(rn));
-            } catch (IllegalArgumentException ex) {
-                throw UserServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
+            } catch (IllegalArgumentException _) {
+                throw ServiceException.of(UserServiceExceptionReasonCodes.INVALID_ROLE, "Invalid role: " + rn);
             }
         }
 

@@ -1,10 +1,10 @@
 package com.corems.userms.app.service;
 
+import com.corems.common.exception.ServiceException;
 import com.corems.common.security.CoreMsRoles;
 import com.corems.common.security.SecurityUtils;
 import com.corems.userms.app.entity.UserEntity;
 import com.corems.userms.app.entity.RoleEntity;
-import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.api.model.AdminSetPasswordRequest;
 import com.corems.userms.api.model.ChangeEmailRequest;
@@ -27,27 +27,28 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private static final String USER_NOT_FOUND_MSG = "User id: %s not found";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
     public UserInfo getUserById(UUID userId) {
         UserEntity user = userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format(USER_NOT_FOUND_MSG, userId)));
 
         return mapToUserInfo(user);
     }
 
     public SuccessfulResponse updateUserById(UUID userId, UserInfo userInfo) {
         UserEntity user = userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format(USER_NOT_FOUND_MSG, userId)));
 
         if (userInfo.getFirstName() != null) user.setFirstName(userInfo.getFirstName());
         if (userInfo.getLastName() != null) user.setLastName(userInfo.getLastName());
@@ -66,7 +67,7 @@ public class UserService {
 
     public SuccessfulResponse createUser(CreateUserRequest createUserRequest) {
         if (userRepository.findByEmail(createUserRequest.getEmail()).isPresent()) {
-            throw UserServiceException.of(UserServiceExceptionReasonCodes.USER_EXISTS, "User with this email already exists");
+            throw ServiceException.of(UserServiceExceptionReasonCodes.USER_EXISTS, "User with this email already exists");
         }
 
         UserEntity.UserEntityBuilder userBuilder = UserEntity.builder()
@@ -90,7 +91,7 @@ public class UserService {
 
     public SuccessfulResponse deleteUserById(UUID userId) {
         UserEntity user = userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format(USER_NOT_FOUND_MSG, userId)));
 
         userRepository.delete(user);
         return new SuccessfulResponse().result(true);
@@ -98,10 +99,9 @@ public class UserService {
 
     public SuccessfulResponse adminChangeUserPassword(UUID userId, AdminSetPasswordRequest adminSetPasswordRequest) {
         UserEntity user = userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format(USER_NOT_FOUND_MSG, userId)));
 
-        if (adminSetPasswordRequest.getNewPassword() == null || adminSetPasswordRequest.getConfirmPassword() == null ||
-                !adminSetPasswordRequest.getNewPassword().equals(adminSetPasswordRequest.getConfirmPassword())) {
+        if (!adminSetPasswordRequest.getNewPassword().equals(adminSetPasswordRequest.getConfirmPassword())) {
             throw new AuthServiceException(AuthExceptionReasonCodes.USER_PASSWORD_MISMATCH, "New password and confirm password do not match");
         }
         user.setPassword(passwordEncoder.encode(adminSetPasswordRequest.getNewPassword()));
@@ -112,7 +112,7 @@ public class UserService {
 
     public SuccessfulResponse adminChangeUserEmail(UUID userId, ChangeEmailRequest changeEmailRequest) {
         UserEntity user = userRepository.findByUuid(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format("User id: %s not found", userId)));
+                .orElseThrow(() -> new AuthServiceException(AuthExceptionReasonCodes.USER_NOT_FOUND, String.format(USER_NOT_FOUND_MSG, userId)));
 
         user.setEmail(changeEmailRequest.getNewEmail());
         userRepository.save(user);
@@ -132,7 +132,7 @@ public class UserService {
         Page<UserEntity> userPage = userRepository.findAllByQueryParams(params);
         List<UserInfo> items = userPage.getContent().stream()
                 .map(this::mapToUserInfo)
-                .collect(Collectors.toList());
+                .toList();
 
         UsersPagedResponse response = new UsersPagedResponse(userPage.getNumber() + 1, userPage.getSize());
         response.setItems(items);

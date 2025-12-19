@@ -1,8 +1,8 @@
 package com.corems.common.security.filter;
 
 import com.corems.common.security.UserPrincipal;
-import com.corems.common.security.exception.AuthServiceException;
 import com.corems.common.security.service.TokenProvider;
+import com.corems.common.exception.ServiceException;
 import com.corems.common.exception.handler.DefaultExceptionReasonCodes;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
@@ -23,7 +23,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ServiceAuthenticationFilter extends OncePerRequestFilter {
@@ -53,7 +52,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             Jws<Claims> parsed = tokenProvider.parseToken(jwt);
             Header header = parsed.getHeader();
             if (!Objects.equals(header.getType(), TokenProvider.TOKEN_TYPE_ACCESS)) {
-                throw AuthServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Provided token has wrong type");
+                throw ServiceException.of(DefaultExceptionReasonCodes.UNAUTHORIZED, "Provided token has wrong type");
             }
 
             Claims claims = parsed.getPayload();
@@ -64,14 +63,14 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                 roles = ((List<?>) rolesObj).stream()
                         .filter(Objects::nonNull)
                         .map(Object::toString)
-                        .collect(Collectors.toList());
+                        .toList();
             } else {
                 roles = List.of();
             }
 
             List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
+                    .toList();
 
             UserPrincipal principal = new UserPrincipal(
                     claims.get(TokenProvider.CLAIM_USER_ID, String.class),

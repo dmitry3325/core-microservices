@@ -22,10 +22,10 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
@@ -130,7 +130,7 @@ public class RestServiceExceptionHandler extends ResponseEntityExceptionHandler 
 
         List<String> allowed = Arrays.stream(requiredType.getEnumConstants())
                 .map(Object::toString)
-                .collect(Collectors.toList());
+                .toList();
 
         String message = String.format("Failed to convert value '%s' to enum %s.", rejected, requiredType.getSimpleName());
         String details = String.format("Allowed values: %s", String.join(", ", allowed));

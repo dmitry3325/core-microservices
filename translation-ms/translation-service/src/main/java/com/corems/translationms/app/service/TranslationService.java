@@ -42,7 +42,7 @@ public class TranslationService {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +63,7 @@ public class TranslationService {
                             .map(t -> new LanguageInfo(t.getLang(),
                                     OffsetDateTime.ofInstant(t.getUpdatedAt(), ZoneOffset.UTC),
                                     t.getUpdatedBy()))
-                            .collect(Collectors.toList());
+                            .toList();
                     rl.setLanguages(langs);
                     return rl;
                 })

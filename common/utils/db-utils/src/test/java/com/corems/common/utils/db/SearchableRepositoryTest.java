@@ -20,7 +20,7 @@ import java.time.ZoneOffset;
 
 @SpringBootTest(classes = SearchableRepositoryTest.TestConfig.class)
 @Transactional
-public class SearchableRepositoryTest {
+class SearchableRepositoryTest {
 
     @SpringBootApplication(scanBasePackageClasses = TestEntity.class)
     @EnableJpaRepositories(basePackageClasses = TestEntityRepository.class)

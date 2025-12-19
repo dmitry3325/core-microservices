@@ -1,8 +1,8 @@
 package com.corems.userms.app.security;
 
+import com.corems.common.exception.ServiceException;
 import com.corems.common.security.UserPrincipal;
 import com.corems.userms.app.entity.UserEntity;
-import com.corems.userms.app.exception.UserServiceException;
 import com.corems.userms.app.exception.UserServiceExceptionReasonCodes;
 import com.corems.userms.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserPrincipal loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity user = userRepository
                 .findByEmail(email)
-                .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
+                .orElseThrow(() -> ServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with email: %s.", email)));
 
         return new UserPrincipal(
                 user.getUuid().toString(),
@@ -38,7 +38,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserPrincipal loadUserById(UUID userId, UUID tokenId) {
         UserEntity user = userRepository
                 .findByUuid(userId)
-                .orElseThrow(() -> UserServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with ID: %s.", userId)));
+                .orElseThrow(() -> ServiceException.of(UserServiceExceptionReasonCodes.USER_NOT_FOUND, String.format("User not found with ID: %s.", userId)));
 
         return new UserPrincipal(
                 user.getUuid(),
