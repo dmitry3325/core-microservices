@@ -46,19 +46,19 @@ jobs:
         id: changes
         run: |
           # Check if common changed
-          if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -qE '^(common/|pom\.xml)'; then
+          if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD 2>/dev/null | grep -qE '^(common/|pom\.xml)'; then
             echo "common=true" >> $GITHUB_OUTPUT
           else
             echo "common=false" >> $GITHUB_OUTPUT
           fi
           
-          # Build JSON object of which modules changed
+          # Build JSON object of which modules changed (compact, single line)
           CHANGES="{}"
-          for dir in $(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||'); do
-            if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -qE "^${dir}/|^pom\.xml"; then
-              CHANGES=$(echo $CHANGES | jq --arg k "$dir" '. + {($k): true}')
+          for dir in $(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||' | sort); do
+            if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD 2>/dev/null | grep -qE "^${dir}/|^pom\.xml"; then
+              CHANGES=$(echo "$CHANGES" | jq -c --arg k "$dir" '. + {($k): true}')
             else
-              CHANGES=$(echo $CHANGES | jq --arg k "$dir" '. + {($k): false}')
+              CHANGES=$(echo "$CHANGES" | jq -c --arg k "$dir" '. + {($k): false}')
             fi
           done
           echo "changes=$CHANGES" >> $GITHUB_OUTPUT
