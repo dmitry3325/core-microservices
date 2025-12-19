@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       modules:
-        description: 'Modules to build (comma-separated: all, common, user-ms, communication-ms, translation-ms, document-ms)'
+        description: 'Modules to build (comma-separated: all, common, or specific like user-ms)'
         type: string
         default: 'all'
         required: true
@@ -21,48 +21,55 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/corems
 
 jobs:
-  # Detect which modules changed (for push/PR)
-  detect-changes:
+  # Discover all *-ms modules and detect changes
+  setup:
     runs-on: ubuntu-latest
     outputs:
-      common: ${{ steps.changes.outputs.common }}
-      user-ms: ${{ steps.changes.outputs.user-ms }}
-      communication-ms: ${{ steps.changes.outputs.communication-ms }}
-      translation-ms: ${{ steps.changes.outputs.translation-ms }}
-      document-ms: ${{ steps.changes.outputs.document-ms }}
+      microservices: ${{ steps.discover.outputs.microservices }}
+      common-changed: ${{ steps.changes.outputs.common }}
+      ms-changes: ${{ steps.changes.outputs.changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Detect changed modules
+      - name: Discover microservices
+        id: discover
+        run: |
+          # Find all directories ending with -ms
+          MODULES=$(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "microservices=$MODULES" >> $GITHUB_OUTPUT
+          echo "Discovered modules: $MODULES"
+
+      - name: Detect changes
         id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            common:
-              - 'common/**'
-              - 'pom.xml'
-            user-ms:
-              - 'user-ms/**'
-              - 'pom.xml'
-            communication-ms:
-              - 'communication-ms/**'
-              - 'pom.xml'
-            translation-ms:
-              - 'translation-ms/**'
-              - 'pom.xml'
-            document-ms:
-              - 'document-ms/**'
-              - 'pom.xml'
+        run: |
+          # Check if common changed
+          if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -qE '^(common/|pom\.xml)'; then
+            echo "common=true" >> $GITHUB_OUTPUT
+          else
+            echo "common=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Build JSON object of which modules changed
+          CHANGES="{}"
+          for dir in $(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||'); do
+            if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -qE "^${dir}/|^pom\.xml"; then
+              CHANGES=$(echo $CHANGES | jq --arg k "$dir" '. + {($k): true}')
+            else
+              CHANGES=$(echo $CHANGES | jq --arg k "$dir" '. + {($k): false}')
+            fi
+          done
+          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+          echo "Changes detected: $CHANGES"
 
 
-  # Build common module (only when needed)
+  # Build common module
   build-common:
-    needs: detect-changes
+    needs: setup
     if: |
-      needs.detect-changes.outputs.common == 'true' ||
+      needs.setup.outputs.common-changed == 'true' ||
       github.event_name == 'release' ||
       (github.event_name == 'workflow_dispatch' && (contains(inputs.modules, 'all') || contains(inputs.modules, 'common')))
     runs-on: ubuntu-latest
@@ -80,47 +87,43 @@ jobs:
       - name: Build and test common module
         run: mvn -B -pl common -amd clean verify -Denforcer.skip=true
 
-      - name: Upload common artifacts to cache
+      - name: Upload common artifacts
         uses: actions/upload-artifact@v4
         with:
           name: common-artifacts
           path: ~/.m2/repository/com/corems/
           retention-days: 1
 
-  # Build microservices
+  # Build microservices dynamically
   build-microservices:
-    needs: [detect-changes, build-common]
+    needs: [setup, build-common]
     if: |
       always() &&
-      (needs.build-common.result == 'success' || needs.build-common.result == 'skipped')
+      (needs.build-common.result == 'success' || needs.build-common.result == 'skipped') &&
+      needs.setup.outputs.microservices != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - module: user-ms
-            changed: ${{ needs.detect-changes.outputs.user-ms }}
-          - module: communication-ms
-            changed: ${{ needs.detect-changes.outputs.communication-ms }}
-          - module: translation-ms
-            changed: ${{ needs.detect-changes.outputs.translation-ms }}
-          - module: document-ms
-            changed: ${{ needs.detect-changes.outputs.document-ms }}
+        module: ${{ fromJson(needs.setup.outputs.microservices) }}
     steps:
       - name: Check if should build
         id: should-build
         run: |
           MODULE="${{ matrix.module }}"
-          CHANGED="${{ matrix.changed }}"
-          COMMON_CHANGED="${{ needs.detect-changes.outputs.common }}"
+          COMMON_CHANGED="${{ needs.setup.outputs.common-changed }}"
           EVENT="${{ github.event_name }}"
           MODULES_INPUT="${{ inputs.modules }}"
+          MS_CHANGES='${{ needs.setup.outputs.ms-changes }}'
+          
+          # Check if this specific module changed
+          MODULE_CHANGED=$(echo "$MS_CHANGES" | jq -r --arg m "$MODULE" '.[$m] // false')
           
           SHOULD_BUILD="false"
           
           # Push/PR: build if module or common changed
           if [[ "$EVENT" == "push" || "$EVENT" == "pull_request" ]]; then
-            if [[ "$CHANGED" == "true" || "$COMMON_CHANGED" == "true" ]]; then
+            if [[ "$MODULE_CHANGED" == "true" || "$COMMON_CHANGED" == "true" ]]; then
               SHOULD_BUILD="true"
             fi
           fi
@@ -184,9 +187,10 @@ jobs:
           path: ~/.m2/repository/com/corems/
           retention-days: 7
 
-  # SonarCloud analysis (runs after all builds complete)
+
+  # SonarCloud analysis
   sonar:
-    needs: [build-common, build-microservices]
+    needs: [setup, build-common, build-microservices]
     if: |
       always() &&
       (needs.build-common.result == 'success' || needs.build-microservices.result == 'success') &&
@@ -224,7 +228,7 @@ jobs:
 
   # Build and push Docker images on release
   docker:
-    needs: [detect-changes, build-common, build-microservices]
+    needs: [setup, build-common, build-microservices]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -233,7 +237,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [user-ms, communication-ms, translation-ms, document-ms]
+        module: ${{ fromJson(needs.setup.outputs.microservices) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -254,7 +258,18 @@ jobs:
       - name: Build JAR
         run: mvn -B -pl ${{ matrix.module }} -amd clean package -DskipTests -Denforcer.skip=true
 
+      - name: Check for Dockerfile
+        id: dockerfile
+        run: |
+          if [[ -f "${{ matrix.module }}/Dockerfile" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Warning: No Dockerfile found for ${{ matrix.module }}"
+          fi
+
       - name: Log in to Container Registry
+        if: steps.dockerfile.outputs.exists == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -262,6 +277,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata for Docker
+        if: steps.dockerfile.outputs.exists == 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -272,6 +288,7 @@ jobs:
             type=sha,prefix=
 
       - name: Build and push Docker image
+        if: steps.dockerfile.outputs.exists == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.module }}
