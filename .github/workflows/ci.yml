@@ -14,6 +14,10 @@ on:
         type: string
         default: 'all'
         required: true
+      run_sonar:
+        description: 'Run SonarCloud analysis'
+        type: boolean
+        default: false
 
 env:
   MAVEN_OPTS: -Xmx1024m
@@ -188,13 +192,13 @@ jobs:
           retention-days: 7
 
 
-  # SonarCloud analysis
+  # SonarCloud analysis (manual trigger only)
   sonar:
     needs: [setup, build-common, build-microservices]
     if: |
       always() &&
       (needs.build-common.result == 'success' || needs.build-microservices.result == 'success') &&
-      github.event_name != 'release'
+      github.event_name == 'workflow_dispatch' && inputs.run_sonar == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
