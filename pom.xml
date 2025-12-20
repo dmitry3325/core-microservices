@@ -76,7 +76,19 @@
             <id>projectlombok.org</id>
             <url>https://projectlombok.org/edge-releases</url>
         </repository>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/dmitry3325/core-microservices</url>
+        </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/dmitry3325/core-microservices</url>
+        </repository>
+    </distributionManagement>
 
     <pluginRepositories>
         <pluginRepository>

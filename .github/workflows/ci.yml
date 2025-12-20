@@ -25,7 +25,6 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/corems
 
 jobs:
-  # Discover all *-ms modules and detect changes
   setup:
     runs-on: ubuntu-latest
     outputs:
@@ -42,7 +41,6 @@ jobs:
         run: |
           MODULES=$(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "microservices=$MODULES" >> $GITHUB_OUTPUT
-          echo "Discovered modules: $MODULES"
 
       - name: Detect changes
         id: changes
@@ -53,7 +51,6 @@ jobs:
             echo "any-changed=false" >> $GITHUB_OUTPUT
           fi
 
-  # Build modules (handles cross-dependencies by using -am flag)
   build:
     needs: setup
     if: |
@@ -61,6 +58,9 @@ jobs:
       github.event_name == 'release' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,6 +71,9 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
           cache: 'maven'
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - name: Determine modules to build
         id: modules
@@ -79,25 +82,26 @@ jobs:
           MODULES_INPUT="${{ inputs.modules }}"
           
           if [[ "$EVENT" == "workflow_dispatch" && "$MODULES_INPUT" != "all" ]]; then
-            # Convert comma-separated to Maven -pl format
-            # e.g., "user-ms,common" -> "common,user-ms"
             MAVEN_PL=$(echo "$MODULES_INPUT" | tr ',' '\n' | sort | tr '\n' ',' | sed 's/,$//')
-            echo "maven_args=-pl ${MAVEN_PL} -am" >> $GITHUB_OUTPUT
-            echo "Building specific modules: $MAVEN_PL (with dependencies)"
+            echo "maven_args=-pl ${MAVEN_PL}" >> $GITHUB_OUTPUT
+            echo "Building specific modules: $MAVEN_PL"
           else
             echo "maven_args=" >> $GITHUB_OUTPUT
             echo "Building all modules"
           fi
 
       - name: Build and test
-        run: mvn -B clean install ${{ steps.modules.outputs.maven_args }} -Denforcer.skip=true
+        run: mvn -B clean verify ${{ steps.modules.outputs.maven_args }} -Denforcer.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: ~/.m2/repository/com/corems/
-          retention-days: 7
+      - name: Publish to GitHub Packages
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+        run: mvn -B deploy ${{ steps.modules.outputs.maven_args }} -DskipTests -Denforcer.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload test results
         if: always()
@@ -108,13 +112,15 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  # SonarCloud analysis (manual trigger only)
   sonar:
     needs: build
     if: |
       needs.build.result == 'success' &&
       github.event_name == 'workflow_dispatch' && inputs.run_sonar == true
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -127,6 +133,9 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
           cache: 'maven'
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -138,6 +147,8 @@ jobs:
       - name: Build and analyze with SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mvn -B clean verify sonar:sonar \
             -Dsonar.projectKey=dmitry3325_core-microservices \
@@ -145,7 +156,6 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Denforcer.skip=true
 
-  # Build and push Docker images on release
   docker:
     needs: [setup, build]
     if: github.event_name == 'release'
@@ -167,15 +177,15 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
           cache: 'maven'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ~/.m2/repository/com/corems/
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - name: Build JAR
-        run: mvn -B -pl ${{ matrix.module }} -am package -DskipTests -Denforcer.skip=true
+        run: mvn -B -pl ${{ matrix.module }} package -DskipTests -Denforcer.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for Dockerfile
         id: dockerfile
@@ -184,7 +194,6 @@ jobs:
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Warning: No Dockerfile found for ${{ matrix.module }}"
           fi
 
       - name: Log in to Container Registry
