@@ -30,8 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       microservices: ${{ steps.discover.outputs.microservices }}
-      common-changed: ${{ steps.changes.outputs.common }}
-      ms-changes: ${{ steps.changes.outputs.changes }}
+      any-changed: ${{ steps.changes.outputs.any-changed }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,7 +40,6 @@ jobs:
       - name: Discover microservices
         id: discover
         run: |
-          # Find all directories ending with -ms
           MODULES=$(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "microservices=$MODULES" >> $GITHUB_OUTPUT
           echo "Discovered modules: $MODULES"
@@ -49,33 +47,19 @@ jobs:
       - name: Detect changes
         id: changes
         run: |
-          # Check if common changed
-          if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD 2>/dev/null | grep -qE '^(common/|pom\.xml)'; then
-            echo "common=true" >> $GITHUB_OUTPUT
+          if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD 2>/dev/null | grep -qE '^(common/|pom\.xml|.*-ms/)'; then
+            echo "any-changed=true" >> $GITHUB_OUTPUT
           else
-            echo "common=false" >> $GITHUB_OUTPUT
+            echo "any-changed=false" >> $GITHUB_OUTPUT
           fi
-          
-          # Build JSON object of which modules changed (compact, single line)
-          CHANGES="{}"
-          for dir in $(find . -maxdepth 1 -type d -name "*-ms" | sed 's|./||' | sort); do
-            if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD 2>/dev/null | grep -qE "^${dir}/|^pom\.xml"; then
-              CHANGES=$(echo "$CHANGES" | jq -c --arg k "$dir" '. + {($k): true}')
-            else
-              CHANGES=$(echo "$CHANGES" | jq -c --arg k "$dir" '. + {($k): false}')
-            fi
-          done
-          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
-          echo "Changes detected: $CHANGES"
 
-
-  # Build common module
-  build-common:
+  # Build modules (handles cross-dependencies by using -am flag)
+  build:
     needs: setup
     if: |
-      needs.setup.outputs.common-changed == 'true' ||
+      needs.setup.outputs.any-changed == 'true' ||
       github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && (contains(inputs.modules, 'all') || contains(inputs.modules, 'common')))
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -88,122 +72,47 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and test common module
+      - name: Determine modules to build
+        id: modules
         run: |
-          mvn -B -N clean install -Denforcer.skip=true
-          mvn -B -pl common -amd clean install -Denforcer.skip=true
+          EVENT="${{ github.event_name }}"
+          MODULES_INPUT="${{ inputs.modules }}"
+          
+          if [[ "$EVENT" == "workflow_dispatch" && "$MODULES_INPUT" != "all" ]]; then
+            # Convert comma-separated to Maven -pl format
+            # e.g., "user-ms,common" -> "common,user-ms"
+            MAVEN_PL=$(echo "$MODULES_INPUT" | tr ',' '\n' | sort | tr '\n' ',' | sed 's/,$//')
+            echo "maven_args=-pl ${MAVEN_PL} -am" >> $GITHUB_OUTPUT
+            echo "Building specific modules: $MAVEN_PL (with dependencies)"
+          else
+            echo "maven_args=" >> $GITHUB_OUTPUT
+            echo "Building all modules"
+          fi
 
-      - name: Upload common artifacts
+      - name: Build and test
+        run: mvn -B clean install ${{ steps.modules.outputs.maven_args }} -Denforcer.skip=true
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: common-artifacts
+          name: build-artifacts
           path: ~/.m2/repository/com/corems/
           retention-days: 7
 
-  # Build microservices dynamically
-  build-microservices:
-    needs: [setup, build-common]
-    if: |
-      always() &&
-      (needs.build-common.result == 'success' || needs.build-common.result == 'skipped') &&
-      needs.setup.outputs.microservices != '[]'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module: ${{ fromJson(needs.setup.outputs.microservices) }}
-    steps:
-      - name: Check if should build
-        id: should-build
-        run: |
-          MODULE="${{ matrix.module }}"
-          COMMON_CHANGED="${{ needs.setup.outputs.common-changed }}"
-          EVENT="${{ github.event_name }}"
-          MODULES_INPUT="${{ inputs.modules }}"
-          MS_CHANGES='${{ needs.setup.outputs.ms-changes }}'
-          
-          # Check if this specific module changed
-          MODULE_CHANGED=$(echo "$MS_CHANGES" | jq -r --arg m "$MODULE" '.[$m] // false')
-          
-          SHOULD_BUILD="false"
-          
-          # Push/PR: build if module or common changed
-          if [[ "$EVENT" == "push" || "$EVENT" == "pull_request" ]]; then
-            if [[ "$MODULE_CHANGED" == "true" || "$COMMON_CHANGED" == "true" ]]; then
-              SHOULD_BUILD="true"
-            fi
-          fi
-          
-          # Release: always build all
-          if [[ "$EVENT" == "release" ]]; then
-            SHOULD_BUILD="true"
-          fi
-          
-          # Manual: check if module is in the list
-          if [[ "$EVENT" == "workflow_dispatch" ]]; then
-            if [[ "$MODULES_INPUT" == *"all"* || "$MODULES_INPUT" == *"$MODULE"* ]]; then
-              SHOULD_BUILD="true"
-            fi
-          fi
-          
-          echo "build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
-          echo "Building $MODULE: $SHOULD_BUILD"
-
-      - name: Checkout code
-        if: steps.should-build.outputs.build == 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Java 25
-        if: steps.should-build.outputs.build == 'true'
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Download common artifacts
-        if: steps.should-build.outputs.build == 'true' && needs.build-common.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: common-artifacts
-          path: ~/.m2/repository/com/corems/
-        continue-on-error: true
-        id: download-common
-
-      - name: Build common first (if not already built or download failed)
-        if: steps.should-build.outputs.build == 'true' && (needs.build-common.result != 'success' || steps.download-common.outcome == 'failure')
-        run: |
-          mvn -B -N clean install -Denforcer.skip=true
-          mvn -B -pl common -amd clean install -Denforcer.skip=true
-
-      - name: Build and test ${{ matrix.module }}
-        if: steps.should-build.outputs.build == 'true'
-        run: mvn -B -pl ${{ matrix.module }} -amd clean verify -Denforcer.skip=true
-
       - name: Upload test results
-        if: steps.should-build.outputs.build == 'true' && always()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.module }}
-          path: ${{ matrix.module }}/**/target/surefire-reports/
+          name: test-results
+          path: '**/target/surefire-reports/'
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Upload module artifacts
-        if: steps.should-build.outputs.build == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.module }}-artifacts
-          path: ~/.m2/repository/com/corems/
-          retention-days: 7
-
-
   # SonarCloud analysis (manual trigger only)
   sonar:
-    needs: [setup, build-common, build-microservices]
+    needs: build
     if: |
-      always() &&
-      (needs.build-common.result == 'success' || needs.build-microservices.result == 'success') &&
+      needs.build.result == 'success' &&
       github.event_name == 'workflow_dispatch' && inputs.run_sonar == true
     runs-on: ubuntu-latest
     steps:
@@ -238,7 +147,7 @@ jobs:
 
   # Build and push Docker images on release
   docker:
-    needs: [setup, build-common, build-microservices]
+    needs: [setup, build]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -259,22 +168,14 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Download common artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: common-artifacts
+          name: build-artifacts
           path: ~/.m2/repository/com/corems/
-        continue-on-error: true
-        id: download-common-docker
-
-      - name: Build common if download failed
-        if: steps.download-common-docker.outcome == 'failure'
-        run: |
-          mvn -B -N clean install -DskipTests -Denforcer.skip=true
-          mvn -B -pl common -amd clean install -DskipTests -Denforcer.skip=true
 
       - name: Build JAR
-        run: mvn -B -pl ${{ matrix.module }} -amd clean package -DskipTests -Denforcer.skip=true
+        run: mvn -B -pl ${{ matrix.module }} -am package -DskipTests -Denforcer.skip=true
 
       - name: Check for Dockerfile
         id: dockerfile
