@@ -89,7 +89,9 @@ jobs:
           cache: 'maven'
 
       - name: Build and test common module
-        run: mvn -B -pl common -amd clean install -Denforcer.skip=true
+        run: |
+          mvn -B -N clean install -Denforcer.skip=true
+          mvn -B -pl common -amd clean install -Denforcer.skip=true
 
       - name: Upload common artifacts
         uses: actions/upload-artifact@v4
@@ -170,7 +172,9 @@ jobs:
 
       - name: Build common first (if not already built or download failed)
         if: steps.should-build.outputs.build == 'true' && (needs.build-common.result != 'success' || steps.download-common.outcome == 'failure')
-        run: mvn -B -pl common -amd clean install -Denforcer.skip=true
+        run: |
+          mvn -B -N clean install -Denforcer.skip=true
+          mvn -B -pl common -amd clean install -Denforcer.skip=true
 
       - name: Build and test ${{ matrix.module }}
         if: steps.should-build.outputs.build == 'true'
@@ -265,7 +269,9 @@ jobs:
 
       - name: Build common if download failed
         if: steps.download-common-docker.outcome == 'failure'
-        run: mvn -B -pl common -amd clean install -DskipTests -Denforcer.skip=true
+        run: |
+          mvn -B -N clean install -DskipTests -Denforcer.skip=true
+          mvn -B -pl common -amd clean install -DskipTests -Denforcer.skip=true
 
       - name: Build JAR
         run: mvn -B -pl ${{ matrix.module }} -amd clean package -DskipTests -Denforcer.skip=true
